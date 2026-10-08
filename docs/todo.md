@@ -1,0 +1,17 @@
+- Mainframe multiblock
+  - Components:
+    - 1 Mainframe Controller
+    - 1 Atomic Clock         (Optional) Timers and mem Clocks
+    - 1 Interrupt Controller (Optional) IRQ Queue 
+    - 1 Access Terminal      (Optional) Output Terminal
+    - 4 GPU Arrays           (Optional) 32 Signs ports
+    - 4 GPIO Controller                 32 Redstone ports each, min 1
+    - 1 Harddisk Array       (Optional) IO Persistent Storage
+    - 1 Ender Tunnel Array   (Optional) Shared Memory
+    - 1 Integrated Storage   (Optional) NVRAM, bound to Controller
+    - 1 Power Supply                    Power Cycle
+    - 1 Reset Port
+    - 1 NMI Port
+    - 1 TEST Port
+    - Mainframe Super Structure
+  - Size: 7x3x1 Wall

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "emulator_i86_crafted",
+  "version": "${version}",
+  "name": "i86 Emulator",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "BSD-3-Clause",
+  "icon": "assets/emulator_i86_crafted/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-datagen": [
+      "dervogel101.de.emulator_i86_crafted.client.Emulator_i86_craftedDataGenerator"
+    ],
+    "client": [
+      "dervogel101.de.emulator_i86_crafted.client.Emulator_i86_craftedClient"
+    ],
+    "main": [
+      "dervogel101.de.emulator_i86_crafted.Emulator_i86_crafted"
+    ]
+  },
+  "mixins": [
+    "emulator_i86_crafted.mixins.json",
+    {
+      "config": "emulator_i86_crafted.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
