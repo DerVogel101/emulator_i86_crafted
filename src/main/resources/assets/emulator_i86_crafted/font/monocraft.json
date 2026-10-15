@@ -1,0 +1,14 @@
+{
+  "providers": [
+    {
+      "file": "emulator_i86_crafted:monosign.ttf",
+      "size": 7.5,
+      "oversample": 1,
+      "shift": [
+        0,
+        0
+      ],
+      "type": "ttf"
+    }
+  ]
+}

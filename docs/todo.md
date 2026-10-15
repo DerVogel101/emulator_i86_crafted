@@ -1,3 +1,12 @@
+# Mod feature list
+
+This file lists the planned blocks and features. Confirmed behavior is specified in
+[mod_behavior.md](mod_behavior.md). Decisions still needed are listed in
+[open_questions.md](open_questions.md).
+
+CPU work is specified in [cpu_scheduling.md](cpu_scheduling.md), with the planned
+private yield extension in [yield_instruction.md](yield_instruction.md).
+
 1. Mainframe multiblock
    1. Components:
       1. 1 Mainframe Controller

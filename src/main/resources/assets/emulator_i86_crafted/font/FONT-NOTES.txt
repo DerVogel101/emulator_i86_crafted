@@ -1,0 +1,1 @@
+Monosign is based on Monocraft v4.2.1 by Idrees Hassan (SIL OFL 1.1). Its glyph advances were set to 810/1080 em, and pixel-style glyphs for U+0192, U+02C6, and U+02DC were added. The included LICENSE applies to the modified font.
