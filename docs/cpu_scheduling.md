@@ -1,7 +1,6 @@
 # Batched CPU scheduling
 
-This is the planned mod scheduler contract. No mod CPU scheduler is implemented
-yet. See [mod_behavior.md](mod_behavior.md) for the host lifecycle and bridge.
+This document defines the scheduler contract shared by the standalone launcher and Minecraft host. Both hosts implement this contract; runtime, native world and live-client checks pass. See [mod_behavior.md](mod_behavior.md) for host lifecycle and bridge behavior.
 
 ## Confirmed requirements
 
@@ -72,3 +71,20 @@ architectural effects. The standalone launcher must also handle both yield modes
 and discard the corresponding unused batch/tick budget. It must not treat a yield
 as a no-op or a halted CPU. Precise worker dispatch and staggering are implementation
 details that must satisfy the pacing and deadline rules above.
+
+## Implementation status
+
+The shared runtime, original standalone launcher, and server machine adapter implement paced step batches, both yield outcomes, deadline expiry without carry-over, and independent host clocks. Focused emulator and runtime checks pass. Native chunk lifecycle, live client execution and authenticated server-player ownership checks pass; see [implementation.md](implementation.md) for evidence and limits.
+
+## Clock update boundaries
+
+Both hosts call worker-only `CPU8086.beforeTick()` once per host tick and
+`CPU8086.beforeBatch()` before each executed batch. The tick hook updates mapped
+world day/uptime values and the three tick timers. The batch hook samples the
+host clock once, updates mapped real-time/calendar values, and advances the three
+real-time timers. Manual debugger Step prepares one batch before its instruction.
+
+`step()` / `beforeInstruction()` still apply queued inputs and device commands
+between instructions, but do not sample clocks or advance timers. Clock values
+remain stable until their next boundary. Elapsed time/ticks still catch up after
+pause or unloading; yielded/expired execution budgets do not accumulate.

@@ -9,8 +9,8 @@ pack separately is not required. This does not replace Minecraft's default font.
 - Font ID: `emulator_i86_crafted:monocraft`
 - Definition: [monocraft.json](../src/main/resources/assets/emulator_i86_crafted/font/monocraft.json)
 - TrueType file: [monosign.ttf](../src/main/resources/assets/emulator_i86_crafted/font/monosign.ttf)
-- License: [SIL OFL 1.1](../src/main/resources/assets/emulator_i86_crafted/font/LICENSE.txt)
-- Attribution/modification notes: [FONT-NOTES.txt](../src/main/resources/assets/emulator_i86_crafted/font/FONT-NOTES.txt)
+- License: [SIL OFL 1.1](../src/main/resources/assets/emulator_i86_crafted/font/monosign-license.txt)
+- Attribution/modification notes: [monosign-notes.txt](../src/main/resources/assets/emulator_i86_crafted/font/monosign-notes.txt)
 
 The provider retains the supplied size `7.5`, oversampling `1.0`, and shift `[0, 0]`.
 Only its resource namespace changes from `monosign` to `emulator_i86_crafted`.
@@ -41,7 +41,6 @@ Idrees Hassan. Its license and source notes are included alongside the resources
 
 ## Implementation status
 
-The named font resource and attribution are present. The mod currently has no
-implemented sign-port writer, so selecting this font in actual sign updates is
-still part of implementing that writer. Resource inclusion does not establish
-in-game rendering compatibility.
+The named font and attribution are bundled. The server selects it on every written line on both sign sides and decodes bytes as Windows-1252. Native world tests verify stored text, styles, font selection and dirty-update behavior.
+
+The standalone launcher sign editor loads the same TTF. A headed packaged Swing check renders extended characters, and a real Minecraft 26.3 client receives the named font on both sides. The unobstructed live sign capture was inspected with €, umlauts and ß. Font metrics remain those supplied by the resource pack.

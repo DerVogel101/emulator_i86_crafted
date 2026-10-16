@@ -1,7 +1,6 @@
 # Cooperative yield instruction extension
 
-This document defines the confirmed encoding and behavior. The instruction and
-its host/launcher integration are not implemented yet.
+This document defines the confirmed encoding and behavior. The original emulator core, step outcomes, disassembler, standalone launcher, and Minecraft worker implement the extension. Native world and live-client integration checks pass; see [implementation.md](implementation.md).
 
 ## Confirmed requirement
 
@@ -60,9 +59,7 @@ of this emulator's supported instruction contract.
 | `0F 01` | `YIELD 1` / tick yield | Discard all remaining budget in this tick |
 | `0F 02` through `0F FF` | Reserved modes | Explicit unsupported-extension error |
 
-The current emulator rejects `0F` and the entire `D8` through `DF` coprocessor
-range. Only `0F` would gain extension semantics. Every coprocessor opcode retains
-its current unsupported-instruction failure.
+The emulator implements only the two defined `0F` modes. Every `D8` through `DF` coprocessor opcode retains its explicit unsupported-instruction failure.
 
 Later x86 processors use `0F` as an opcode escape, but this ROM environment targets
 the documented 8086 ISA, not those later instructions. In particular, the modern
@@ -79,22 +76,36 @@ Until toolchain support exists, emit bytes explicitly, for example GNU assembler
 The mnemonic is documentation syntax; existing assemblers do not gain a `YIELD`
 instruction merely because the emulator implements it.
 
-An eventual C inline-assembly helper must be volatile and prevent compiler memory
-accesses from being moved across the cooperative scheduling point. It must emit
-the bytes explicitly, not depend on a compiler-generated trap instruction.
+IA-16 GCC helpers:
+
+```c
+static inline void i86_yield_batch(void) {
+    __asm__ volatile (".byte 0x0f, 0x00" ::: "memory");
+}
+
+static inline void i86_yield_tick(void) {
+    __asm__ volatile (".byte 0x0f, 0x01" ::: "memory");
+}
+```
+
+The first helper gives up the current batch; the second gives up the rest of the
+current tick. `volatile` preserves the instruction and the `memory` clobber
+prevents compiler memory accesses from moving across the scheduling point.
 
 ## Compiler-output validation
 
-Before implementation is considered compatible, inspect representative assembly
-from the installed IA-16 GCC configuration, including floating-point helpers if
-used and compiler trap/error paths. Supported instruction streams must contain no
-accidental extension or coprocessor instructions. Matching bytes inside an immediate,
-displacement, string, or ROM data table are not instruction collisions and must
-not be rejected by a whole-ROM byte-pattern search.
+The installed IA-16 GCC 6.3.0 was checked with the project's i8086 flags at
+`-O0`, `-O2`, and `-Os`, including integer operations, port I/O, float/double
+helper calls and the compiler trap path. Only the explicit inline yield helpers
+emit the private encoding. The selected integer/soft-float libgcc routines and
+transitive helpers contain no private or coprocessor opcode among 1,491 decoded
+ordinary instructions. The trap path calls `abort`, which the ROM must supply.
 
-The compiler/architecture flags and existing no-coprocessor emulator contract have
-been inspected. A local compiler probe was blocked by WSL execution permissions;
-generated assembly has not yet been verified. No compiler flags were changed.
+See [ia16_validation.md](ia16_validation.md) for reproducible probes and limits.
+This checks representative generated instructions and actual selected helpers;
+final ROM startup code, custom `abort`, inline assembly and other library paths
+still require their normal instruction-level validation. Matching bytes inside
+immediates or ROM data are not instruction collisions. No compiler flags changed.
 
 ## Architectural behavior
 
@@ -115,7 +126,7 @@ generated assembly has not yet been verified. No compiler flags were changed.
 - Treat segment, LOCK, and repeat prefixes on this private instruction as unsupported
   unless an extension deliberately defines them later.
 
-These details define the instruction contract, not completed implementation.
+These details define the implemented instruction contract.
 
 ## Required implementation scope
 

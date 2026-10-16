@@ -26,6 +26,7 @@ do not yet describe those capabilities fully.
 - Components marked Optional may be absent. Unmarked components are required;
   at least one GPIO Controller is required.
 - Each installed component contributes its listed functionality and capacity.
+- The controller reports structural failures with block coordinates and all missing/excess component counts, including actual counts and allowed maxima. It identifies unsupported blocks, holes, facing mismatches, chunk crossings and overlapping valid walls. For incomplete walls, it shows the closest matching area used for diagnosis; component positions remain unrestricted within the wall.
 
 | Component | Maximum | Optional | Function or capacity |
 | --- | ---: | :---: | --- |
@@ -101,6 +102,11 @@ do not yet describe those capabilities fully.
   while the mainframe is powered off.
 - When the mainframe chunk unloads, no further `step()` calls are executed. Its CPU
   stops ticking; unloading is not an explicit CPU reset or power cycle.
+- Automatic CPU work and external-port world I/O also suspend outside the chunk's
+  block-ticking range, before final unloading. Host world reads must not renew
+  chunk-loading tickets and keep their own chunks loaded. Suspension preserves
+  logical power and shared-memory membership. Inputs resample silently on return;
+  outputs assume cached bridge state.
 - Reloading does not synthesize interrupts for world changes missed while unloaded.
 - Timer time is independent of CPU instruction progress. Real-time timers count
   elapsed real time while paused/unloaded and expire immediately when an overdue
@@ -129,14 +135,14 @@ do not yet describe those capabilities fully.
   dimension in their controller UIs until the duplicate placement is resolved.
 - Port friendly names are unrestricted and are not unique identifiers.
 - External ports select their mainframe and numbered slot in their block GUI.
-- Duplicate slot assignments for the same mainframe and device type are invalid.
+- Duplicate slot assignments for the same mainframe, device type, and redstone direction are invalid. Redstone input and output IDs have separate namespaces: input 0 and output 0 may coexist. Sign IDs share one namespace regardless of direction settings.
   Disable world reads and writes for all conflicting ports and report the conflict
   in the Access Terminal and Interrupt Controller's device manager. They do not
   produce world-input IRQs while disabled. Keep their bindings for correction.
 - External ports can connect over arbitrary distances within the same dimension.
   They cannot connect directly across dimensions. Cross-dimensional CPU communication
   uses shared memory instead.
-- Each GPIO Controller enables another 32 redstone slots; each GPU Array enables
+- Each GPIO Controller enables another 32 redstone input slots and 32 redstone output slots; each GPU Array enables
   another 32 sign slots. With `n` installed modules, valid slot IDs for that device
   type are `0` through `32 * n - 1`, up to `127` with four modules.
 - If capacity shrinks below a linked port's slot ID, that port becomes offline but
@@ -154,6 +160,7 @@ do not yet describe those capabilities fully.
 ## Redstone and signs
 
 - Redstone ports are configured as input or output in their GUI. Input strength
+- Redstone dust connects only to the selected target/output face, for all six port orientations. Other faces neither connect nor emit redstone output.
   uses Minecraft's full `0` to `15` range.
 - Interrupts can be enabled through the port GUI and IRQ interface.
 - Binary interrupt modes treat `0` as low and nonzero levels as high: HIGH triggers
@@ -166,19 +173,22 @@ do not yet describe those capabilities fully.
   the existing I/O contract: front sets the general/front flags, back sets the
   general/back flags, and the CPU acknowledges them as documented there.
 - If no usable sign target is present, the port performs no world interaction.
-- CPU `OUT` writes to sign data drive sign updates. On each server tick, apply
-  updates for signs the bridge reports as changed. Such an update overwrites
-  player edits with the CPU's current sign data. Use existing bridge dirty tracking:
-  writing an unchanged byte does not schedule an update, and multiple changes can
-  coalesce into one tick update. Player edits alone do not schedule an overwrite;
-  unchanged signs are not rewritten on every tick.
+- CPU-written display signs are waxed and existing editor authorization is cleared.
+  Clicking either side does not open the vanilla sign editor; configured front/back
+  click interrupts still work. The lock is saved as vanilla wax state and remains
+  after a port is disconnected.
+- CPU `OUT` writes to sign data drive dirty updates on the next server tick.
+  Writing an unchanged byte does not schedule an update, and multiple changes can
+  coalesce into one tick update. Changes made by commands or other code are
+  overwritten by the next CPU-driven update; unchanged signs are not rewritten
+  on every tick.
 - Sign character bytes and the Access Terminal must support Windows-1252, including
   its extended character range, rather than ASCII only. Sign lines retain the
   existing layout: one format byte followed by 15 character bytes, with zero
   termination/padding. Decode character bytes as Windows-1252 without a custom
   character whitelist. Minecraft handles the resulting text, unsupported glyphs,
   and font rendering normally; there is no custom unsupported-character rejection.
-  Zero retains its existing end-of-text/padding meaning. Player edits are not
+  Zero retains its existing end-of-text/padding meaning. World text is not
   imported into the CPU buffer, so they require no Unicode-to-byte conversion.
 - Whenever the mod writes sign text, select the bundled named font
   `emulator_i86_crafted:monocraft` on the written text on both sign sides. This uses
@@ -216,8 +226,7 @@ do not yet describe those capabilities fully.
 - Storage file layout remains an implementation detail. Controller/disk recovery
   records are retained for admin recovery. Shared regions are retained until
   explicitly deleted by an admin.
-  This specification does not establish existing support for complete CPU
-  save/restore in the emulator.
+  Complete CPU save/restore is implemented and checked; see [implementation.md](implementation.md).
 
 ## Admin recovery commands
 
@@ -236,8 +245,7 @@ do not yet describe those capabilities fully.
 - A minimal proposed command surface is:
   - `/i86 admin list <controllers|disks|roms|shared-memory> [query]`
   - `/i86 admin recover <controller|disk|rom-chip> <id> [player]`
-- These are planned commands, not implemented commands. Exact command spelling is
-  an implementation choice; listing and item recovery/recreation are requirements.
+- Exact implemented commands and permission rules are listed in [admin_recovery.md](admin_recovery.md). The command surface above describes the required operations rather than their final spelling.
 
 ## ROM burner and ROM chips
 
