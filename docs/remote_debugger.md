@@ -28,4 +28,4 @@ Protocol/runtime checks cover framing, malformed requests, owner/observer contro
 
 A packaged headed Swing smoke check verifies owner Step forwarding, read-only observer controls and Windows-1252 rendering. The actual Minecraft client opens the helper through the custom controller screen, edits the real server CPU, keeps two windows alive independently, verifies focus behavior and releases leases after helper termination. Powered save/reopen also passes in a fresh JVM. See [native_tests.md](native_tests.md).
 
-Sibling changes are recorded in `emulator-debugger-backend.patch`, `emulator-remote-debugger-ui.patch`, `emulator-remote-debugger-guards.patch` and `emulator-remote-debugger-status.patch` under [patches](../patches/).
+The debugger backend and Swing UI changes are committed directly in the sibling `../i8086Emulator` repository.

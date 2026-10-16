@@ -48,4 +48,4 @@ Representative IA-16 output and selected integer/soft-float helpers passed [comp
 
 ## Build environment
 
-Set `JAVA_HOME=C:/Program Files/Java/jdk-25`. Keep `../i8086Emulator` beside this checkout. Builds use the Gradle wrapper; `--offline` requires cached dependencies. Sibling changes are recorded in [patches](../patches/), including the debugger backend/UI/status and ROM integrity patches. No source changes have been committed by this task.
+Set `JAVA_HOME=C:/Program Files/Java/jdk-25`. Keep `../i8086Emulator` beside this checkout. Builds use the Gradle wrapper; `--offline` requires cached dependencies. Emulator changes, including the debugger backend/UI/status and ROM integrity checks, are committed directly in the sibling repository.
