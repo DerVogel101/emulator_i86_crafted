@@ -10,6 +10,58 @@ base {
     archivesName = project.archives_base_name
 }
 
+// Host-independent rules are also consumed by the standalone Swing launcher.
+sourceSets {
+    runtime
+    emulatorCore {
+        java.srcDir('../i8086Emulator/src/main/java')
+        java.exclude('dervogel101/de/Main.java')
+        compileClasspath += runtime.output.classesDirs
+        runtimeClasspath += runtime.output.classesDirs
+    }
+    debugger {
+        java.srcDir('../i8086Emulator/src/launcher/java')
+        compileClasspath += runtime.output.classesDirs + emulatorCore.output.classesDirs
+        runtimeClasspath += runtime.output.classesDirs + emulatorCore.output.classesDirs
+    }
+    gametest {
+        compileClasspath += main.output + main.compileClasspath + runtime.output.classesDirs + emulatorCore.output.classesDirs
+        runtimeClasspath += main.runtimeClasspath + runtime.output.classesDirs + emulatorCore.output.classesDirs
+    }
+    runtimeTest {
+        compileClasspath += runtime.output.classesDirs + emulatorCore.output.classesDirs + main.output
+        runtimeClasspath += runtime.output.classesDirs + emulatorCore.output.classesDirs + main.output
+    }
+    main {
+        compileClasspath += runtime.output.classesDirs + emulatorCore.output.classesDirs
+        runtimeClasspath += runtime.output.classesDirs + emulatorCore.output.classesDirs
+    }
+}
+
+[sourceSets.main, sourceSets.gametest, sourceSets.runtimeTest].each {
+    it.compileClasspath += sourceSets.debugger.output.classesDirs
+    it.runtimeClasspath += sourceSets.debugger.output.classesDirs
+}
+
+configurations.gametestImplementation.extendsFrom(configurations.implementation)
+configurations.gametestRuntimeOnly.extendsFrom(configurations.runtimeOnly)
+
+tasks.register('verifyRuntime', JavaExec) {
+    dependsOn tasks.named('runtimeTestClasses')
+    classpath = sourceSets.runtimeTest.runtimeClasspath
+    mainClass = 'dervogel101.de.i86.runtime.RuntimeSelfTest'
+    enableAssertions = true
+}
+
+tasks.register('runtimeJar', Jar) {
+    archiveClassifier = 'runtime'
+    from sourceSets.runtime.output
+    from('LICENSE.txt')
+}
+
+tasks.named('check') { dependsOn tasks.named('verifyRuntime'), tasks.named('gametestClasses') }
+tasks.named('assemble') { dependsOn tasks.named('runtimeJar') }
+
 loom {
     splitEnvironmentSourceSets()
 
@@ -18,7 +70,49 @@ loom {
             sourceSet sourceSets.main
             sourceSet sourceSets.client
         }
+        "emulator_i86_crafted_test" { sourceSet sourceSets.gametest }
     }
+    runs {
+        gameTestServer {
+            server()
+            name 'i86 native world checks'
+            source sourceSets.gametest
+            runDir 'build/gametest-run'
+            vmArg '-Dfabric-api.gametest'
+            vmArg '-Dfabric-api.gametest.report-file=../gametest-results.xml'
+        }
+    }
+}
+
+sourceSets.client {
+    compileClasspath += sourceSets.debugger.output.classesDirs + sourceSets.emulatorCore.output.classesDirs + sourceSets.runtime.output.classesDirs
+    runtimeClasspath += sourceSets.debugger.output.classesDirs + sourceSets.emulatorCore.output.classesDirs + sourceSets.runtime.output.classesDirs
+}
+
+sourceSets {
+    clientGametest {
+        compileClasspath += sourceSets.main.output + sourceSets.client.output + sourceSets.client.compileClasspath
+        runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.client.runtimeClasspath
+    }
+}
+configurations.clientGametestImplementation.extendsFrom(configurations.clientImplementation)
+loom.mods.register('emulator_i86_crafted_client_test') { sourceSet sourceSets.clientGametest }
+loom.runs.register('clientGameTest') {
+    client()
+    name 'i86 live client checks'
+    source sourceSets.clientGametest
+    runDir 'build/client-gametest-run'
+    vmArg '-Dfabric.client.gametest'
+    if (project.hasProperty('i86Reopen')) vmArg '-Di86.client.reopen=true'
+    vmArg "-Dfabric.client.gametest.testModResourcesPath=${project.file('src/clientGametest/resources').absolutePath}"
+    programArgs '--username', 'i86TestPlayer', '--width', '1280', '--height', '720'
+}
+tasks.named('check') { dependsOn tasks.named('clientGametestClasses') }
+
+// The chooser helper uses only the JDK and can be checked without starting a client.
+sourceSets.runtimeTest {
+    compileClasspath += sourceSets.client.output.classesDirs
+    runtimeClasspath += sourceSets.client.output.classesDirs
 }
 
 fabricApi {
@@ -33,6 +127,7 @@ repositories {
 }
 
 dependencies {
+    emulatorCoreCompileOnly 'org.jetbrains:annotations:15.0'
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
@@ -40,6 +135,8 @@ dependencies {
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	clientImplementation("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
 		exclude group: "net.fabricmc.fabric-api"
+        // Minecraft supplies Gson; toml4j's legacy copy must not shadow it.
+        exclude group: "com.google.code.gson", module: "gson"
 	}
 	clientImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
 }
@@ -81,7 +178,13 @@ java {
 }
 
 jar {
-    from("LICENSE") {
+    from(sourceSets.runtime.output)
+    from(sourceSets.emulatorCore.output)
+    from(sourceSets.debugger.output)
+    from('../i8086Emulator/LICENSE') {
+        rename { 'LICENSE_emulator.txt' }
+    }
+    from("LICENSE.txt") {
         rename { "${it}_${project.archives_base_name}" }
     }
 }

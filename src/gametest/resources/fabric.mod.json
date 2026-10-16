@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "emulator_i86_crafted_test",
+  "version": "1.0",
+  "name": "i86 native integration checks",
+  "environment": "server",
+  "entrypoints": {
+    "fabric-gametest": [
+      "dervogel101.de.emulator_i86_crafted.PortGameTests",
+      "dervogel101.de.emulator_i86_crafted.BurnerGameTests",
+      "dervogel101.de.emulator_i86_crafted.MachineGameTests",
+      "dervogel101.de.emulator_i86_crafted.DebuggerGameTests",
+      "dervogel101.de.emulator_i86_crafted.PanelGameTests"
+    ]
+  },
+  "depends": {
+    "emulator_i86_crafted": "*",
+    "fabric-gametest-api-v1": "*"
+  }
+}

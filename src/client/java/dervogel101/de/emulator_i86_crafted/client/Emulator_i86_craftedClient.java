@@ -6,5 +6,9 @@ public class Emulator_i86_craftedClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        ClientPanels.initialize();
+        ClientShardTooltips.initialize();
+        ClientRomUpload.initialize();
+        ClientDebugger.initialize();
     }
 }
