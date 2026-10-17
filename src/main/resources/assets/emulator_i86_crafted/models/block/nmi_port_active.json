@@ -6,19 +6,19 @@
     "frame": "emulator_i86_crafted:block/frame",
     "casing_side": "emulator_i86_crafted:block/casing_side",
     "casing_back": "emulator_i86_crafted:block/casing_back",
-    "light": "emulator_i86_crafted:block/light_amber"
+    "light": "emulator_i86_crafted:block/signal_cyan"
   },
   "elements": [
     {
       "from": [
-        12,
+        4.6,
         2.4,
-        0.44
+        0.25
       ],
       "to": [
-        13,
-        3,
-        0.48
+        5.4,
+        3.2,
+        0.255
       ],
       "faces": {
         "north": {

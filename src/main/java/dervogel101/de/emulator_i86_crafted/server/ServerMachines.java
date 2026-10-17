@@ -27,6 +27,7 @@ public final class ServerMachines {
     public final ServerPorts ports = new ServerPorts(this);
     public final RomBurner burner = new RomBurner(this);
     public final ServerDebugger debugger = new ServerDebugger(this);
+    public final ServerIndicators indicators = new ServerIndicators();
     public final Path folder;
     private final WorldStore store;
     private final MachineConfig config;
@@ -36,6 +37,7 @@ public final class ServerMachines {
     private final Map<WorldRecords.Location, WorldRecords.Mainframe> positions = new HashMap<>();
     private boolean stopping;
     private boolean stopSaveFailed;
+    private List<Loaded> indicatorMachines = List.of();
 
     private record Structure(WallLayout wall, Map<Hardware, List<BlockPos>> parts, String key, List<MachineBlock> blocks) {
         BlockPos part(Hardware hardware) { return parts.get(hardware).getFirst(); }
@@ -56,7 +58,12 @@ public final class ServerMachines {
         boolean dirty = true, sampled;
         Boolean visualPower;
         boolean visualRunning;
-        Loaded(ControllerBlockEntity controller, MainframeMachine machine) { this.controller = controller; this.machine = machine; }
+        boolean indicatorPowered;
+        long hostErrors;
+        Object indicatorBridge;
+        Loaded(ControllerBlockEntity controller, MainframeMachine machine) {
+            this.controller = controller; this.machine = machine; indicatorPowered = machine.record.powered;
+        }
         ServerLevel level() { return (ServerLevel) controller.getLevel(); }
     }
 
@@ -82,6 +89,7 @@ public final class ServerMachines {
             var machines = SERVERS.get(server); if (machines != null) {
                 machines.debugger.disconnect(handler.getPlayer().getUUID());
                 machines.leases.disconnect(handler.getPlayer().getUUID());
+                machines.indicators.disconnect(handler.getPlayer().getUUID());
             }
             PortDialogs.disconnect(handler.getPlayer().getUUID());
             MachineDialogs.disconnect(handler.getPlayer().getUUID());
@@ -105,6 +113,7 @@ public final class ServerMachines {
         });
         ServerTickEvents.START_SERVER_TICK.register(server -> get(server).tick(server));
         ServerTickEvents.END_SERVER_TICK.register(MachineDialogs::tick);
+        ServerTickEvents.END_SERVER_TICK.register(server -> get(server).publishIndicators(server));
         ServerLifecycleEvents.BEFORE_SAVE.register((server, flush, force) -> get(server).save());
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             var machines = get(server); machines.stopping = true;
@@ -186,6 +195,7 @@ public final class ServerMachines {
 
     private void tick(MinecraftServer server) {
         if (stopping) return;
+        indicators.begin();
         long start = System.nanoTime(), duration = server.tickRateManager().nanosecondsPerTick();
         for (var current : loaded.values()) current.machine.stopWork();
         for (var controller : List.copyOf(pending)) {
@@ -203,6 +213,7 @@ public final class ServerMachines {
             if (records.gameTicks % 20 == 0) markChipValidity(current.controller);
         }
         ports.tick(currentMachines.stream().map(current -> current.machine).toList());
+        indicatorMachines = currentMachines;
         for (var current : currentMachines) {
             var record = current.machine.record;
             current.machine.debugger(leases.owner(record.id).isPresent());
@@ -210,6 +221,66 @@ public final class ServerMachines {
             visuals(current, record.powered);
         }
         debugger.tick(server.getTickCount());
+    }
+
+    private void publishIndicators(MinecraftServer server) {
+        if (stopping) return;
+        var sharedAccesses = new HashMap<String, Integer>();
+        for (var current : indicatorMachines) if (current.machine.record.powered
+                && (current.machine.activity().device(Hardware.SHARED_MEMORY) & 3) != 0)
+            sharedAccesses.merge(current.machine.record.sharedId, 1, Integer::sum);
+        for (var current : indicatorMachines) if (!current.controller.isRemoved()) indicatorState(current, sharedAccesses);
+        ports.indicators(indicatorMachines.stream().map(current -> current.machine).toList());
+        burner.indicators(); indicators.flush(server);
+    }
+
+    public static int indicatorStatus(WorldRecords.Mainframe record, dervogel101.de.i86.runtime.CpuActivity.Snapshot activity) {
+        if (record.faulted || record.conflicted() || !record.powered && record.status.startsWith("Powered off: ")) return IndicatorState.FAILURE;
+        if (!record.powered) return IndicatorState.OFF;
+        return record.paused || activity.halted() || activity.waiting() ? IndicatorState.IDLE : IndicatorState.RUNNING;
+    }
+
+    private void indicatorState(Loaded current, Map<String, Integer> sharedAccesses) {
+        var machine = current.machine; var record = machine.record;
+        var snapshot = machine.activity(); int status = indicatorStatus(record, snapshot);
+        if (current.structure == null) {
+            indicators.set(current.level(), current.controller.getBlockPos(), status, 0); return;
+        }
+        if (current.indicatorPowered != record.powered) {
+            machine.activity(Hardware.POWER, record.powered ? 2 : 4); current.indicatorPowered = record.powered;
+        }
+        if (machine.bridge() != null) {
+            if (current.indicatorBridge != machine.bridge()) { current.hostErrors = 0; current.indicatorBridge = machine.bridge(); }
+            long errors = machine.bridge().hostErrors();
+            if (errors != current.hostErrors && record.hardware.has(Hardware.TERMINAL)) machine.activity(Hardware.TERMINAL, 4);
+            current.hostErrors = errors;
+        }
+        for (var group : current.structure.parts().entrySet()) {
+            var hardware = group.getKey(); int host = machine.takeActivity(hardware);
+            for (int index = 0; index < group.getValue().size(); index++) {
+                var position = group.getValue().get(index);
+                int activity = record.powered ? snapshot.device(hardware) : 0;
+                if (hardware == Hardware.GPIO || hardware == Hardware.GPU) {
+                    activity = 0;
+                    if (record.powered) for (int slot = index * 32; slot < Math.min(128, (index + 1) * 32); slot++)
+                        activity |= hardware == Hardware.GPIO ? snapshot.inputs()[slot] | snapshot.outputs()[slot] : snapshot.signs()[slot];
+                }
+                if (hardware == Hardware.POWER || hardware == Hardware.RESET || hardware == Hardware.NMI || hardware == Hardware.TEST)
+                    activity |= current.level().getBestNeighborSignal(position) > 0 ? 1 : 0;
+                if (hardware == Hardware.TEST && record.powered && snapshot.waiting()) activity |= 2;
+                if (hardware == Hardware.TERMINAL && MachineDialogs.terminalViewed(record.id)) activity |= 2;
+                if (hardware == Hardware.SHARED_MEMORY && record.powered && !record.sharedId.isEmpty()
+                        && sharedAccesses.getOrDefault(record.sharedId, 0) > ((snapshot.device(Hardware.SHARED_MEMORY) & 3) != 0 ? 1 : 0)) activity |= 4;
+                indicators.set(current.level(), position, status, activity | host);
+            }
+        }
+    }
+
+    public void arrayActivity(long mainframe, Hardware hardware, int slot, int activity) {
+        for (var current : loaded.values()) if (current.machine.record.id == mainframe && current.structure != null) {
+            var positions = current.structure.parts().getOrDefault(hardware, List.of());
+            if (slot / 32 < positions.size()) indicators.pulse(current.level(), positions.get(slot / 32), activity);
+        }
     }
 
     private void process(Loaded current) {
@@ -444,8 +515,17 @@ public final class ServerMachines {
         try {
             for (var current : loaded.values()) current.machine.capture();
             store.save(records);
+            for (var current : loaded.values()) {
+                if (current.machine.record.hardware.has(Hardware.NVRAM)) current.machine.activity(Hardware.NVRAM, 4);
+                if (current.machine.record.hardware.has(Hardware.DISK)) current.machine.activity(Hardware.DISK, 4);
+                if (current.structure != null) for (var hardware : List.of(Hardware.NVRAM, Hardware.DISK))
+                    for (var position : current.structure.parts().getOrDefault(hardware, List.of())) indicators.failure(current.level(), position, false);
+            }
         } catch (IOException | RuntimeException failure) {
             if (stopping) stopSaveFailed = true;
+            for (var current : loaded.values()) if (current.structure != null)
+                for (var hardware : List.of(Hardware.NVRAM, Hardware.DISK))
+                    for (var position : current.structure.parts().getOrDefault(hardware, List.of())) indicators.failure(current.level(), position, true);
             LOGGER.error("Mainframe world save failed; previous snapshot was retained", failure);
         }
     }

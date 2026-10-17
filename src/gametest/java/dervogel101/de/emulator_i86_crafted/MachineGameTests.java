@@ -32,6 +32,11 @@ public final class MachineGameTests {
 
     @GameTest(maxTicks = 100) public void controllerLightsFollowRunningPausedAndOff(GameTestHelper test) throws Exception {
         var wall = new Wall(test, 24576);
+        var displayed = new java.util.concurrent.atomic.AtomicInteger();
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(server -> {
+            if (server == test.getLevel().getServer() && !wall.controller.isRemoved())
+                displayed.set(wall.machines.indicators.state(test.getLevel(), wall.origin));
+        });
         var shared = (ArrayBlockEntity) test.getLevel().getBlockEntity(wall.part(Hardware.SHARED_MEMORY));
         shared.memoryId("visual_states", wall.player.getUUID());
         byte[] image = new byte[256 * 1024];
@@ -47,14 +52,18 @@ public final class MachineGameTests {
         test.startSequence().thenWaitUntil(() -> {
             var state = wall.controller.getBlockState();
             test.assertTrue(wall.record().powered && state.getValue(MachineBlock.ACTIVE), "Running CPU lights activity");
+            test.assertValueEqual(displayed.get() & 3, IndicatorState.RUNNING, "Controller status is running");
+            test.assertValueEqual(displayed.get() & 4, 0, "Controller LED 2 stays dark");
         }).thenExecute(() -> wall.record().paused = true).thenIdle(2).thenExecute(() -> {
             var state = wall.controller.getBlockState();
             test.assertTrue(state.getValue(MachineBlock.POWERED), "Paused CPU retains its power indicator");
             test.assertFalse(state.getValue(MachineBlock.ACTIVE), "Paused CPU has no running indicator");
+            test.assertValueEqual(displayed.get() & 3, IndicatorState.IDLE, "Paused status is amber");
             test.getLevel().setBlock(source, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
         }).thenIdle(2).thenExecute(() -> {
             var state = wall.controller.getBlockState();
             test.assertFalse(state.getValue(MachineBlock.POWERED), "Shutdown extinguishes controller strips");
+            test.assertValueEqual(displayed.get() & 3, IndicatorState.OFF, "Shutdown status is dark");
             test.assertFalse(state.getValue(MachineBlock.ACTIVE), "Shutdown extinguishes controller activity");
             wall.close();
         }).thenSucceed();

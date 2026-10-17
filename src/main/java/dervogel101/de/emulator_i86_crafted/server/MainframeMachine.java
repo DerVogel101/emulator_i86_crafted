@@ -28,6 +28,13 @@ public final class MainframeMachine {
     private volatile boolean debuggerAttached, bypassInt3;
     private volatile int targetCs = -1, targetIp;
     private volatile String debuggerStop;
+    private volatile CpuActivity.Snapshot activity = CpuActivity.Snapshot.EMPTY;
+    private final int[] hostActivity = new int[Hardware.values().length];
+    public CpuActivity.Snapshot activity() { return activity; }
+    public void activity(Hardware hardware, int lamps) { hostActivity[hardware.ordinal()] |= lamps; }
+    public int takeActivity(Hardware hardware) {
+        int index = hardware.ordinal(), result = hostActivity[index]; hostActivity[index] = 0; return result;
+    }
 
     public MainframeMachine(WorldRecords world, WorldRecords.Mainframe record, RomLibrary roms, DiskClaims disks) {
         this.world = world; this.record = record; this.roms = roms; this.disks = disks;
@@ -118,6 +125,7 @@ public final class MainframeMachine {
     }
 
     private void startWorker() {
+        cpu.activity().enable(); activity = CpuActivity.Snapshot.EMPTY;
         failure = null; faultLogged.set(false);
         worker = new BatchedCpuWorker("i86-mainframe-" + record.id, Long.hashCode(record.id * 0x9E3779B97F4A7C15L), cpu::beforeBatch, () -> {
             var result = execute(cpu, true);
@@ -168,7 +176,7 @@ public final class MainframeMachine {
         if (!roms.available(record.romId)) { powerOff("Powered off: ROM missing or invalid: " + record.romId); return; }
         cpu.hostBridge().submitWorldTime(gameTime, dayTime);
         if (refreshQueued.compareAndSet(false, true)) worker.submit(() -> {
-            try { cpu.beforeTick(); }
+            try { activity = cpu.activity().drain(gameTime, cpu.isHalted()); cpu.beforeTick(); }
             catch (RuntimeException | Error problem) {
                 failureCs = cpu.registers().getCs(); failureIp = cpu.registers().getIp(); faultLogged.set(false); failure = problem; throw problem;
             }

@@ -161,7 +161,6 @@ def shell():
         front(0, 1.5, 1.5, 13, "frame", 0, 1.6), front(14.5, 1.5, 1.5, 13, "frame", 0, 1.6),
         front(1.6, 1.6, 0.3, 12.8, "trim", 0.5), front(14.1, 1.6, 0.3, 12.8, "trim", 0.5),
         front(2, 14.1, 12, 0.3, "trim", 0.5),
-        front(3, 2.4, 3.5, 0.35, "cyan_dim", 0.9), front(12, 2.4, 1, 0.6, "black", 0.6),
     ]
     # The opaque block shape requires a casing that reaches all outside edges.
     for direction in ("west", "east", "up", "down", "south"):
@@ -310,12 +309,14 @@ def machine(id, input_mode=True, mount="wall"):
             e += [front(x, 6.5, 1.2, 2.3, "copper", 0.26)]
         arrow(e, not input_mode, 6.35, "cyan_dim" if input_mode else "amber_dim")
     elif id == "sign_port":
+        e = [box((0, 0, 0), (16, 16, 16), "body")]
+        for direction, face in e[0]["faces"].items():
+            face.update(texture="#casing_back" if direction == "north" else "#casing_side", uv=[0, 0, 16, 16])
         sign_mount(e, mount)
-        screen(e, 3, 7, 10, 4.5)
-        display = (3, 7, 10, 4.5, "terminal")
-        socket(e, 4, 3.8, "copper", width=8, height=1.6)
-        arrow(e, True, 3.1, "ceramic", 12.3)
-        arrow(e, False, 9.5, "ceramic", 12.3)
+        e.append(cap_piece((6.3, 2, 15.6), (9.7, 3, 15.8), mount, "trim"))
+        for slot in range(4):
+            x = 6.4 + slot * 0.8
+            e.append(cap_piece((x, 2.1, 15.8), (x + 0.8, 2.9, 15.95), mount, "black"))
     elif id == "rom_burner":
         socket(e, 3, 6.2, "trim", width=10, height=5.6)
         for x in (4.2, 5.7, 7.2, 8.7, 10.2, 11.7):
@@ -326,6 +327,10 @@ def machine(id, input_mode=True, mount="wall"):
         display = (4, 3.6, 6, 1.3, "terminal")
     else:
         raise AssertionError(id)
+    if id not in ("super_structure", "sign_port"):
+        e.append(front(2.9, 2.3, 3.4, 1, "trim", 0.4, 0.3))
+        for slot in range(4):
+            e.append(front(3 + slot * 0.8, 2.4, 0.8, 0.8, "black", 0.26, 0.14))
     return e, display
 
 
@@ -339,11 +344,9 @@ def model(elements, light="cyan", display=None):
 
 
 def lamps():
-    result = [box((3, 2.4, 0.72), (6.5, 2.85, 0.76), glow=True),
-              box((1.65, 3, 0.36), (2.15, 13.5, 0.40), glow=True),
-              box((13.85, 3, 0.36), (14.35, 13.5, 0.40), glow=True)]
-    result[0]["faces"]["north"]["rotation"] = 90
-    return result
+    # Side rails show power; the four diagnostic LEDs use real client activity.
+    return [box((1.65, 3, 0.36), (2.15, 13.5, 0.40), glow=True),
+            box((13.85, 3, 0.36), (14.35, 13.5, 0.40), glow=True)]
 
 
 def powered_model(display, light):
@@ -362,6 +365,8 @@ def orientation(facing):
 
 
 def block_models():
+    Image.new("RGBA", (16, 16), (255, 255, 255, 255)).save(ASSETS / "textures/block/led.png")
+    Image.new("RGBA", (16, 16), (0, 255, 255, 255)).save(ASSETS / "textures/block/signal_cyan.png")
     for id in BLOCKS:
         facings = ["north", "east", "south", "west"] + (["up", "down"] if id in ("redstone_port", "sign_port") else [])
         parts = []
@@ -372,9 +377,8 @@ def block_models():
                 for mount in ("wall", "up", "down"):
                     sign_name = "sign_port_" + mount
                     e, display = machine(id, mount=mount)
-                    powered = powered_model(display, ACCENTS[id])
-                    powered["elements"] += sign_lights(mount)
-                    active = model([box((12, 2.4, 0.44), (13, 3, 0.48), glow=True)] + sign_lights(mount, True), "cyan")
+                    powered = model(sign_lights(mount), ACCENTS[id])
+                    active = model([], "cyan")
                     export_json("models/block", sign_name + "_off", model(e))
                     export_json("models/block", sign_name + "_on", powered)
                     export_json("models/block", sign_name + "_active", active)
@@ -391,9 +395,12 @@ def block_models():
             e, display = machine(id, input_mode)
             light = ("cyan" if input_mode else "amber") if id == "redstone_port" else ACCENTS[id]
             export_json("models/block", name + "_off", model(e))
-            export_json("models/block", name + "_on", powered_model(display, light))
-            export_json("models/block", name + "_active", model([box((12, 2.4, 0.44), (13, 3, 0.48), glow=True)],
-                                                               "cyan" if id == "mainframe_controller" else light))
+            export_json("models/block", name + "_on", model([]) if id == "super_structure" else powered_model(display, light))
+            active = model([], light)
+            if id in ("reset_port", "nmi_port", "test_port"):
+                active = model([box((4.6, 2.4, 0.25), (5.4, 3.2, 0.255), glow=True)], "cyan")
+                active["textures"]["light"] = NS + "block/signal_cyan"
+            export_json("models/block", name + "_active", active)
             for facing in facings:
                 when = {"facing": facing}
                 if id == "redstone_port":
@@ -406,7 +413,10 @@ def block_models():
         if id == "redstone_port":
             export_json("models/block", id + "_off", {"parent": NS + "block/redstone_port_input_off"})
         export_json("blockstates", id, {"multipart": parts})
-        export_json("models/item", id, {"parent": NS + "block/" + id + "_off"})
+        item = {"parent": NS + "block/" + id + "_off"}
+        if id == "sign_port":
+            item["display"] = {"gui": {"rotation": [30, 45, 0], "scale": [0.625, 0.625, 0.625]}}
+        export_json("models/item", id, item)
         export_json("items", id, {"model": {"type": "minecraft:model", "model": NS + "item/" + id}})
 
 

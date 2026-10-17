@@ -112,16 +112,26 @@ public final class ServerPorts {
             boolean online = status.equals("Online");
             if (!online || !port.online) { port.sampledBridge = null; port.signTarget = null; port.signVersion = Long.MIN_VALUE; }
             port.status = status; port.online = online;
-            if (!online) { port.signal(0); visual(port, false, false); continue; }
+            if (!online) {
+                port.signal(0); visual(port, false); port.indicatorSignal = null;
+                owner.indicators.set(level, port.getBlockPos(), status.equals("Unbound") ? 0 : 3, 0); continue;
+            }
             var record = owner.records.mainframe(s.mainframe()).orElseThrow();
             var machine = active.get(record.id); CpuHostBridge bridge = machine == null ? null : machine.bridge();
             BlockPos target = port.getBlockPos().relative(port.getBlockState().getValue(PortBlock.PORT_FACING));
             boolean targetLoaded = level.hasChunkAt(target);
-            boolean activeSignal = false;
+            var snapshot = machine == null ? dervogel101.de.i86.runtime.CpuActivity.Snapshot.EMPTY : machine.activity();
+            int lamps = record.powered ? port.kind() == PortBindings.Kind.REDSTONE
+                    ? (s.input() ? snapshot.inputs()[s.slot()] & 1 : snapshot.outputs()[s.slot()] & 2)
+                    : snapshot.signs()[s.slot()] & 3 : 0;
             if (port.kind() == PortBindings.Kind.REDSTONE) {
                 port.signal(s.input() ? 0 : record.redstoneOutputs[s.slot()] & 15);
                 int strength = s.input() && targetLoaded ? level.getSignal(target, port.getBlockState().getValue(PortBlock.PORT_FACING)) : 0;
-                activeSignal = s.input() ? strength > 0 : port.signal() > 0;
+                int currentSignal = s.input() ? strength : port.signal();
+                if (port.indicatorSignal != null && port.indicatorSignal != currentSignal) {
+                    lamps |= 4; owner.indicators.pulse(level, port.getBlockPos(), 4);
+                }
+                port.indicatorSignal = currentSignal;
                 if (s.input() && targetLoaded && bridge != null) {
                     if (port.sampledBridge != bridge || port.appliedIrq != s.irq()) bridge.submitRedstoneIrqMode(s.slot(), s.irq());
                     port.appliedIrq = s.irq();
@@ -139,31 +149,47 @@ public final class ServerPorts {
                 var sign = targetLoaded && level.getBlockEntity(target) instanceof SignBlockEntity found ? found : null;
                 if (sign != null && (port.signTarget != sign || port.signVersion != record.signVersions[s.slot()])) {
                     writeSign(level, sign, record.signOutputs[s.slot()]);
+                    owner.arrayActivity(record.id, dervogel101.de.i86.runtime.Hardware.GPU, s.slot(), 4);
                     port.signVersion = record.signVersions[s.slot()];
-                    port.activityUntil = owner.records.gameTicks + 6;
                 }
                 port.signTarget = sign;
-                activeSignal = owner.records.gameTicks < port.activityUntil;
             }
-            visual(port, record.powered, activeSignal);
+            visual(port, record.powered);
+            owner.indicators.set(level, port.getBlockPos(), ServerMachines.indicatorStatus(record, snapshot), lamps);
         }
     }
+    public void indicators(Collection<MainframeMachine> machines) {
+        var active = new HashMap<Long, MainframeMachine>();
+        for (var machine : machines) active.put(machine.record.id, machine);
+        for (var port : loaded) if (!port.isRemoved() && port.online) {
+            var level = (ServerLevel) port.getLevel();
+            if (!level.shouldTickBlocksAt(net.minecraft.world.level.ChunkPos.pack(port.getBlockPos()))) continue;
+            var settings = port.settings(); var record = owner.records.mainframe(settings.mainframe()).orElse(null);
+            if (record == null) continue;
+            var machine = active.get(record.id);
+            var snapshot = machine == null ? dervogel101.de.i86.runtime.CpuActivity.Snapshot.EMPTY : machine.activity();
+            int activity = !record.powered ? 0 : port.kind() == PortBindings.Kind.SIGN ? snapshot.signs()[settings.slot()] & 3
+                    : settings.input() ? snapshot.inputs()[settings.slot()] & 1 : snapshot.outputs()[settings.slot()] & 2;
+            owner.indicators.set(level, port.getBlockPos(), ServerMachines.indicatorStatus(record, snapshot), activity);
+        }
+    }
+
     public void signClick(ServerPlayer player, BlockPos target) {
         if (!(player.level().getBlockEntity(target) instanceof SignBlockEntity sign)) return;
         var ports = signs.get(ServerMachines.location(player.level(), target));
         if (ports == null) return;
         var side = sign.getSlotPlayerIsFacing(player) == SignTextSlot.FRONT ? CpuHostBridge.SignSide.FRONT : CpuHostBridge.SignSide.BACK;
         for (var port : ports) if (!port.isRemoved() && port.online && status(port).equals("Online")) {
+            owner.indicators.pulse((ServerLevel) port.getLevel(), port.getBlockPos(), 4);
             var machine = owner.machine(port.settings().mainframe());
             if (machine != null && machine.record.powered && machine.bridge() != null) {
                 machine.bridge().submitSignClick(port.settings().slot(), side);
-                port.activityUntil = owner.records.gameTicks + 6;
             }
         }
     }
-    private static void visual(PortBlockEntity port, boolean powered, boolean active) {
+    private static void visual(PortBlockEntity port, boolean powered) {
         var state = port.getBlockState();
-        var next = state.setValue(MachineBlock.POWERED, powered).setValue(MachineBlock.ACTIVE, active)
+        var next = state.setValue(MachineBlock.POWERED, powered)
                 .setValue(PortBlock.INPUT, port.settings().input());
         if (state != next) port.getLevel().setBlock(port.getBlockPos(), next, Block.UPDATE_CLIENTS);
     }

@@ -35,7 +35,46 @@ for (const [id, model] of models) {
     else await localReference(model.parent, 'models', '.json');
   }
   const resolved = inherited(id);
-  assert.ok(resolved.elements?.length, id + ': must use real geometry');
+  const signPort = id.includes(':block/sign_port');
+  const elements = (resolved.elements ?? []).map(element => {
+    const [a, b] = [element.from, element.to];
+    if (signPort && id.includes('sign_port_up'))
+      return { ...element, from: [a[0], 16 - b[2], a[1]], to: [b[0], 16 - a[2], b[1]] };
+    if (signPort && id.includes('sign_port_down'))
+      return { ...element, from: [a[0], a[2], 16 - b[1]], to: [b[0], b[2], 16 - a[1]] };
+    return element;
+  });
+  if (signPort) {
+    assert.equal(resolved.textures.display, undefined, id + ': sign port has no screen');
+    if (id.endsWith('_on')) {
+      assert.equal(elements.length, 2, id + ': powered lights stay on the attachment face');
+      assert.ok(elements.every(element => element.from[2] === 15.8 && element.to[2] === 15.95));
+    }
+  }
+  if (/(reset_port|nmi_port|test_port)_active$/.test(id)) {
+    assert.equal(resolved.elements?.length, 1, id + ': physical pin uses one steady segment');
+    assert.equal(resolved.textures.light, namespace + ':block/signal_cyan');
+    const pin = resolved.elements[0];
+    assert.ok(Math.abs(pin.to[0] - pin.from[0] - 0.8) < 0.000001 && Math.abs(pin.to[1] - pin.from[1] - 0.8) < 0.000001, id + ': physical pin LED must match the 0.8-pixel segments');
+  } else if (id.endsWith('_active') || id.endsWith('/super_structure_on'))
+    assert.equal(resolved.elements?.length, 0, id + ': LEDs must use client activity rendering');
+  else if (!id.endsWith('_on')) assert.ok(resolved.elements?.length, id + ': must use real geometry');
+  if (id.includes(':block/') && id.endsWith('_off')) {
+    const lamps = elements.filter(element => element.from[2] === (signPort ? 15.8 : 0.26) && element.to[2] === (signPort ? 15.95 : 0.4)
+      && Math.abs(element.to[0] - element.from[0] - 0.8) < 0.000001
+      && Math.abs(element.to[1] - element.from[1] - 0.8) < 0.000001);
+    assert.equal(lamps.length, id.endsWith('/super_structure_off') ? 0 : 4, id + ': four 0.8x0.8 segments required, except filler');
+    if (lamps.length) {
+      const expected = signPort ? [6.4, 7.2, 8, 8.8] : [3, 3.8, 4.6, 5.4];
+      assert.ok(lamps.map(element => element.from[0]).sort((a, b) => a - b).every((x, index) => Math.abs(x - expected[index]) < 0.000001), id + ': strip must be contiguous at its intended position');
+      assert.ok(lamps.every(element => Math.abs(element.from[1] - (signPort ? 2.1 : 2.4)) < 0.000001));
+    }
+    if (signPort) {
+      assert.deepEqual(resolved.elements[0].from, [0, 0, 0], id + ': plain casing replaces the display front');
+      assert.deepEqual(resolved.elements[0].to, [16, 16, 16]);
+      assert.ok(elements.slice(1).every(element => element.from[2] >= 15), id + ': details belong on the attachment face');
+    }
+  }
   for (const texture of Object.values(resolved.textures ?? {})) await localReference(texture, 'textures', '.png');
   for (const element of resolved.elements) {
     for (let axis = 0; axis < 3; axis++) {
@@ -65,7 +104,7 @@ for (const file of await readdir(resolve(assets, 'blockstates'))) {
       const state = { facing, powered: String(powered), active: String(active), input: String(input) };
       const selected = multipart.filter(part => Object.entries(part.when).every(([key, value]) => state[key] === value));
       assert.equal(selected.length, 1 + Number(powered) + Number(active), id + ': incomplete/duplicate state ' + JSON.stringify(state));
-      assert.ok(inherited(selected[0].apply.model).elements.length >= 16, id + ': missing housing/device geometry');
+      if (id !== 'sign_port') assert.ok(inherited(selected[0].apply.model).elements.length >= 16, id + ': missing housing/device geometry');
       const horizontal = ['north', 'east', 'south', 'west'].indexOf(facing) * 90;
       const rotation = id === 'sign_port'
         ? { y: facing === 'up' || facing === 'down' ? 0 : (horizontal + 180) % 360 }
@@ -82,6 +121,9 @@ for (const file of await readdir(resolve(assets, 'blockstates'))) {
   await access(resolve(root, 'src/main/resources/data', namespace, 'loot_table/blocks', file));
   blockCount++;
 }
+const ledTexture = await readFile(resolve(assets, 'textures/block/led.png'));
+assert.equal(ledTexture.readUInt32BE(16), 16, 'LED texture must retain atlas mipmaps');
+assert.equal(ledTexture.readUInt32BE(20), 16, 'LED texture must retain atlas mipmaps');
 let animations = 0;
 for (const file of await readdir(resolve(assets, 'textures/block'))) {
   if (!file.endsWith('.png.mcmeta')) continue;

@@ -9,6 +9,7 @@
       "dervogel101.de.emulator_i86_crafted.PortGameTests",
       "dervogel101.de.emulator_i86_crafted.BurnerGameTests",
       "dervogel101.de.emulator_i86_crafted.MachineGameTests",
+      "dervogel101.de.emulator_i86_crafted.IndicatorGameTests",
       "dervogel101.de.emulator_i86_crafted.DebuggerGameTests",
       "dervogel101.de.emulator_i86_crafted.PanelGameTests"
     ]

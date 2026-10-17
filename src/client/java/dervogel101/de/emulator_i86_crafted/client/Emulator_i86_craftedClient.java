@@ -10,5 +10,6 @@ public class Emulator_i86_craftedClient implements ClientModInitializer {
         ClientShardTooltips.initialize();
         ClientRomUpload.initialize();
         ClientDebugger.initialize();
+        ClientIndicators.initialize();
     }
 }

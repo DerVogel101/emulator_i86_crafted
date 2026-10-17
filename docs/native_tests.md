@@ -127,6 +127,57 @@ hanging and wall-sign connections. Previews are saved under art/; full captures
 and logs remain under build/client-gametest-run. Third-party rendering and
 shader mods were not tested.
 
+## Four-segment activity strips, 2026-10-17
+
+Build and runtime checks passed with real-access telemetry, including unchanged
+writes, host-inspection exclusion, per-channel routing, IRQ/NMI/reset/WAIT events,
+terminal output and timer expiry without IRQs. Continuous busy samples stay fully
+lit; an idle sample starts a 75 ms fade and new activity cancels it.
+
+**37 native server tests passed.** New checks cover bounded indicator packet
+round trips, latched failure versus off, save-completion events, sign clicks
+without blockstate changes, and running/paused/off controller status. Existing
+pin, port, sign, persistence, debugger and machine tests remain green.
+The standalone emulator suite reports 172 tests, 13 skipped, zero failures/errors.
+
+The artwork client passed with `I86_ARTWORK_CLIENT_OK`. Inspected close-ups show
+the contiguous four-segment strips, leftmost
+status, a dark controller slot and no filler lights. These captures use controlled
+indicator packets to verify the network/rendering path; actual CPU activity is
+covered separately by runtime/world checks. The 16 by 16 uniform LED textures
+retain the block atlas's four mip levels. Geometry checks pass all 216 states.
+
+A regression performs real successful and failed filesystem saves. It verifies
+persisted bytes, success-only disk/NVRAM pulses, red status after failure,
+preservation of the previous snapshot, and recovery after a successful retry.
+
+Previews: [HDD](../art/led-hdd.png), [sign](../art/led-sign.png),
+[redstone](../art/led-redstone.png), [failure](../art/led-failure.png).
+Local evidence: `build/led-final-validation.log`, `build/led-package-check.log`,
+`build/led-persistence-check.log`,
+`build/led-core-tests.log`, `build/indicator-benchmark.txt` and the native XML.
+The CPU microbenchmark is described in [the LED specification](led_indicators.md);
+it is not an FPS/TPS or large-server benchmark.
+
+## Sign Port attachment-face indicators, 2026-10-17
+
+The Sign Port now has plain casing in place of its display front. All four
+segments sit centered below the lower attachment light bar.
+Resource and geometry checks pass all 216 states. The build/runtime checks and
+live artwork client passed; client assertions verify the LED plane, segment size
+and outward winding for all six attachment directions. Inspected captures cover
+the connector, former display face, wall sign, standing sign and hanging sign.
+Evidence: `build/sign-port-validation.log`; previews are under `art/`.
+
+## Smaller, saturated LEDs, 2026-10-17
+
+Each segment now measures 0.8 by 0.8 model pixels, with four adjacent segments
+spanning 3.2 pixels. The solid palette uses stronger saturation and pure red for
+failure. Resource/geometry checks, the build/runtime checks and the live artwork
+client passed. Client assertions verify the reduced size and attachment-face
+placement in all six directions. The block atlas retains four mip levels.
+Evidence: `build/led-bright-validation.log`; current close-ups are under `art/`.
+
 ## Limits
 
 The artwork suite does not cover third-party shader or rendering mods.

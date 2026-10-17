@@ -38,6 +38,11 @@ public final class RomBurner {
     private final Map<UUID, Session> sessions = new HashMap<>();
     private final Map<UUID, Long> uploadStarts = new HashMap<>();
     private final LongSupplier nanoTime;
+    public void indicators() {
+        for (var session : sessions.values()) if (session.level.hasChunkAt(session.position)
+                && session.level.getBlockState(session.position).is(ModContent.BLOCKS.get("rom_burner")))
+            owner.indicators.set(session.level, session.position, session.upload != null || session.activeUntil > owner.records.gameTicks ? 1 : 2, 0);
+    }
     public RomBurner(ServerMachines owner) { this(owner, System::nanoTime); }
     public RomBurner(ServerMachines owner, LongSupplier nanoTime) { this.owner = owner; this.nanoTime = nanoTime; }
     public void disconnect(UUID player) {
@@ -88,6 +93,8 @@ public final class RomBurner {
                     if (session.draft == null) throw new IllegalStateException("Upload a ROM file before choosing Done.");
                     var entry = owner.roms.upload(session.draft, session.name, session.description, player.getUUID(), player.getScoreboardName());
                     session.selected = entry.id(); session.draft = null; session.creating = false;
+                    owner.indicators.failure(session.level, session.position, false);
+                    owner.indicators.pulse(session.level, session.position, 2);
                     main(player, session, "Created " + entry.name());
                 }
                 case "select" -> {
@@ -110,6 +117,7 @@ public final class RomBurner {
             session.selected = duplicate.existing.id(); session.draft = null; session.creating = false;
             main(player, session, "Duplicate upload rejected. Selected the existing ROM; its original name, description and uploader are retained.");
         } catch (IOException | IllegalArgumentException | IllegalStateException invalid) {
+            owner.indicators.failure(session.level, session.position, true);
             finishUpload(session);
             if (session.creating) creation(player, session, invalid.getMessage()); else main(player, session, invalid.getMessage());
         }
@@ -134,6 +142,7 @@ public final class RomBurner {
         session.name = name; session.description = description; session.menuNonce = null;
         session.creating = true;
         session.uploadToken = UUID.randomUUID(); session.upload = new RomUpload();
+        owner.indicators.failure(session.level, session.position, false);
         refresh(session.level, session.position);
         return session.uploadToken;
     }
@@ -142,10 +151,13 @@ public final class RomBurner {
         if (session == null || session.upload == null || !packet.token().equals(session.uploadToken)) return;
         if (!usable(player, session)) { unavailable(player); return; }
         try {
+            owner.indicators.pulse(session.level, session.position, 1);
             if (!session.upload.append(packet.index(), packet.bytes())) return;
+            owner.indicators.pulse(session.level, session.position, 2);
             session.draft = session.upload.image(); finishUpload(session);
             creation(player, session, "ROM file uploaded (256 KiB). Choose Done to save it.");
         } catch (IllegalArgumentException invalid) {
+            owner.indicators.failure(session.level, session.position, true);
             finishUpload(session); creation(player, session, invalid.getMessage());
         }
     }
@@ -158,6 +170,8 @@ public final class RomBurner {
     public void burn(ServerPlayer player, UUID id) throws IOException {
         if (id == null) throw new IllegalArgumentException("Select a ROM from the library first");
         var entry = owner.roms.entry(id).orElseThrow(() -> new IllegalArgumentException("Unknown ROM ID"));
+        var operationSession = sessions.get(player.getUUID());
+        if (operationSession != null) owner.indicators.pulse(operationSession.level, operationSession.position, 2);
         if (!owner.roms.available(id)) throw new IOException("The selected ROM file is missing or invalid");
         var inventory = player.getInventory();
         for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
@@ -169,7 +183,13 @@ public final class RomBurner {
                 blank.shrink(1);
                 if (!inventory.add(burned)) player.drop(burned, false, Prediction.SERVER_ONLY);
             }
-            inventory.setChanged(); player.containerMenu.broadcastChanges(); return;
+            inventory.setChanged(); player.containerMenu.broadcastChanges();
+            var session = sessions.get(player.getUUID());
+            if (session != null) {
+                owner.indicators.failure(session.level, session.position, false);
+                owner.indicators.pulse(session.level, session.position, 4);
+            }
+            return;
         }
         throw new IllegalStateException("A blank ROM chip is required in your inventory. Burned chips cannot be rewritten.");
     }

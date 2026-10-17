@@ -28,6 +28,7 @@ public final class RuntimeSelfTest {
         dervogel101.de.emulator_i86_crafted.client.RomChooserSelfTest.run();
         MachineSelfTest.run();
         DebuggerMachineSelfTest.run();
+        IndicatorSelfTest.run();
         System.out.println("Runtime checks passed: hardware, capacity, pacing, yields, tick expiry, wall formation, worker");
     }
 

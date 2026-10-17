@@ -26,6 +26,7 @@ The mod specified in [mod_behavior.md](mod_behavior.md) is implemented, includin
 | Display names and custom creative tab | Block-item description prefix, language entries and Fabric tab with chip icon | Native key checks and live 21-item/tab validation |
 | Purpose-built hardware screens | Client ControlPanelScreen/ControllerScreen, bounded Fabric packets, guarded installation menu | Panel/menu native regressions and inspected live client captures; no datapack dialog API remains |
 | Original 3D artwork and state indicators | 17 modeled block types and 21 modeled items; ten small interpolated textures; sealed casings, distinct CPU/terminal fronts and six-face sign mounts | Resource and geometry verifiers, native visual-state regressions and inspected client gallery; see [artwork](../art/README.md) |
+| Four-segment device activity strips | Worker-owned real-access flags, per-array channels, batched tracking-player updates, client emissive faces, continuous activity and fade; solid, saturated 0.8-pixel segments, aligned right or centered below the Sign Port's attachment light bars | Runtime/core tests, native packet/status/click checks and inspected client close-ups; see [LED indicators](led_indicators.md) |
 
 ## Current verification
 

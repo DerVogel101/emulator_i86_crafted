@@ -1,5 +1,11 @@
 # Mainframe artwork
 
+The implemented indicator layout, activity assignments and timing are recorded
+in the [LED specification](../docs/led_indicators.md).
+
+Close-ups of the current strip: [HDD](led-hdd.png), [sign port](led-sign.png),
+[redstone port](led-redstone.png), and [failure status](led-failure.png).
+
 Original cuboid models and explicitly drawn pixel materials, exported by
 [`tools/build_art.py`](../tools/build_art.py). No image-generation service or
 Applied Energistics 2 assets are used. The old generated atlases are removed.
@@ -28,31 +34,35 @@ faceted crystals and one, two or three physical tier marks.
 
 | Indicator | Meaning |
 | --- | --- |
-| Narrow edge and lower power strip | Device powered; travelling light bands interpolate over a 2.4 second loop |
-| Controller small lower lens | CPU powered and not paused |
-| PSU small lower lens | Incoming redstone, including when startup cannot succeed |
-| RESET / NMI / TEST small lower lens | Corresponding physical redstone pin is high |
+| Narrow edge rails | Device powered; travelling light bands interpolate over a 2.4 second loop |
+| Lower indicator strip | Four adjacent 0.8 by 0.8 segments: common status, then three device-specific activities; aligned right except on the Sign Port's centered attachment strip |
+| First strip segment | Running green, powered idle/paused amber, pure red failure, off black/dark gray; lit segments use solid, saturated colors |
+| Controller second segment | Unused and dark; final two segments show guest I/O reads and writes |
+| RESET / NMI / TEST second segment | Corresponding physical redstone pin is high, including before boot |
 | Redstone arrow towards socket, cyan | Input |
 | Redstone arrow away from socket, amber | Output |
-| External port small lower lens | Physical input/output signal is nonzero, including a retained output while the CPU is off |
-| Sign port small lower lens | Text synchronized or sign clicked within the last six game ticks |
+| Redstone port activity segments | CPU input read, CPU output write, and redstone strength change |
+| Sign port activity segments | CPU read, CPU write, and attached sign clicked; writes do not impersonate clicks |
 | ROM burner lights and display | Upload/burn session is active, using the existing burner timeout |
 
-Off-state glass and lenses are dark. Hardware that does not expose activity
-counters shows its power state; storage lights do not invent disk traffic.
-Illuminated model elements use vanilla light emission, and only the small
-indicator/display textures animate. The casing remains stationary.
+Off-state glass and lenses are dark. Storage activity is collected from real
+accesses, including unchanged writes. Consecutive busy ticks keep a segment lit;
+an inactive sample starts a 75 ms fade. Structural Filler has no LEDs or glowing
+rails. Activity faces use a batched emissive client pass; physical pin levels use
+steady emissive model faces. The casing remains stationary.
 
 The controller has a raised processor package with gold contacts and an animated
 circuit core. The access terminal has a substantially larger text display and a
 keyboard. Their shapes and display animations are deliberately different.
 
-The sign port has a separate attachment face and an accessible status display.
+The sign port has one attachment face and plain casing on the other faces.
 Horizontal faces use wall-sign contacts; facing up uses a centered socket for a
 standing-sign pole; facing down uses two anchors for hanging-sign chains.
-Power rails and activity traces surround the selected attachment. Horizontal
-status displays face away from the attached sign; vertical mounts keep them
-upright on the side of the block.
+Power rails surround the selected attachment. The full four-segment indicator
+strip sits centered below the lower light bar on that same face, including on
+the top and bottom mounts. The former display, socket and front rails are removed.
+See the [connector close-up](led-sign.png) and [plain casing](sign-casing.png).
+Its inventory icon faces the connector so the port remains recognizable.
 
 ## Editing and checking
 

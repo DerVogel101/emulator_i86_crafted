@@ -22,6 +22,9 @@ public final class MachineDialogs {
     private static final Map<UUID, Session> OPEN = new HashMap<>();
     private static final int PAGE_SIZE = 8, LOG_PAGE_SIZE = 3000;
     private MachineDialogs() {}
+    public static boolean terminalViewed(long mainframe) {
+        return OPEN.values().stream().anyMatch(session -> session.mainframe() == mainframe && session.terminalPage() >= 0);
+    }
 
     public static void disconnect(UUID player) { OPEN.remove(player); }
 

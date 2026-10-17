@@ -49,7 +49,7 @@ public final class ArtworkClientGameTest implements FabricClientGameTest {
                 for (int i = 0; i < IDS.size(); i++) {
                     var pos = position(i);
                     var state = ModContent.BLOCKS.get(IDS.get(i)).defaultBlockState();
-                    if (IDS.get(i).equals("sign_port")) state = state.setValue(PortBlock.PORT_FACING, Direction.SOUTH);
+                    if (IDS.get(i).equals("sign_port")) state = state.setValue(PortBlock.PORT_FACING, Direction.NORTH);
                     level.setBlock(pos, state, Block.UPDATE_ALL);
                     if (level.getBlockEntity(pos) instanceof PortBlockEntity port)
                         ServerMachines.get(host).ports.unload(port);
@@ -74,6 +74,30 @@ public final class ArtworkClientGameTest implements FabricClientGameTest {
                         throw new AssertionError("Gallery power state was not synchronized: " + IDS.get(i));
             });
             capture(context, "i86-artwork-on");
+            context.runOnClient(client -> {
+                try {
+                    var field = ClientIndicators.class.getDeclaredField("LAMPS"); field.setAccessible(true);
+                    var lamps = (java.util.Map<?, ?>) field.get(null);
+                    var hdd = (dervogel101.de.i86.runtime.IndicatorState.Lamps) lamps.get(position(IDS.indexOf("harddisk_array")));
+                    if (hdd == null || hdd.brightness(1, System.nanoTime()) != 1 || hdd.brightness(2, System.nanoTime()) != 1)
+                        throw new AssertionError("Networked HDD activity did not remain lit between ticks");
+                var point = ClientIndicators.class.getDeclaredMethod("point", float.class, float.class, Direction.class,
+                        boolean.class, BlockPos.class, double.class, double.class, double.class);
+                point.setAccessible(true);
+                for (var facing : MOUNTS) {
+                    var a = (org.joml.Vector3f) point.invoke(null, 7.2f, 2.1f, facing, true, BlockPos.ZERO, 0d, 0d, 0d);
+                    var b = (org.joml.Vector3f) point.invoke(null, 7.2f, 2.9f, facing, true, BlockPos.ZERO, 0d, 0d, 0d);
+                    var c = (org.joml.Vector3f) point.invoke(null, 6.4f, 2.9f, facing, true, BlockPos.ZERO, 0d, 0d, 0d);
+                    float plane = switch (facing.getAxis()) { case X -> a.x; case Y -> a.y; case Z -> a.z; };
+                    float expected = facing.getAxisDirection() == Direction.AxisDirection.POSITIVE ? 15.96f / 16 : .04f / 16;
+                    var normal = new org.joml.Vector3f(b).sub(a).cross(new org.joml.Vector3f(c).sub(b)).normalize();
+                    if (Math.abs(plane - expected) > .00001f || Math.abs(a.distance(b) - .8f / 16) > .00001f
+                            || Math.abs(b.distance(c) - .8f / 16) > .00001f
+                            || normal.dot(facing.getStepX(), facing.getStepY(), facing.getStepZ()) < .999f)
+                        throw new AssertionError("Sign indicator must face outward on its attachment face: " + facing);
+                }
+                } catch (ReflectiveOperationException failure) { throw new AssertionError(failure); }
+            });
             context.waitTicks(10);
             capture(context, "i86-artwork-pulse");
             server.runCommand("time set midnight");
@@ -94,6 +118,25 @@ public final class ArtworkClientGameTest implements FabricClientGameTest {
             connection.waitForChunksRender();
             context.waitTicks(6);
             capture(context, "i86-artwork-output");
+            for (String id : List.of("harddisk_array", "sign_port", "redstone_port")) {
+                var close = position(IDS.indexOf(id));
+                server.runCommand("tp @a " + (close.getX() + .5) + " " + (close.getY() - 1) + " " + (close.getZ() - 2.5) + " 0 3");
+                connection.waitForClientboundPackets(); connection.waitForChunksRender(); context.waitTicks(4);
+                capture(context, "i86-led-" + id);
+                if (id.equals("sign_port")) {
+                    server.runCommand("tp @a " + (close.getX() + .5) + " " + (close.getY() - 1) + " " + (close.getZ() + 2.5) + " 180 3");
+                    connection.waitForClientboundPackets(); connection.waitForChunksRender(); context.waitTicks(4);
+                    capture(context, "i86-sign-casing");
+                }
+            }
+            server.runOnServer(host -> {
+                var entries = new java.util.ArrayList<dervogel101.de.emulator_i86_crafted.network.IndicatorPackets.Entry>();
+                for (int i = 0; i < IDS.size(); i++) entries.add(new dervogel101.de.emulator_i86_crafted.network.IndicatorPackets.Entry(
+                        position(i), IDS.get(i).equals("super_structure") ? 0 : dervogel101.de.i86.runtime.IndicatorState.pack(3, 0)));
+                for (var player : host.getPlayerList().getPlayers()) net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(player,
+                        new dervogel101.de.emulator_i86_crafted.network.IndicatorPackets.Update(host.overworld().dimension().identifier().toString(), entries));
+            });
+            connection.waitForClientboundPackets(); context.waitTicks(4); capture(context, "i86-led-failure");
             server.runCommand("tp @a 0 100 8 -145 8");
             connection.waitForClientboundPackets();
             connection.waitForChunksRender();
@@ -123,6 +166,10 @@ public final class ArtworkClientGameTest implements FabricClientGameTest {
                     var record = owner.records.mainframe(signId).orElseThrow();
                     for (int slot = 0; slot < MOUNTS.size(); slot++) record.signVersions[slot]++;
                     owner.ports.tick(List.of());
+                    for (var player : host.getPlayerList().getPlayers()) net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(player,
+                            new dervogel101.de.emulator_i86_crafted.network.IndicatorPackets.Update(host.overworld().dimension().identifier().toString(),
+                                    List.of(new dervogel101.de.emulator_i86_crafted.network.IndicatorPackets.Entry(pos,
+                                            dervogel101.de.i86.runtime.IndicatorState.pack(1, 7)))));
                 });
                 connection.waitForClientboundPackets();
                 context.waitTicks(1);
@@ -201,6 +248,7 @@ public final class ArtworkClientGameTest implements FabricClientGameTest {
 
     private static void power(MinecraftServer server, boolean powered) {
         var level = server.overworld();
+        var lamps = new java.util.ArrayList<dervogel101.de.emulator_i86_crafted.network.IndicatorPackets.Entry>();
         for (int i = 0; i < IDS.size(); i++) {
             var pos = position(i);
             var state = level.getBlockState(pos);
@@ -208,7 +256,12 @@ public final class ArtworkClientGameTest implements FabricClientGameTest {
             if (IDS.get(i).equals("mainframe_controller") || IDS.get(i).endsWith("_port") || IDS.get(i).equals("power_supply"))
                 next = next.setValue(MachineBlock.ACTIVE, powered);
             level.setBlock(pos, next, Block.UPDATE_CLIENTS);
+            lamps.add(new dervogel101.de.emulator_i86_crafted.network.IndicatorPackets.Entry(pos,
+                    !powered || IDS.get(i).equals("super_structure") ? 0 : dervogel101.de.i86.runtime.IndicatorState.pack(1,
+                    IDS.get(i).equals("mainframe_controller") ? 6 : 7)));
         }
+        for (var player : server.getPlayerList().getPlayers()) net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(player,
+                new dervogel101.de.emulator_i86_crafted.network.IndicatorPackets.Update(level.dimension().identifier().toString(), lamps));
     }
 
     private static void capture(ClientGameTestContext context, String name) {

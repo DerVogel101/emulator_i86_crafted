@@ -1,3 +1,17 @@
 {
-  "parent": "emulator_i86_crafted:block/sign_port_off"
+  "parent": "emulator_i86_crafted:block/sign_port_off",
+  "display": {
+    "gui": {
+      "rotation": [
+        30,
+        45,
+        0
+      ],
+      "scale": [
+        0.625,
+        0.625,
+        0.625
+      ]
+    }
+  }
 }

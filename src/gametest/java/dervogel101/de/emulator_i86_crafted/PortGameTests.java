@@ -34,7 +34,7 @@ public final class PortGameTests {
             test.assertTrue(port.signTarget == sign, "The selected face addresses its actual adjacent sign: " + facing);
             test.assertValueEqual(sign.getText(SignTextSlot.FRONT).getMessages(false).getFirst().getString(),
                     Character.toString('A' + facing.ordinal()), "Text reaches the mounted sign: " + facing);
-            test.assertTrue(port.getBlockState().getValue(MachineBlock.ACTIVE), "Mounted sign reports real synchronization activity");
+            test.assertTrue((machines.indicators.state(test.getLevel(), port.getBlockPos()) & 16) == 0, "Synchronizing a mounted sign does not generate a click");
             test.setBlock(target, Blocks.AIR);
             test.setBlock(center, Blocks.AIR);
         }
@@ -54,14 +54,14 @@ public final class PortGameTests {
         test.assertFalse(output.getBlockState().getValue(PortBlock.INPUT), "Output arrow follows saved direction");
         for (var port : List.of(input, output)) {
             test.assertTrue(port.getBlockState().getValue(MachineBlock.POWERED), "Port has machine power");
-            test.assertTrue(port.getBlockState().getValue(MachineBlock.ACTIVE), "Nonzero signal lights activity lens");
+            test.assertFalse(port.getBlockState().getValue(MachineBlock.ACTIVE), "Activity uses telemetry without changing blockstates");
         }
         record.redstoneOutputs[0] = 0;
         test.setBlock(new BlockPos(3, 2, 2), Blocks.AIR);
         machines.ports.tick(List.of());
         for (var port : List.of(input, output)) {
             test.assertTrue(port.getBlockState().getValue(MachineBlock.POWERED), "Zero signal does not remove machine power");
-            test.assertFalse(port.getBlockState().getValue(MachineBlock.ACTIVE), "Zero signal extinguishes activity lens");
+            test.assertTrue((machines.indicators.state(test.getLevel(), port.getBlockPos()) & 16) != 0, "A changed signal lights the change indicator");
         }
         record.powered = false;
         machines.ports.tick(List.of());
@@ -70,7 +70,24 @@ public final class PortGameTests {
         record.redstoneOutputs[0] = 9;
         machines.ports.tick(List.of());
         test.assertFalse(output.getBlockState().getValue(MachineBlock.POWERED), "Retained output does not imply CPU power");
-        test.assertTrue(output.getBlockState().getValue(MachineBlock.ACTIVE), "Retained output still powers the physical target");
+        test.assertValueEqual(output.signal(), 9, "Retained output still powers the physical target");
+        test.succeed();
+    }
+
+    @GameTest public void signClicksUseTheirOwnLampWithoutChangingTheBlock(GameTestHelper test) {
+        var machines = ServerMachines.get(test.getLevel().getServer()); var record = retainedController(test);
+        var port = port(test, new BlockPos(2, 2, 2), "sign_port", record.id, 0);
+        var target = test.absolutePos(new BlockPos(3, 2, 2));
+        test.setBlock(new BlockPos(3, 1, 2), Blocks.STONE); test.setBlock(new BlockPos(3, 2, 2), Blocks.OAK_SIGN);
+        machines.indicators.begin(); machines.ports.tick(List.of());
+        test.assertValueEqual(machines.indicators.state(test.getLevel(), port.getBlockPos()) & 16, 0, "Text synchronization is not a click");
+        var before = port.getBlockState(); var player = test.makeMockServerPlayerInLevel();
+        machines.ports.signClick(player, target); machines.indicators.flush(test.getLevel().getServer());
+        test.assertTrue((machines.indicators.state(test.getLevel(), port.getBlockPos()) & 16) != 0, "Click lights LED 4");
+        test.assertTrue(port.getBlockState() == before, "LED events do not rebuild the block model");
+        machines.indicators.begin(); machines.ports.tick(List.of()); machines.indicators.flush(test.getLevel().getServer());
+        test.assertValueEqual(machines.indicators.state(test.getLevel(), port.getBlockPos()) & 16, 0, "Inactive tick releases click lamp");
+        test.getLevel().getServer().getPlayerList().remove(player);
         test.succeed();
     }
 
@@ -260,10 +277,9 @@ public final class PortGameTests {
         var sign = (SignBlockEntity) test.getLevel().getBlockEntity(test.absolutePos(new BlockPos(3, 2, 2)));
         sign.setAllowedPlayerEditor(UUID.randomUUID());
         machines.ports.tick(List.of());
-        test.assertTrue(port.getBlockState().getValue(MachineBlock.ACTIVE), "Synchronizing sign text pulses the data lens");
-        port.activityUntil = machines.records.gameTicks;
+        test.assertTrue((machines.indicators.state(test.getLevel(), port.getBlockPos()) & 16) == 0, "Sign synchronization does not impersonate a click");
         machines.ports.tick(List.of());
-        test.assertFalse(port.getBlockState().getValue(MachineBlock.ACTIVE), "Idle sign lens goes dark after its pulse");
+        test.assertTrue((machines.indicators.state(test.getLevel(), port.getBlockPos()) & 16) == 0, "Idle sign has no click indication");
         test.assertTrue(sign.isWaxed() && sign.getPlayerWhoMayEdit() == null, "CPU display signs are locked and revoke existing editors");
         var restoredSign = (SignBlockEntity) BlockEntity.loadStatic(sign.getBlockPos(), sign.getBlockState(),
                 sign.saveWithFullMetadata(test.getLevel().registryAccess()), test.getLevel().registryAccess());
@@ -295,7 +311,7 @@ public final class PortGameTests {
         machines.ports.tick(List.of());
         record.acceptOutputs(new CPUIO.OutputChanges(Map.of(), Map.of(3, new CPUIO.SignSnapshot(bytes))));
         machines.ports.tick(List.of());
-        test.assertTrue(port.getBlockState().getValue(MachineBlock.ACTIVE), "A new dirty sign write renews the data pulse");
+        test.assertTrue((machines.indicators.state(test.getLevel(), port.getBlockPos()) & 16) == 0, "Dirty sign writes are separate from clicks");
         test.assertValueEqual(sign.getText(SignTextSlot.FRONT).getMessages(false).getFirst().getString(), "€ä", "Dirty bridge output must overwrite edits");
         test.succeed();
     }

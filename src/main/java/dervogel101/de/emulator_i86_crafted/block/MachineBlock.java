@@ -64,6 +64,7 @@ public class MachineBlock extends Block {
             ServerMachines.get(server.getServer()).structureChanged(server, position);
     }
     @Override protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos position, boolean moving) {
+        ServerMachines.get(level.getServer()).indicators.remove(level, position);
         ServerMachines.get(level.getServer()).structureChanged(level, position);
         super.affectNeighborsAfterRemoval(state, level, position, moving);
     }
