@@ -112,15 +112,17 @@ public final class ServerPorts {
             boolean online = status.equals("Online");
             if (!online || !port.online) { port.sampledBridge = null; port.signTarget = null; port.signVersion = Long.MIN_VALUE; }
             port.status = status; port.online = online;
-            if (!online) { port.signal(0); visual(port, false); continue; }
+            if (!online) { port.signal(0); visual(port, false, false); continue; }
             var record = owner.records.mainframe(s.mainframe()).orElseThrow();
             var machine = active.get(record.id); CpuHostBridge bridge = machine == null ? null : machine.bridge();
             BlockPos target = port.getBlockPos().relative(port.getBlockState().getValue(PortBlock.PORT_FACING));
             boolean targetLoaded = level.hasChunkAt(target);
+            boolean activeSignal = false;
             if (port.kind() == PortBindings.Kind.REDSTONE) {
                 port.signal(s.input() ? 0 : record.redstoneOutputs[s.slot()] & 15);
+                int strength = s.input() && targetLoaded ? level.getSignal(target, port.getBlockState().getValue(PortBlock.PORT_FACING)) : 0;
+                activeSignal = s.input() ? strength > 0 : port.signal() > 0;
                 if (s.input() && targetLoaded && bridge != null) {
-                    int strength = level.getSignal(target, port.getBlockState().getValue(PortBlock.PORT_FACING));
                     if (port.sampledBridge != bridge || port.appliedIrq != s.irq()) bridge.submitRedstoneIrqMode(s.slot(), s.irq());
                     port.appliedIrq = s.irq();
                     if (port.sampledBridge != bridge) {
@@ -138,10 +140,12 @@ public final class ServerPorts {
                 if (sign != null && (port.signTarget != sign || port.signVersion != record.signVersions[s.slot()])) {
                     writeSign(level, sign, record.signOutputs[s.slot()]);
                     port.signVersion = record.signVersions[s.slot()];
+                    port.activityUntil = owner.records.gameTicks + 6;
                 }
                 port.signTarget = sign;
+                activeSignal = owner.records.gameTicks < port.activityUntil;
             }
-            visual(port, record.powered);
+            visual(port, record.powered, activeSignal);
         }
     }
     public void signClick(ServerPlayer player, BlockPos target) {
@@ -151,12 +155,17 @@ public final class ServerPorts {
         var side = sign.getSlotPlayerIsFacing(player) == SignTextSlot.FRONT ? CpuHostBridge.SignSide.FRONT : CpuHostBridge.SignSide.BACK;
         for (var port : ports) if (!port.isRemoved() && port.online && status(port).equals("Online")) {
             var machine = owner.machine(port.settings().mainframe());
-            if (machine != null && machine.record.powered && machine.bridge() != null) machine.bridge().submitSignClick(port.settings().slot(), side);
+            if (machine != null && machine.record.powered && machine.bridge() != null) {
+                machine.bridge().submitSignClick(port.settings().slot(), side);
+                port.activityUntil = owner.records.gameTicks + 6;
+            }
         }
     }
-    private static void visual(PortBlockEntity port, boolean powered) {
+    private static void visual(PortBlockEntity port, boolean powered, boolean active) {
         var state = port.getBlockState();
-        if (state.getValue(MachineBlock.POWERED) != powered) port.getLevel().setBlock(port.getBlockPos(), state.setValue(MachineBlock.POWERED, powered), Block.UPDATE_CLIENTS);
+        var next = state.setValue(MachineBlock.POWERED, powered).setValue(MachineBlock.ACTIVE, active)
+                .setValue(PortBlock.INPUT, port.settings().input());
+        if (state != next) port.getLevel().setBlock(port.getBlockPos(), next, Block.UPDATE_CLIENTS);
     }
     private static void writeSign(ServerLevel level, SignBlockEntity sign, byte[] bytes) {
         for (int side = 0; side < 2; side++) {

@@ -16,10 +16,17 @@ import net.minecraft.world.phys.BlockHitResult;
 
 public final class PortBlock extends MachineBlock implements EntityBlock {
     public static final EnumProperty<Direction> PORT_FACING = BlockStateProperties.FACING;
+    public static final BooleanProperty INPUT = BooleanProperty.create("input");
     private final PortBindings.Kind kind;
-    public PortBlock(Properties properties, PortBindings.Kind kind) { super(properties, null); this.kind = kind; }
+    public PortBlock(Properties properties, PortBindings.Kind kind) {
+        super(properties, null); this.kind = kind;
+        registerDefaultState(defaultBlockState().setValue(INPUT, true));
+    }
     public PortBindings.Kind kind() { return kind; }
     @Override protected EnumProperty<Direction> facingProperty() { return PORT_FACING; }
+    @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder); builder.add(INPUT);
+    }
     @Override public BlockState getStateForPlacement(BlockPlaceContext context) {
         return defaultBlockState().setValue(PORT_FACING, context.getNearestLookingDirection().getOpposite());
     }

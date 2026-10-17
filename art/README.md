@@ -1,39 +1,71 @@
-# Original mod artwork
+# Mainframe artwork
 
-Generated with the built-in image-generation tool for this project. These are source atlases, not separately installed resource packs.
+Original cuboid models and explicitly drawn pixel materials, exported by
+[`tools/build_art.py`](../tools/build_art.py). No image-generation service or
+Applied Energistics 2 assets are used. The old generated atlases are removed.
 
-Machine panels use an 8-column by 16-row grid; ROM burner frames use a 4-column by 2-row grid. Frame zero is static/off; the seven powered frames are extracted as a vertical Minecraft animation. The inventory source uses four transparent cells. Mechanical cropping and nearest-neighbor resizing produce the project resources; no global Minecraft texture overrides are installed.
+The design uses graphite housings, recessed panels, narrow metal rails, copper
+contacts and restrained colored indicators. Each device has its own physical
+hardware: displays, drawers, heatsinks, chip packages, sockets or push buttons.
+Side and rear service panels are drawn onto a closed casing. The outer edges
+reach the block boundary, including where Minecraft hides neighboring ground.
+Frame bolts share one texture surface, and exposed coplanar faces are rejected
+by the geometry checker.
 
-The final panel resources are 64 by 64 pixels, with seven powered frames and three ticks per frame. Item icons are 32 by 32. Resource preparation retained 64 pixels for panel detail even though the initial prompt described an intended 32-pixel downsample.
+Actual Minecraft captures: [powered](blocks-on.png), [off](blocks-off.png),
+and [inventory items](items.png).
 
-Outputs are in `src/main/resources/assets/emulator_i86_crafted/textures/`. Validate references, frame sizes, drops, and item definitions with `node tools/verify_resources.mjs`.
+Corrections: [ground contact](ground-contact.png),
+[controller and terminal](controller-terminal.png),
+[standing-sign socket](sign-up.png), [hanging anchors](sign-down.png),
+and [wall-sign contacts](sign-wall.png).
 
-## Machine panels
+All seventeen block items use their actual 3D block geometry. ROM chips have
+pins and a PCB, with a different label when programmed. Speed shards have
+faceted crystals and one, two or three physical tier marks.
 
-Source: [machine_panels.png](machine_panels.png)
+## States
 
-Final generation prompt:
+| Indicator | Meaning |
+| --- | --- |
+| Narrow edge and lower power strip | Device powered; travelling light bands interpolate over a 2.4 second loop |
+| Controller small lower lens | CPU powered and not paused |
+| PSU small lower lens | Incoming redstone, including when startup cannot succeed |
+| RESET / NMI / TEST small lower lens | Corresponding physical redstone pin is high |
+| Redstone arrow towards socket, cyan | Input |
+| Redstone arrow away from socket, amber | Output |
+| External port small lower lens | Physical input/output signal is nonzero, including a retained output while the CPU is off |
+| Sign port small lower lens | Text synchronized or sign clicked within the last six game ticks |
+| ROM burner lights and display | Upload/burn session is active, using the existing burner timeout |
+
+Off-state glass and lenses are dark. Hardware that does not expose activity
+counters shows its power state; storage lights do not invent disk traffic.
+Illuminated model elements use vanilla light emission, and only the small
+indicator/display textures animate. The casing remains stationary.
+
+The controller has a raised processor package with gold contacts and an animated
+circuit core. The access terminal has a substantially larger text display and a
+keyboard. Their shapes and display animations are deliberately different.
+
+The sign port has a separate attachment face and an accessible status display.
+Horizontal faces use wall-sign contacts; facing up uses a centered socket for a
+standing-sign pole; facing down uses two anchors for hanging-sign chains.
+Power rails and activity traces surround the selected attachment. Horizontal
+status displays face away from the attached sign; vertical mounts keep them
+upright on the side of the block.
+
+## Editing and checking
+
+Requires Python with Pillow to export; the mod itself has no new dependencies.
 
 ```text
-Use case: stylized-concept. Asset type: one production Minecraft machine texture animation atlas. Create ORIGINAL crisp, low-resolution pixel art for a retro 8086 mainframe mod, no text, numbers, watermarks, borders around the atlas, perspective, lighting gradients, or background gaps. EXACT layout: 8 columns and 16 rows of equal square tiles edge-to-edge, total aspect ratio 1:2, ideally 1024x2048 pixels, each tile a flat front-facing block texture. Every row is ONE distinct machine panel, repeated across its eight animation frames with its geometry perfectly aligned. Column 0 is powered OFF (dark indicators and stationary fan); columns 1 through 7 are consecutive powered ON frames, showing subtle blinking LEDs and gradually rotating fan blades or gently shifting display bars; keep the housing identical between frames. Palette: charcoal and slate metal, warm beige front panels, copper screws, muted green and amber indicators; purple only for the memory tunnel. Cohesive vanilla-compatible pixel art, pixel-grid shapes, flat faces, broad readable features; these tiles will be downsampled to 32x32 in game. Rows from TOP to BOTTOM: 1 CPU mainframe controller with square dark green monitor and tiny status lights; 2 atomic clock with tiny wave display and timing LEDs; 3 interrupt controller with four rows of LEDs; 4 access terminal with large dark green terminal screen; 5 GPU array with grid of small chips and amber scanning lights; 6 GPIO controller with red and black sockets; 7 harddisk array with three small disk drawers and activity LEDs; 8 Ender memory tunnel with centered purple square coil aperture; 9 integrated NVRAM storage with three chips and green LED; 10 power supply with a prominent circular cooling fan and small green light; 11 RESET port with large red push button and small LED; 12 NMI port with amber push button and small LED; 13 TEST port with blue indicator and recessed socket; 14 structural filler with metal vents and corner screws; 15 external redstone port with red rectangular socket and red indicators; 16 external sign port with a tiny beige text display and green indicators. Critical invariant: maintain precisely EIGHT tiles per row and SIXTEEN rows; absolutely no labels or extraneous content. The whole image is one texture atlas asset.
+python tools/build_art.py
+node tools/verify_resources.mjs
+python tools/verify_art_geometry.py
 ```
 
-## ROM burner
-
-Source: [rom_burner.png](rom_burner.png)
-
-Final generation prompt:
-
-```text
-Use case: stylized-concept. Asset type: one Minecraft ROM burner animation sprite atlas. Original crisp low-resolution pixel art, no lettering or numbers, front-facing flat tile only. EXACT layout four equal square tiles per row and two rows, eight frames total, no padding, no border around the image, aspect ratio 2:1. Reading left to right top to bottom, tile 0 is powered OFF; tiles 1-7 are consecutive powered ON frames. All frames have identical housing and perfectly aligned geometry: charcoal steel edges, warm beige front panel, four small copper corner screws, a prominent horizontal black ROM chip insertion slot in the middle, a recessed dark amber mini display above it and two green/amber activity indicators below. A tiny fan grille at lower left. OFF state has all lights/displays dark; ON states blink lights, scan a simple amber bar and turn a small fan. Vanilla-compatible pixel art with broad readable shapes; tiles will be resized to 64x64. Consistent worn retro 8086 mainframe hardware. No text, watermarks, gradients, perspective, shadows outside a tile, or unrelated objects.
-```
-
-## Inventory icons
-
-Source: [inventory_items.png](inventory_items.png)
-
-Final generation prompt:
-
-```text
-Use case: stylized-concept. Asset type: one Minecraft inventory item sprite sheet with a genuine TRANSPARENT background. Original crisp 32x32-style pixel art, flat inventory icons, precisely a 2 by 2 grid of four equally sized isolated icons centered in their square cells, no labels or lettering, no background, no shadows. Top left: an 8086-style black ROM DIP chip with a beige small label and silver pins. Top right: a copper-mounted small green clock crystal speed shard, one green crystal. Bottom left: a silver-mounted blue clock crystal speed shard, slightly faceted blue crystal. Bottom right: a gold-mounted purple clock crystal speed shard, purple faceted crystal. Cohesive vanilla Minecraft pixel art, strong dark outlines, limited palette, hard pixel edges, each icon fills approximately 75 percent of its cell with transparent margin. No text, numbers, watermarks, extra icons, pedestals or panels.
-```
+The committed PNGs are material swatches and explicitly drawn pixel displays.
+The exporter is deterministic. Model geometry, all facings, state combinations,
+texture references, animation dimensions, item models and portable drops are
+checked by the resource and geometry verifiers. Native tests cover the server state signals;
+the dedicated artwork client test captures the actual Minecraft renderer.

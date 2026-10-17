@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public final class LiveClientGameTest implements FabricClientGameTest {
     private record Fixture(long id, BlockPos controller, BlockPos power, BlockPos sign, BlockPos shardOnly) {}
     @Override public void runTest(ClientGameTestContext context) {
+        if (Boolean.getBoolean("i86.client.artwork")) return;
         try { if (Boolean.getBoolean("i86.client.reopen")) reopenFreshProcess(context); else check(context); }
         catch (Exception failure) { throw new IllegalStateException("Live i86 client check failed", failure); }
     }

@@ -20,12 +20,13 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 public class MachineBlock extends Block {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
+    public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
     private final Hardware hardware;
 
     public MachineBlock(Properties properties, Hardware hardware) {
         super(properties);
         this.hardware = hardware;
-        registerDefaultState(stateDefinition.any().setValue(facingProperty(), Direction.NORTH).setValue(POWERED, false));
+        registerDefaultState(stateDefinition.any().setValue(facingProperty(), Direction.NORTH).setValue(POWERED, false).setValue(ACTIVE, false));
     }
 
     /** Null denotes a non-hardware block (filler, external port, or ROM burner). */
@@ -42,7 +43,7 @@ public class MachineBlock extends Block {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(facingProperty(), POWERED);
+        builder.add(facingProperty(), POWERED, ACTIVE);
     }
 
     @Override
@@ -57,6 +58,7 @@ public class MachineBlock extends Block {
 
     @Override protected void onPlace(BlockState state, Level level, BlockPos position, BlockState previous, boolean moving) {
         super.onPlace(state, level, position, previous, moving);
+        updateSignalLight(level, position);
         if (level instanceof ServerLevel server && (!previous.is(this)
                 || previous.hasProperty(facingProperty()) && previous.getValue(facingProperty()) != state.getValue(facingProperty())))
             ServerMachines.get(server.getServer()).structureChanged(server, position);
@@ -78,6 +80,16 @@ public class MachineBlock extends Block {
 
     @Override protected void neighborChanged(BlockState state, Level level, BlockPos position, Block source, Orientation orientation, boolean moving) {
         super.neighborChanged(state, level, position, source, orientation, moving);
+        updateSignalLight(level, position);
         if (level instanceof ServerLevel server) ServerMachines.get(server.getServer()).inputsChanged(server, position);
+    }
+
+    private void updateSignalLight(Level level, BlockPos position) {
+        if (!(level instanceof ServerLevel) || !(hardware == Hardware.POWER || hardware == Hardware.RESET
+                || hardware == Hardware.NMI || hardware == Hardware.TEST)) return;
+        var state = level.getBlockState(position);
+        boolean active = level.getBestNeighborSignal(position) > 0;
+        if (state.is(this) && state.getValue(ACTIVE) != active)
+            level.setBlock(position, state.setValue(ACTIVE, active), Block.UPDATE_CLIENTS);
     }
 }

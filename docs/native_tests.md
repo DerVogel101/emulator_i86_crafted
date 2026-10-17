@@ -11,10 +11,12 @@ $env:JAVA_HOME = "C:\Program Files\Java\jdk-25"
 .\gradlew.bat --offline --console=plain --no-daemon build runGameTestServer
 .\gradlew.bat --offline --console=plain --no-daemon runClientGameTest
 .\gradlew.bat --offline --console=plain --no-daemon -Pi86Reopen runClientGameTest
+.\gradlew.bat --offline --console=plain --no-daemon -Pi86Artwork runClientGameTest
 node tools/verify_resources.mjs
+python tools/verify_art_geometry.py
 ```
 
-The final client command launches a new Minecraft JVM and reopens the world saved by the preceding client run. Keep their shared run directory and `i86-reopen.properties` checkpoint between those runs. Its use of Fabric's test world implementation is confined to the test source set.
+The command with `-Pi86Reopen` launches a new Minecraft JVM and reopens the world saved by the preceding client run. Keep their shared run directory and `i86-reopen.properties` checkpoint between those runs. Its use of Fabric's test world implementation is confined to the test source set. The artwork command uses a separate temporary gallery world.
 
 `build` runs runtime self-checks and compiles native tests without starting Minecraft. Test classes and test-mod metadata are excluded from the production JAR. Server results are written to `build/gametest-results.xml`.
 
@@ -93,6 +95,40 @@ Evidence: `build/shard-tooltips/world-tests.log` and `client-tests.log`.
 
 These are ignored local build artifacts. Reproduce the commands rather than treating their paths as committed fixtures.
 
+## 3D artwork, 2026-10-17
+
+The final offline build, runtime checks and **30 native server tests passed**.
+New coverage distinguishes running/paused/off CPU indicators, physical pin
+levels without a valid wall, input/output arrows, signal versus machine power,
+retained output activity after shutdown, and dirty sign writes with pulse expiry.
+
+The dedicated client gallery passed with `I86_ARTWORK_CLIENT_OK`. Every model's
+powered state was checked on the client. Off/on, pulse, nighttime, both port
+directions, rear geometry and all 21 inventory items (plus a programmed ROM chip)
+were captured and inspected. Committed previews are in [art](../art/README.md);
+full captures and the client log are under `build/client-gametest-run`.
+The packaged production JAR was checked for the new geometry and conditional ROM
+item, all nine animated textures, absence of replaced placeholder textures, and
+exclusion of test classes. The resource verifier and `git diff --check` passed.
+
+## Casing, effects and sign-mount corrections, 2026-10-17
+
+**31 native tests passed**, including text synchronization to real standing,
+wall and hanging signs in all six adjacent directions. Build and runtime
+checks passed. The geometry regression first reproduced the inset casing and
+visible coplanar overlaps, then passed all 216 state samples after the fixes.
+Light checks verify a travelling band, visible contrast, bounded frame changes
+and a continuous loop; all ten textures use sixteen interpolated frames.
+
+The live artwork client passed with synchronized sign text. Ground-level views
+of adjacent machines on grass show sealed outside edges. Close views cover
+frame/device surfaces, the distinct controller and terminal, and standing,
+hanging and wall-sign connections. Previews are saved under art/; full captures
+and logs remain under build/client-gametest-run. Third-party rendering and
+shader mods were not tested.
+
 ## Limits
+
+The artwork suite does not cover third-party shader or rendering mods.
 
 No multi-computer manual play session or large-server load benchmark was run. Native tests cover component/burner submissions; the live test verifies the custom screen flows and their appearance. File selection through the desktop chooser has not been manually tested end to end. Arbitrary external ROMs need their own startup/library validation as described in [ia16_validation.md](ia16_validation.md). Recipes are deferred.

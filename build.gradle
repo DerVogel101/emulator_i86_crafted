@@ -104,6 +104,7 @@ loom.runs.register('clientGameTest') {
     runDir 'build/client-gametest-run'
     vmArg '-Dfabric.client.gametest'
     if (project.hasProperty('i86Reopen')) vmArg '-Di86.client.reopen=true'
+    if (project.hasProperty('i86Artwork')) vmArg '-Di86.client.artwork=true'
     vmArg "-Dfabric.client.gametest.testModResourcesPath=${project.file('src/clientGametest/resources').absolutePath}"
     programArgs '--username', 'i86TestPlayer', '--width', '1280', '--height', '720'
 }

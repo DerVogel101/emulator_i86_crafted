@@ -55,6 +55,7 @@ public final class ServerMachines {
         Structure structure;
         boolean dirty = true, sampled;
         Boolean visualPower;
+        boolean visualRunning;
         Loaded(ControllerBlockEntity controller, MainframeMachine machine) { this.controller = controller; this.machine = machine; }
         ServerLevel level() { return (ServerLevel) controller.getLevel(); }
     }
@@ -332,14 +333,19 @@ public final class ServerMachines {
     }
 
     private void visuals(Loaded current, boolean powered) {
-        if (Objects.equals(current.visualPower, powered) || current.structure == null) return;
+        boolean running = powered && !current.machine.record.paused;
+        if (Objects.equals(current.visualPower, powered) && current.visualRunning == running || current.structure == null) return;
         for (var position : current.structure.wall().positions()) {
             var blockPos = new BlockPos(position.x(), position.y(), position.z());
             var state = current.level().getBlockState(blockPos);
-            if (state.getBlock() instanceof MachineBlock && state.getValue(MachineBlock.POWERED) != powered)
-                current.level().setBlock(blockPos, state.setValue(MachineBlock.POWERED, powered), 2);
+            if (state.getBlock() instanceof MachineBlock block) {
+                var next = state.setValue(MachineBlock.POWERED, powered);
+                if (block.hardware() == Hardware.CONTROLLER) next = next.setValue(MachineBlock.ACTIVE, running);
+                if (state != next) current.level().setBlock(blockPos, next, 2);
+            }
         }
         current.visualPower = powered;
+        current.visualRunning = running;
     }
 
     public void powerOff(long id, String reason) {

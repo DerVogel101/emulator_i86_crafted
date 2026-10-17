@@ -20,6 +20,7 @@ public final class PortBlockEntity extends BlockEntity {
     public RedstoneIrqMode appliedIrq;
     public int appliedSignSides = -1;
     public long signVersion = Long.MIN_VALUE;
+    public long activityUntil;
 
     public PortBlockEntity(BlockPos pos, BlockState state) { super(ModBlockEntities.PORT, pos, state); }
     public PortBindings.Kind kind() { return ((PortBlock) getBlockState().getBlock()).kind(); }
@@ -31,7 +32,7 @@ public final class PortBlockEntity extends BlockEntity {
     public void applySettings(PortBindings.Settings next) {
         if (settings.equals(next)) return;
         if (settings.mainframe() != next.mainframe() || settings.slot() != next.slot() || settings.input() != next.input()) {
-            sampledBridge = null; signTarget = null; signVersion = Long.MIN_VALUE;
+            sampledBridge = null; signTarget = null; signVersion = Long.MIN_VALUE; activityUntil = 0;
         }
         settings = next;
         setChanged();

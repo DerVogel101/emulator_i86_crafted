@@ -2,6 +2,10 @@
 
 Minecraft 26.3 mainframes running the shared i8086 emulator, with redstone/sign I/O, persistent storage, ROM burning and an external Swing debugger.
 
+Blocks and items use original 3D models with graphite casings, recessed hardware
+and smoothly interpolated indicators. Power, CPU activity, redstone direction
+and physical signal states have separate lights; see [artwork](art/README.md).
+
 ## Install and start
 
 Use Java 25, Fabric Loader 0.19.5 or newer, and Fabric API for Minecraft 26.3. Install `emulator_i86_crafted-1.0-SNAPSHOT.jar` on both client and server. The emulator, launcher views and named sign font are bundled. Desktop Java with Swing is required on clients opening the debugger or ROM file picker.

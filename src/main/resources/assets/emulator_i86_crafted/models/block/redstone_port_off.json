@@ -1,1 +1,3 @@
-{"parent":"minecraft:block/orientable","textures":{"front":"emulator_i86_crafted:block/redstone_port_off","side":"emulator_i86_crafted:block/super_structure_off","top":"emulator_i86_crafted:block/super_structure_off"}}
+{
+  "parent": "emulator_i86_crafted:block/redstone_port_input_off"
+}

@@ -14,6 +14,52 @@ import net.minecraft.world.level.block.*;
 import java.util.*;
 
 public final class MachineGameTests {
+    @GameTest public void pinLightsFollowIncomingRedstoneWithoutAValidWall(GameTestHelper test) {
+        var ids = List.of("power_supply", "reset_port", "nmi_port", "test_port");
+        for (int i = 0; i < ids.size(); i++) {
+            var pos = new BlockPos(2 + i % 2 * 4, 2, 2 + i / 2 * 4);
+            test.setBlock(pos, ModContent.BLOCKS.get(ids.get(i)));
+            test.setBlock(pos.above(), Blocks.REDSTONE_BLOCK);
+            var state = test.getLevel().getBlockState(test.absolutePos(pos));
+            test.assertTrue(state.getValue(MachineBlock.ACTIVE), "Incoming pin lights independently of a booted CPU");
+            test.assertFalse(state.getValue(MachineBlock.POWERED), "A redstone pin does not imply successful startup");
+            test.setBlock(pos.above(), Blocks.AIR);
+            test.assertFalse(test.getLevel().getBlockState(test.absolutePos(pos)).getValue(MachineBlock.ACTIVE),
+                    "Removing redstone extinguishes pin light");
+        }
+        test.succeed();
+    }
+
+    @GameTest(maxTicks = 100) public void controllerLightsFollowRunningPausedAndOff(GameTestHelper test) throws Exception {
+        var wall = new Wall(test, 24576);
+        var shared = (ArrayBlockEntity) test.getLevel().getBlockEntity(wall.part(Hardware.SHARED_MEMORY));
+        shared.memoryId("visual_states", wall.player.getUUID());
+        byte[] image = new byte[256 * 1024];
+        int reset = image.length - 16;
+        image[reset] = 15; image[reset + 1] = 1; image[reset + 2] = (byte) 0xEB; image[reset + 3] = (byte) 0xFC;
+        UUID rom;
+        try { rom = wall.machines.roms.upload(image, "Visual state check", "").id(); }
+        catch (RomLibrary.DuplicateRom duplicate) { rom = duplicate.existing.id(); }
+        wall.controller.inventory.setItem(0, RomChips.create(wall.machines.roms.entry(rom).orElseThrow(), false));
+        wall.controller.inventory.setItem(1, new net.minecraft.world.item.ItemStack(ModContent.ITEMS.get("speed_shard_1")));
+        var source = wall.part(Hardware.POWER).south();
+        test.getLevel().setBlock(source, Blocks.REDSTONE_BLOCK.defaultBlockState(), Block.UPDATE_ALL);
+        test.startSequence().thenWaitUntil(() -> {
+            var state = wall.controller.getBlockState();
+            test.assertTrue(wall.record().powered && state.getValue(MachineBlock.ACTIVE), "Running CPU lights activity");
+        }).thenExecute(() -> wall.record().paused = true).thenIdle(2).thenExecute(() -> {
+            var state = wall.controller.getBlockState();
+            test.assertTrue(state.getValue(MachineBlock.POWERED), "Paused CPU retains its power indicator");
+            test.assertFalse(state.getValue(MachineBlock.ACTIVE), "Paused CPU has no running indicator");
+            test.getLevel().setBlock(source, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+        }).thenIdle(2).thenExecute(() -> {
+            var state = wall.controller.getBlockState();
+            test.assertFalse(state.getValue(MachineBlock.POWERED), "Shutdown extinguishes controller strips");
+            test.assertFalse(state.getValue(MachineBlock.ACTIVE), "Shutdown extinguishes controller activity");
+            wall.close();
+        }).thenSucceed();
+    }
+
     static final class Wall implements AutoCloseable {
         final GameTestHelper test;
         final ServerMachines machines;

@@ -14,6 +14,66 @@ import net.minecraft.world.level.block.entity.*;
 import java.util.*;
 
 public final class PortGameTests {
+    @GameTest public void signTargetsFollowAllSixMountingFaces(GameTestHelper test) {
+        var machines = ServerMachines.get(test.getLevel().getServer());
+        var record = retainedController(test);
+        var center = new BlockPos(3, 3, 3);
+        for (var facing : Direction.values()) {
+            test.setBlock(center, ModContent.BLOCKS.get("sign_port").defaultBlockState().setValue(PortBlock.PORT_FACING, facing));
+            var port = (PortBlockEntity) test.getLevel().getBlockEntity(test.absolutePos(center));
+            port.settings(new PortBindings.Settings(record.id, 0, facing.name(), true, RedstoneIrqMode.DISABLED, 3));
+            var signState = facing == Direction.UP ? Blocks.OAK_SIGN.defaultBlockState()
+                    : facing == Direction.DOWN ? Blocks.OAK_HANGING_SIGN.defaultBlockState()
+                    : Blocks.OAK_WALL_SIGN.defaultBlockState().setValue(WallSignBlock.FACING, facing);
+            var target = center.relative(facing);
+            test.setBlock(target, signState);
+            var sign = (SignBlockEntity) test.getLevel().getBlockEntity(test.absolutePos(target));
+            record.signOutputs[0][0] = 0x10;
+            record.signOutputs[0][1] = (byte) ('A' + facing.ordinal());
+            machines.ports.tick(List.of());
+            test.assertTrue(port.signTarget == sign, "The selected face addresses its actual adjacent sign: " + facing);
+            test.assertValueEqual(sign.getText(SignTextSlot.FRONT).getMessages(false).getFirst().getString(),
+                    Character.toString('A' + facing.ordinal()), "Text reaches the mounted sign: " + facing);
+            test.assertTrue(port.getBlockState().getValue(MachineBlock.ACTIVE), "Mounted sign reports real synchronization activity");
+            test.setBlock(target, Blocks.AIR);
+            test.setBlock(center, Blocks.AIR);
+        }
+        test.succeed();
+    }
+
+    @GameTest public void indicatorsSeparatePortDirectionPowerAndSignal(GameTestHelper test) {
+        var machines = ServerMachines.get(test.getLevel().getServer());
+        var record = retainedController(test);
+        record.powered = true; record.redstoneOutputs[0] = 9;
+        var input = port(test, new BlockPos(2, 2, 2), "redstone_port", record.id, 0);
+        input.settings(new PortBindings.Settings(record.id, 0, "Input", true, RedstoneIrqMode.ANALOG, 0));
+        var output = port(test, new BlockPos(6, 2, 2), "redstone_port", record.id, 0);
+        test.setBlock(new BlockPos(3, 2, 2), Blocks.REDSTONE_BLOCK);
+        machines.ports.tick(List.of());
+        test.assertTrue(input.getBlockState().getValue(PortBlock.INPUT), "Input arrow follows saved direction");
+        test.assertFalse(output.getBlockState().getValue(PortBlock.INPUT), "Output arrow follows saved direction");
+        for (var port : List.of(input, output)) {
+            test.assertTrue(port.getBlockState().getValue(MachineBlock.POWERED), "Port has machine power");
+            test.assertTrue(port.getBlockState().getValue(MachineBlock.ACTIVE), "Nonzero signal lights activity lens");
+        }
+        record.redstoneOutputs[0] = 0;
+        test.setBlock(new BlockPos(3, 2, 2), Blocks.AIR);
+        machines.ports.tick(List.of());
+        for (var port : List.of(input, output)) {
+            test.assertTrue(port.getBlockState().getValue(MachineBlock.POWERED), "Zero signal does not remove machine power");
+            test.assertFalse(port.getBlockState().getValue(MachineBlock.ACTIVE), "Zero signal extinguishes activity lens");
+        }
+        record.powered = false;
+        machines.ports.tick(List.of());
+        test.assertFalse(input.getBlockState().getValue(MachineBlock.POWERED), "Power-off extinguishes power strips");
+        test.assertFalse(output.getBlockState().getValue(MachineBlock.ACTIVE), "Power-off extinguishes activity");
+        record.redstoneOutputs[0] = 9;
+        machines.ports.tick(List.of());
+        test.assertFalse(output.getBlockState().getValue(MachineBlock.POWERED), "Retained output does not imply CPU power");
+        test.assertTrue(output.getBlockState().getValue(MachineBlock.ACTIVE), "Retained output still powers the physical target");
+        test.succeed();
+    }
+
     @GameTest public void sameIdInputAndOutputBothReachTheirOwnIoRegisters(GameTestHelper test) throws Exception {
         var machines = ServerMachines.get(test.getLevel().getServer());
         var record = retainedController(test);
@@ -200,6 +260,10 @@ public final class PortGameTests {
         var sign = (SignBlockEntity) test.getLevel().getBlockEntity(test.absolutePos(new BlockPos(3, 2, 2)));
         sign.setAllowedPlayerEditor(UUID.randomUUID());
         machines.ports.tick(List.of());
+        test.assertTrue(port.getBlockState().getValue(MachineBlock.ACTIVE), "Synchronizing sign text pulses the data lens");
+        port.activityUntil = machines.records.gameTicks;
+        machines.ports.tick(List.of());
+        test.assertFalse(port.getBlockState().getValue(MachineBlock.ACTIVE), "Idle sign lens goes dark after its pulse");
         test.assertTrue(sign.isWaxed() && sign.getPlayerWhoMayEdit() == null, "CPU display signs are locked and revoke existing editors");
         var restoredSign = (SignBlockEntity) BlockEntity.loadStatic(sign.getBlockPos(), sign.getBlockState(),
                 sign.saveWithFullMetadata(test.getLevel().registryAccess()), test.getLevel().registryAccess());
@@ -231,6 +295,7 @@ public final class PortGameTests {
         machines.ports.tick(List.of());
         record.acceptOutputs(new CPUIO.OutputChanges(Map.of(), Map.of(3, new CPUIO.SignSnapshot(bytes))));
         machines.ports.tick(List.of());
+        test.assertTrue(port.getBlockState().getValue(MachineBlock.ACTIVE), "A new dirty sign write renews the data pulse");
         test.assertValueEqual(sign.getText(SignTextSlot.FRONT).getMessages(false).getFirst().getString(), "€ä", "Dirty bridge output must overwrite edits");
         test.succeed();
     }

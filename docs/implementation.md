@@ -25,7 +25,7 @@ The mod specified in [mod_behavior.md](mod_behavior.md) is implemented, includin
 | Paused CPU details; running status/fault/terminal updates | Bounded debugger snapshot protocol and server worker actions | Protocol/runtime checks, native running-data exclusion, live authenticated edits |
 | Display names and custom creative tab | Block-item description prefix, language entries and Fabric tab with chip icon | Native key checks and live 21-item/tab validation |
 | Purpose-built hardware screens | Client ControlPanelScreen/ControllerScreen, bounded Fabric packets, guarded installation menu | Panel/menu native regressions and inspected live client captures; no datapack dialog API remains |
-| Original on/off textures and small animations | 17 block types with seven-frame powered sprites; 21 item definitions | Resource verifier, distinct-frame audit and inspected client off/on/animation captures |
+| Original 3D artwork and state indicators | 17 modeled block types and 21 modeled items; ten small interpolated textures; sealed casings, distinct CPU/terminal fronts and six-face sign mounts | Resource and geometry verifiers, native visual-state regressions and inspected client gallery; see [artwork](../art/README.md) |
 
 ## Current verification
 

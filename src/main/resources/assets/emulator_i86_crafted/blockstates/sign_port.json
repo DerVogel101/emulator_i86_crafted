@@ -1,52 +1,178 @@
 {
-  "variants": {
-    "facing=north,powered=false": {
-      "model": "emulator_i86_crafted:block/sign_port_off",
-      "y": 0
+  "multipart": [
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "emulator_i86_crafted:block/sign_port_wall_off",
+        "y": 180
+      }
     },
-    "facing=east,powered=false": {
-      "model": "emulator_i86_crafted:block/sign_port_off",
-      "y": 90
+    {
+      "when": {
+        "facing": "north",
+        "powered": "true"
+      },
+      "apply": {
+        "model": "emulator_i86_crafted:block/sign_port_wall_on",
+        "y": 180
+      }
     },
-    "facing=south,powered=false": {
-      "model": "emulator_i86_crafted:block/sign_port_off",
-      "y": 180
+    {
+      "when": {
+        "facing": "north",
+        "active": "true"
+      },
+      "apply": {
+        "model": "emulator_i86_crafted:block/sign_port_wall_active",
+        "y": 180
+      }
     },
-    "facing=west,powered=false": {
-      "model": "emulator_i86_crafted:block/sign_port_off",
-      "y": 270
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "emulator_i86_crafted:block/sign_port_wall_off",
+        "y": 270
+      }
     },
-    "facing=north,powered=true": {
-      "model": "emulator_i86_crafted:block/sign_port_on",
-      "y": 0
+    {
+      "when": {
+        "facing": "east",
+        "powered": "true"
+      },
+      "apply": {
+        "model": "emulator_i86_crafted:block/sign_port_wall_on",
+        "y": 270
+      }
     },
-    "facing=east,powered=true": {
-      "model": "emulator_i86_crafted:block/sign_port_on",
-      "y": 90
+    {
+      "when": {
+        "facing": "east",
+        "active": "true"
+      },
+      "apply": {
+        "model": "emulator_i86_crafted:block/sign_port_wall_active",
+        "y": 270
+      }
     },
-    "facing=south,powered=true": {
-      "model": "emulator_i86_crafted:block/sign_port_on",
-      "y": 180
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "emulator_i86_crafted:block/sign_port_wall_off",
+        "y": 0
+      }
     },
-    "facing=west,powered=true": {
-      "model": "emulator_i86_crafted:block/sign_port_on",
-      "y": 270
+    {
+      "when": {
+        "facing": "south",
+        "powered": "true"
+      },
+      "apply": {
+        "model": "emulator_i86_crafted:block/sign_port_wall_on",
+        "y": 0
+      }
     },
-    "facing=up,powered=false": {
-      "model": "emulator_i86_crafted:block/sign_port_off",
-      "x": 270
+    {
+      "when": {
+        "facing": "south",
+        "active": "true"
+      },
+      "apply": {
+        "model": "emulator_i86_crafted:block/sign_port_wall_active",
+        "y": 0
+      }
     },
-    "facing=down,powered=false": {
-      "model": "emulator_i86_crafted:block/sign_port_off",
-      "x": 90
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "emulator_i86_crafted:block/sign_port_wall_off",
+        "y": 90
+      }
     },
-    "facing=up,powered=true": {
-      "model": "emulator_i86_crafted:block/sign_port_on",
-      "x": 270
+    {
+      "when": {
+        "facing": "west",
+        "powered": "true"
+      },
+      "apply": {
+        "model": "emulator_i86_crafted:block/sign_port_wall_on",
+        "y": 90
+      }
     },
-    "facing=down,powered=true": {
-      "model": "emulator_i86_crafted:block/sign_port_on",
-      "x": 90
+    {
+      "when": {
+        "facing": "west",
+        "active": "true"
+      },
+      "apply": {
+        "model": "emulator_i86_crafted:block/sign_port_wall_active",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "up"
+      },
+      "apply": {
+        "model": "emulator_i86_crafted:block/sign_port_up_off",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "powered": "true"
+      },
+      "apply": {
+        "model": "emulator_i86_crafted:block/sign_port_up_on",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "active": "true"
+      },
+      "apply": {
+        "model": "emulator_i86_crafted:block/sign_port_up_active",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "facing": "down"
+      },
+      "apply": {
+        "model": "emulator_i86_crafted:block/sign_port_down_off",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "powered": "true"
+      },
+      "apply": {
+        "model": "emulator_i86_crafted:block/sign_port_down_on",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "active": "true"
+      },
+      "apply": {
+        "model": "emulator_i86_crafted:block/sign_port_down_active",
+        "y": 0
+      }
     }
-  }
+  ]
 }
