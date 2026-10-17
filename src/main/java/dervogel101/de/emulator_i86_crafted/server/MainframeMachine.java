@@ -273,7 +273,7 @@ public final class MainframeMachine {
         if (!record.powered) { record.faulted = false; return; }
         if (worker == null) throw new IllegalStateException("Execution state is unavailable; power cycle the mainframe");
         pause(true); onWorker(core -> { core.reset(); return null; });
-        worker.close(); record.faulted = false; record.faultCs = record.faultIp = 0; startWorker(); record.status = "Paused";
+        worker.close(); record.faulted = false; record.faultCs = record.faultIp = 0; startWorker(); pause(false);
     }
 
     public record DebugTarget(int cs, int ip) {}

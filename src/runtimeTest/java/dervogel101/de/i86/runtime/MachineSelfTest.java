@@ -96,7 +96,7 @@ final class MachineSelfTest {
                 assert cpu.memory().read8(0xB000, 0) == 0x55 && cpu.registers().getIp() == 0;
                 return null;
             });
-            assert !persistedFault.faulted && persistedFault.powered && persistedFault.paused;
+            assert !persistedFault.faulted && persistedFault.powered && !persistedFault.paused;
 
             var backgroundRecord = reloaded.allocate(); backgroundRecord.controllers.add(new WorldRecords.Location("minecraft:overworld", 4, 64, 4));
             var background = new MainframeMachine(reloaded, backgroundRecord, library, restoredClaims); opened.add(background);
@@ -105,8 +105,9 @@ final class MachineSelfTest {
             awaitIp(background, 1);
             background.capture(); assert backgroundRecord.faulted && backgroundRecord.powered && backgroundRecord.paused;
             background.reset();
+            assert !backgroundRecord.faulted && !backgroundRecord.paused : "Reset clears the fault and starts execution";
             background.onWorker(cpu -> { cpu.jumpTo(0, 0x200); cpu.memory().write8(0, 0x200, 0x90); cpu.memory().write8(0, 0x201, 0xF4); return null; });
-            background.pause(false); background.tick(System.nanoTime(), 1_000_000_000, ShardSpeed.TIER_3, 113, 6013);
+            background.tick(System.nanoTime(), 1_000_000_000, ShardSpeed.TIER_3, 113, 6013);
             awaitIp(background, 0x202); background.pause(true);
             assert background.instructions() == 2 : "Reset must replace the failed worker while retaining the CPU";
             background.onWorker(cpu -> { assert cpu.isHalted(); return null; });

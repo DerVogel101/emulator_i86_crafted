@@ -54,9 +54,10 @@ do not yet describe those capabilities fully.
   zero rule; any change caused by CPU reset/power-cycle semantics is reflected
   through the bridge. Unloaded external ports do not interact with the world.
 - Power Supply, Reset Port, and NMI Port also provide manual GUI controls.
-- CPU Reset and Power Cycle follow the corresponding selected-CPU operations in
-  the launcher. CPU Reset preserves memory and connected-device state. Power Cycle
-  reloads the ROM and persisted nonvolatile images; shared-region lifetime is a
+- CPU Reset preserves memory and connected-device state. In-game manual Reset
+  starts execution on a powered mainframe, including after HLT or debugger pause.
+- Power Cycle follows the corresponding selected-CPU operation in the launcher:
+  it reloads the ROM and persisted nonvolatile images; shared-region lifetime is a
   separate decision because several mainframes can use the same region.
 - Absent optional hardware provides no functioning device. For example, absent
   timers read as zero and do not run. Without Integrated Storage or an Ender

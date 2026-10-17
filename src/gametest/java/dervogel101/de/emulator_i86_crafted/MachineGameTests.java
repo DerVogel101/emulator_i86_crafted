@@ -30,6 +30,97 @@ public final class MachineGameTests {
         test.succeed();
     }
 
+    @GameTest(maxTicks = 180) public void redstonePinsHandleHaltWaitAndManualResetStartsExecution(GameTestHelper test) throws Exception {
+        var wall = new Wall(test, 28672);
+        ((ArrayBlockEntity) test.getLevel().getBlockEntity(wall.part(Hardware.SHARED_MEMORY)))
+                .memoryId("pin_validation", wall.player.getUUID());
+        byte[] image = new byte[256 * 1024];
+        // Count boots, WAIT on TEST, then HLT; NMI returns to WAIT/HLT with IF clear.
+        byte[] program = {(byte) 0xBC, 0, (byte) 0x80, (byte) 0xFF, 6, 0, 0x10, (byte) 0x9B, (byte) 0xF4, (byte) 0xEB, (byte) 0xFC};
+        System.arraycopy(program, 0, image, image.length - 16, program.length);
+        byte[] handler = {(byte) 0xFF, 6, 2, 0x10, (byte) 0xCF};
+        System.arraycopy(handler, 0, image, 0x100, handler.length);
+        UUID rom;
+        try { rom = wall.machines.roms.upload(image, "Pin validation", "").id(); }
+        catch (RomLibrary.DuplicateRom duplicate) { rom = duplicate.existing.id(); }
+        wall.controller.inventory.setItem(0, RomChips.create(wall.machines.roms.entry(rom).orElseThrow(), false));
+        wall.controller.inventory.setItem(1, new net.minecraft.world.item.ItemStack(ModContent.ITEMS.get("speed_shard_1")));
+        var level = test.getLevel();
+        var power = wall.part(Hardware.POWER).south();
+        var reset = wall.part(Hardware.RESET).south();
+        var nmi = wall.part(Hardware.NMI).south();
+        var busy = wall.part(Hardware.TEST).south();
+        level.setBlock(power, Blocks.REDSTONE_BLOCK.defaultBlockState(), Block.UPDATE_ALL);
+        test.startSequence().thenWaitUntil(() -> {
+            var machine = wall.machines.machine(wall.record().id);
+            test.assertTrue(wall.record().powered && machine.onWorker(cpu -> cpu.isHalted()), "Running CPU reaches HLT");
+            test.assertFalse(wall.record().paused, "HLT keeps the host scheduler running");
+        }).thenExecute(() -> {
+            wall.machines.machine(wall.record().id).onWorker(cpu -> {
+                cpu.memory().write16(0, 8, 0x100); cpu.memory().write16(0, 10, 0xC000); return null;
+            });
+            level.setBlock(nmi, Blocks.REDSTONE_BLOCK.defaultBlockState(), Block.UPDATE_ALL);
+        }).thenWaitUntil(() -> {
+            test.assertTrue(wall.machines.machine(wall.record().id).onWorker(cpu ->
+                    cpu.isHalted() && cpu.memory().read16(0, 0x1002) == 1), "NMI wakes HLT with IF clear and IRET resumes");
+        }).thenIdle(3).thenExecute(() -> {
+            test.assertValueEqual(wall.machines.machine(wall.record().id).onWorker(cpu -> cpu.memory().read16(0, 0x1002)), 1, "Held NMI does not retrigger");
+            level.setBlock(nmi, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+            level.setBlock(reset, Blocks.REDSTONE_BLOCK.defaultBlockState(), Block.UPDATE_ALL);
+        }).thenWaitUntil(() -> {
+            test.assertTrue(wall.machines.machine(wall.record().id).onWorker(cpu ->
+                    !cpu.isHalted() && cpu.registers().getCs() == 0xFFFF && cpu.registers().getIp() == 0), "Redstone RESET wakes HLT and holds the reset vector");
+        }).thenExecute(() -> {
+            level.setBlock(nmi, Blocks.REDSTONE_BLOCK.defaultBlockState(), Block.UPDATE_ALL);
+            level.setBlock(busy, Blocks.REDSTONE_BLOCK.defaultBlockState(), Block.UPDATE_ALL);
+            level.setBlock(reset, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+        }).thenWaitUntil(() -> {
+            test.assertTrue(wall.machines.machine(wall.record().id).onWorker(cpu ->
+                    !cpu.isHalted() && cpu.registers().getIp() == 7 && cpu.memory().read16(0, 0x1000) == 2
+                            && cpu.memory().read16(0, 0x1002) == 1), "TEST high stalls WAIT; RESET preserves RAM and ignores NMI edges while held");
+        }).thenExecute(() -> {
+            level.setBlock(nmi, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+            level.setBlock(nmi, Blocks.REDSTONE_BLOCK.defaultBlockState(), Block.UPDATE_ALL);
+        }).thenWaitUntil(() -> {
+            test.assertTrue(wall.machines.machine(wall.record().id).onWorker(cpu ->
+                    !cpu.isHalted() && cpu.registers().getIp() == 7 && cpu.memory().read16(0, 0x1002) == 2), "NMI interrupts WAIT and IRET retries it");
+        }).thenExecute(() -> level.setBlock(busy, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL)).thenWaitUntil(() -> {
+            test.assertTrue(wall.machines.machine(wall.record().id).onWorker(cpu -> cpu.isHalted()), "TEST low releases WAIT to HLT");
+        }).thenExecute(() -> level.setBlock(busy, Blocks.REDSTONE_BLOCK.defaultBlockState(), Block.UPDATE_ALL)).thenIdle(3).thenExecute(() -> {
+            var machine = wall.machines.machine(wall.record().id);
+            test.assertTrue(machine.onWorker(cpu -> cpu.isHalted()), "TEST does not wake HLT");
+            try { MachineDialogs.submit(wall.player, wall.action(wall.part(Hardware.RESET), 0)); }
+            catch (ReflectiveOperationException failure) { throw new AssertionError(failure); }
+            test.assertTrue(!wall.record().paused && machine.onWorker(cpu ->
+                    !cpu.isHalted() && cpu.registers().getCs() == 0xFFFF && cpu.registers().getIp() == 0), "Manual reset clears HLT and starts execution");
+        }).thenWaitUntil(() -> {
+            test.assertTrue(wall.machines.machine(wall.record().id).onWorker(cpu ->
+                    !cpu.isHalted() && cpu.registers().getIp() == 7 && cpu.memory().read16(0, 0x1000) == 3), "Manual reset boots again without Run or Step and preserves TEST and RAM");
+        }).thenExecute(() -> {
+            level.setBlock(reset, Blocks.REDSTONE_BLOCK.defaultBlockState(), Block.UPDATE_ALL);
+            level.setBlock(reset, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+        }).thenWaitUntil(() -> {
+            test.assertTrue(wall.machines.machine(wall.record().id).onWorker(cpu ->
+                    !cpu.isHalted() && cpu.registers().getIp() == 7 && cpu.memory().read16(0, 0x1000) == 4), "A later redstone RESET also boots without Run or Step");
+        }).thenExecute(() -> {
+            var machine = wall.machines.machine(wall.record().id);
+            machine.pause(true);
+            try { MachineDialogs.submit(wall.player, wall.action(wall.part(Hardware.RESET), 0)); }
+            catch (ReflectiveOperationException failure) { throw new AssertionError(failure); }
+            test.assertFalse(wall.record().paused, "Manual reset also starts a debugger-paused CPU");
+        }).thenWaitUntil(() -> {
+            test.assertTrue(wall.machines.machine(wall.record().id).onWorker(cpu ->
+                    !cpu.isHalted() && cpu.registers().getIp() == 7 && cpu.memory().read16(0, 0x1000) == 5), "A paused CPU boots again after manual Reset");
+        }).thenExecute(() -> {
+            level.setBlock(busy, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+        }).thenWaitUntil(() -> {
+            test.assertTrue(wall.machines.machine(wall.record().id).onWorker(cpu -> cpu.isHalted()), "Reset CPU reaches HLT again normally");
+        }).thenExecute(() -> {
+            for (var source : List.of(power, reset, nmi, busy)) level.setBlock(source, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+            wall.close();
+        }).thenSucceed();
+    }
+
     @GameTest(maxTicks = 100) public void controllerLightsFollowRunningPausedAndOff(GameTestHelper test) throws Exception {
         var wall = new Wall(test, 24576);
         var displayed = new java.util.concurrent.atomic.AtomicInteger();
@@ -162,7 +253,7 @@ public final class MachineGameTests {
             select.putString("memory", "changed"); MachineDialogs.submit(wall.player, select);
             test.assertValueEqual(array.memoryId(), "native_shared", "A selection form opened before startup cannot alter running hardware");
             var reset = wall.action(wall.part(Hardware.RESET), 0); MachineDialogs.submit(wall.player, reset);
-            test.assertTrue(record.paused && record.powered, "Manual reset leaves CPU powered and paused");
+            test.assertTrue(!record.paused && record.powered, "Manual reset leaves CPU powered and running");
             test.assertValueEqual(machine.onWorker(cpu -> cpu.memory().read8(0, 0x1234)), 0x5A, "Reset preserves RAM");
             machine.onWorker(cpu -> {
                 cpu.memory().write8(0, 8, 0); cpu.memory().write8(0, 9, 0x20);

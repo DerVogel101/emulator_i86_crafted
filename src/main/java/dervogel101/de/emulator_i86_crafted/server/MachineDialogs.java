@@ -76,7 +76,7 @@ public final class MachineDialogs {
                     });
                 }
                 case RESET -> {
-                    form.info.append("\nCPU reset pauses execution and preserves RAM and device state.");
+                    form.info.append("\nCPU reset starts a powered CPU and preserves RAM and device state.");
                     if (form.controls()) form.add("CPU reset", ignored -> {
                         form.edit(); form.machine().reset(); open(player, position);
                     });
