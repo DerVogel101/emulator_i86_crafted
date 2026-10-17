@@ -52,7 +52,10 @@ public final class ClientDebugger {
                     if (event instanceof DebuggerProtocol.State) latest = bytes;
                     else {
                         if (notices.size() >= 8) throw new IOException("Debugger helper stopped consuming notifications");
-                        if (event instanceof DebuggerProtocol.Closed) serverClosed = true;
+                        if (event instanceof DebuggerProtocol.Closed closed) {
+                            serverClosed = true;
+                            org.slf4j.LoggerFactory.getLogger(ClientDebugger.class).info("Debugger session {} closed: {}", token, closed.reason());
+                        }
                         notices.add(bytes);
                     }
                     pending.notifyAll();
