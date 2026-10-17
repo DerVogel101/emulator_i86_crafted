@@ -15,6 +15,7 @@ import net.minecraft.commands.arguments.UuidArgument;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.permissions.Permissions;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.phys.*;
@@ -128,7 +129,8 @@ public final class MachineCommands {
     private static int romList(CommandContext<CommandSourceStack> context, int page) {
         var library = ServerMachines.get(context.getSource().getServer()).roms;
         return page(context.getSource(), library.entries(), page,
-                entry -> entry.id() + " — " + entry.name() + " — " + entry.description() + " — available=" + library.available(entry.id()));
+                entry -> entry.id() + " — " + entry.name() + " — " + entry.description() + " — uploaded by " + entry.uploaderName()
+                        + (entry.uploaderId() == null ? "" : " [" + entry.uploaderId() + "]") + " — available=" + library.available(entry.id()));
     }
     private static int memoryList(CommandContext<CommandSourceStack> context, int page) {
         var machines = ServerMachines.get(context.getSource().getServer());
@@ -149,7 +151,9 @@ public final class MachineCommands {
             var source = context.getSource(); var machines = ServerMachines.get(source.getServer());
             String filename = StringArgumentType.getString(context, "file");
             byte[] bytes = RomLibrary.readUpload(machines.folder.resolve("uploads"), filename);
-            var entry = machines.roms.upload(bytes, StringArgumentType.getString(context, "name"), description);
+            var player = source.getEntity() instanceof ServerPlayer uploader ? uploader : null;
+            var entry = machines.roms.upload(bytes, StringArgumentType.getString(context, "name"), description,
+                    player == null ? null : player.getUUID(), player == null ? "Server import" : player.getScoreboardName());
             source.sendSuccess(() -> Component.literal("Imported " + entry.name() + " [" + entry.id() + "]"), false); return 1;
         });
     }

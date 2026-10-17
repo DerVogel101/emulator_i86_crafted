@@ -10,7 +10,7 @@ import java.util.*;
 
 /** Immutable ROM images and their world-owned, first-upload metadata. */
 public final class RomLibrary {
-    public record Entry(UUID id, String hash, String name, String description) {}
+    public record Entry(UUID id, String hash, String name, String description, UUID uploaderId, String uploaderName) {}
     public static final class DuplicateRom extends IOException {
         public final Entry existing;
         DuplicateRom(Entry existing) { super("ROM already exists: " + existing.name() + " (" + existing.id() + ")"); this.existing = existing; }
@@ -29,14 +29,17 @@ public final class RomLibrary {
         Path index = this.folder.resolve("library.index");
         if (!Files.exists(index)) return;
         try (var in = new DataInputStream(new BufferedInputStream(Files.newInputStream(index)))) {
-            if (in.readInt() != MAGIC || in.readInt() != 1) throw new IOException("Unsupported ROM library index");
+            if (in.readInt() != MAGIC || in.readInt() != 2) throw new IOException("Unsupported ROM library index");
             int count = in.readInt();
             if (count < 0 || count > 1_000_000) throw new IOException("Invalid ROM library count");
             for (int i = 0; i < count; i++) {
                 UUID id = new UUID(in.readLong(), in.readLong());
-                var entry = new Entry(id, in.readUTF(), in.readUTF(), in.readUTF());
+                String hash = in.readUTF(), name = in.readUTF(), description = in.readUTF();
+                UUID uploader = in.readBoolean() ? new UUID(in.readLong(), in.readLong()) : null;
+                var entry = new Entry(id, hash, name, description, uploader, in.readUTF());
                 if (id.version() != 7 || id.variant() != 2 || !entry.hash().matches("[0-9a-f]{64}")
                         || entry.name().isBlank() || entry.name().length() > 128 || entry.description().length() > 4096
+                        || entry.uploaderName().isBlank() || entry.uploaderName().length() > 128
                         || entries.putIfAbsent(id, entry) != null || hashes.putIfAbsent(entry.hash(), id) != null)
                     throw new IOException("Invalid or duplicate ROM library entry");
             }
@@ -45,6 +48,11 @@ public final class RomLibrary {
     }
 
     public synchronized List<Entry> entries() { return List.copyOf(entries.values()); }
+    public synchronized List<Entry> search(String query) {
+        String needle = query.strip().toLowerCase(Locale.ROOT);
+        return entries.values().stream().filter(entry -> entry.name().toLowerCase(Locale.ROOT).contains(needle)
+                || entry.description().toLowerCase(Locale.ROOT).contains(needle)).toList();
+    }
     public synchronized Optional<Entry> entry(UUID id) { return Optional.ofNullable(entries.get(id)); }
 
     public static byte[] readUpload(Path uploads, String filename) throws IOException {
@@ -63,17 +71,23 @@ public final class RomLibrary {
             throw new IOException("ROM name requires 1-128 characters; description allows up to 4096");
     }
 
-    public synchronized Entry upload(byte[] image, String name, String description) throws IOException {
+    public Entry upload(byte[] image, String name, String description) throws IOException {
+        return upload(image, name, description, null, "Server import");
+    }
+
+    public synchronized Entry upload(byte[] image, String name, String description, UUID uploaderId, String uploaderName) throws IOException {
         Objects.requireNonNull(image); Objects.requireNonNull(name); Objects.requireNonNull(description);
+        Objects.requireNonNull(uploaderName);
         if (image.length != CPUMemory.ROM_SIZE) throw new IOException("ROM must be exactly 256 KiB");
         image = image.clone();
         validateMetadata(name, description);
+        if (uploaderName.isBlank() || uploaderName.length() > 128) throw new IOException("Invalid ROM uploader name");
         if (entries.size() >= 1_000_000) throw new IOException("ROM library entry limit reached");
         String hash = hash(image);
         if (hashes.containsKey(hash)) throw new DuplicateRom(entries.get(hashes.get(hash)));
         UUID id;
         do { id = uuid7(); } while (entries.containsKey(id) || Files.exists(imagePath(id)));
-        var entry = new Entry(id, hash, name, description);
+        var entry = new Entry(id, hash, name, description, uploaderId, uploaderName);
         Path target = imagePath(id);
         var output = Files.newOutputStream(target, StandardOpenOption.CREATE_NEW);
         try (output) { output.write(image); }
@@ -140,10 +154,15 @@ public final class RomLibrary {
         Path temporary = Files.createTempFile(folder, ".rom-index-", ".tmp");
         try {
             try (var out = new DataOutputStream(new BufferedOutputStream(Files.newOutputStream(temporary)))) {
-                out.writeInt(MAGIC); out.writeInt(1); out.writeInt(next.size());
+                out.writeInt(MAGIC); out.writeInt(2); out.writeInt(next.size());
                 for (Entry entry : next.values()) {
                     out.writeLong(entry.id().getMostSignificantBits()); out.writeLong(entry.id().getLeastSignificantBits());
                     out.writeUTF(entry.hash()); out.writeUTF(entry.name()); out.writeUTF(entry.description());
+                    out.writeBoolean(entry.uploaderId() != null);
+                    if (entry.uploaderId() != null) {
+                        out.writeLong(entry.uploaderId().getMostSignificantBits()); out.writeLong(entry.uploaderId().getLeastSignificantBits());
+                    }
+                    out.writeUTF(entry.uploaderName());
                 }
             }
             try { Files.move(temporary, folder.resolve("library.index"), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING); }

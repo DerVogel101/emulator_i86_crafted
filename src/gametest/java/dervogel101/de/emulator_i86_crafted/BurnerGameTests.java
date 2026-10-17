@@ -17,6 +17,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 public final class BurnerGameTests {
     private static byte[] image() {
@@ -35,8 +37,51 @@ public final class BurnerGameTests {
     private static void remove(ServerMachines machines, ServerPlayer player) {
         machines.burner.disconnect(player.getUUID()); player.level().getServer().getPlayerList().remove(player);
     }
-    @GameTest public void uploadSessionsRequirePlayerContextAndCompleteOrderedData(GameTestHelper test) throws Exception {
+    private static Object sessionField(RomBurner burner, UUID player, String name) throws ReflectiveOperationException {
+        var sessions = RomBurner.class.getDeclaredField("sessions"); sessions.setAccessible(true);
+        var session = ((Map<?, ?>) sessions.get(burner)).get(player);
+        var field = session.getClass().getDeclaredField(name); field.setAccessible(true); return field.get(session);
+    }
+    private static void libraryAction(RomBurner burner, ServerPlayer player, String action, String search) throws ReflectiveOperationException {
+        var tag = new net.minecraft.nbt.CompoundTag();
+        tag.putString("token", sessionField(burner, player.getUUID(), "menuNonce").toString());
+        tag.putString("action", action); tag.putString("search", search); burner.submit(player, tag);
+    }
+    @GameTest public void librarySearchRetainsItsFilterAndResetsPagination(GameTestHelper test) throws Exception {
         var machines = ServerMachines.get(test.getLevel().getServer()); var burner = machines.burner;
+        var position = new BlockPos(2, 2, 2); test.setBlock(position, ModContent.BLOCKS.get("rom_burner"));
+        var player = player(test, position); var created = new ArrayList<UUID>(); String key = UUID.randomUUID().toString();
+        try {
+            for (int i = 0; i < 7; i++) created.add(machines.roms.upload(image(), key + " loader " + i, "").id());
+            var descriptionMatch = machines.roms.upload(image(), "Description-only ROM", key + " description"); created.add(descriptionMatch.id());
+            burner.open(player, test.absolutePos(position)); libraryAction(burner, player, "library", "");
+            libraryAction(burner, player, "search", "  " + key + "  ");
+            test.assertValueEqual(sessionField(burner, player.getUUID(), "search"), key, "Search is trimmed and stored per player");
+            test.assertValueEqual(machines.roms.search(key).size(), 8, "Name and description matches share the result list");
+            libraryAction(burner, player, "next", key);
+            test.assertValueEqual(sessionField(burner, player.getUUID(), "page"), 1, "Filtered results have a second page");
+            libraryAction(burner, player, "back", key); libraryAction(burner, player, "library", key);
+            test.assertValueEqual(sessionField(burner, player.getUUID(), "page"), 1, "Returning to the library retains the filtered page");
+            test.assertValueEqual(sessionField(burner, player.getUUID(), "search"), key, "Navigation preserves the applied search");
+            libraryAction(burner, player, "search", key + " DESCRIPTION");
+            test.assertValueEqual(sessionField(burner, player.getUUID(), "page"), 0, "Changing search resets the page");
+            test.assertValueEqual(machines.roms.search((String) sessionField(burner, player.getUUID(), "search")),
+                    List.of(descriptionMatch), "Full descriptions match without requiring the name to match");
+            libraryAction(burner, player, "search", key + " missing"); libraryAction(burner, player, "next", "");
+            test.assertValueEqual(sessionField(burner, player.getUUID(), "page"), 0, "Empty results clamp to the first page");
+            libraryAction(burner, player, "search", "");
+            test.assertValueEqual(sessionField(burner, player.getUUID(), "search"), "", "Clearing search restores the full library");
+            libraryAction(burner, player, "search", "x".repeat(129));
+            test.assertValueEqual(sessionField(burner, player.getUUID(), "search"), "", "Oversized queries are rejected before changing the filter");
+        } finally {
+            remove(machines, player);
+            for (UUID id : created) machines.roms.delete(id);
+        }
+        test.succeed();
+    }
+    @GameTest public void uploadSessionsRequirePlayerContextAndCompleteOrderedData(GameTestHelper test) throws Exception {
+        var machines = ServerMachines.get(test.getLevel().getServer()); var clock = new AtomicLong();
+        var burner = new RomBurner(machines, clock::get);
         var position = new BlockPos(2, 2, 2); test.setBlock(position, ModContent.BLOCKS.get("rom_burner"));
         var player = player(test, position); var other = player(test, position); UUID uploaded = null;
         int before = machines.roms.entries().size(); byte[] bytes = image();
@@ -52,27 +97,77 @@ public final class BurnerGameTests {
             }
             var entry = machines.roms.entries().getLast(); uploaded = entry.id();
             test.assertTrue(Arrays.equals(machines.roms.read(uploaded), bytes), "Server must save the exact uploaded ROM");
-            token = burner.prepareUpload(player, "Replacement metadata", "Must not win"); send(burner, player, token, bytes);
+            test.assertValueEqual(entry.uploaderId(), player.getUUID(), "Uploader UUID comes from the server player");
+            test.assertValueEqual(entry.uploaderName(), player.getScoreboardName(), "Uploader name comes from the server player");
+            burner.open(other, test.absolutePos(position));
+            token = burner.prepareUpload(other, "Replacement metadata", "Must not win"); send(burner, other, token, bytes);
             test.assertValueEqual(machines.roms.entries().size(), before + 1, "Duplicate upload must reuse the existing file");
             test.assertValueEqual(machines.roms.entry(uploaded).orElseThrow().name(), "First metadata", "First ROM name wins");
             test.assertValueEqual(machines.roms.entry(uploaded).orElseThrow().description(), "Original description", "First ROM description wins");
+            test.assertValueEqual(machines.roms.entry(uploaded).orElseThrow(), entry, "Duplicate from another player preserves the original uploader");
+            expectCooldown(test, burner, other, 30);
+            clock.addAndGet(TimeUnit.SECONDS.toNanos(30));
             token = burner.prepareUpload(player, "Bad sequence", "");
             burner.chunk(player, new RomPackets.Chunk(token, 1, new byte[RomUpload.CHUNK_BYTES])); send(burner, player, token, image());
             test.assertValueEqual(machines.roms.entries().size(), before + 1, "Out-of-order transfer must be discarded");
+            expectCooldown(test, burner, player, 30);
+            clock.addAndGet(TimeUnit.SECONDS.toNanos(30));
             token = burner.prepareUpload(player, "Disconnected", "");
             burner.chunk(player, new RomPackets.Chunk(token, 0, new byte[RomUpload.CHUNK_BYTES]));
             burner.disconnect(player.getUUID()); send(burner, player, token, image());
             test.assertValueEqual(machines.roms.entries().size(), before + 1, "Disconnect must discard a partial upload");
-            burner.open(player, test.absolutePos(position)); token = burner.prepareUpload(player, "Too far", "");
+            burner.open(player, test.absolutePos(position)); expectCooldown(test, burner, player, 30);
+            clock.addAndGet(TimeUnit.SECONDS.toNanos(30));
+            token = burner.prepareUpload(player, "Too far", "");
             player.setPos(player.getX() + 20, player.getY(), player.getZ()); send(burner, player, token, image());
             test.assertValueEqual(machines.roms.entries().size(), before + 1, "Uploads require remaining near the burner");
             var absolute = test.absolutePos(position); player.setPos(absolute.getX() + 0.5, absolute.getY() + 0.5, absolute.getZ() + 0.5);
+            clock.addAndGet(TimeUnit.SECONDS.toNanos(30));
             burner.open(player, absolute); token = burner.prepareUpload(player, "Removed burner", "");
             test.setBlock(position, Blocks.AIR); send(burner, player, token, image());
             test.assertValueEqual(machines.roms.entries().size(), before + 1, "Removing the burner must invalidate its upload context");
         } finally {
+            burner.disconnect(player.getUUID()); burner.disconnect(other.getUUID());
             remove(machines, player); remove(machines, other);
             if (uploaded != null) machines.roms.delete(uploaded);
+        }
+        test.succeed();
+    }
+    private static void expectCooldown(GameTestHelper test, RomBurner burner, ServerPlayer player, int seconds) throws Exception {
+        boolean rejected = false;
+        try { burner.prepareUpload(player, "Cooldown check", ""); }
+        catch (IllegalStateException expected) {
+            test.assertValueEqual(expected.getMessage(), "You can upload another ROM in " + seconds + " seconds.", "Cooldown reports rounded-up real seconds");
+            rejected = true;
+        }
+        test.assertTrue(rejected, "Upload must be rejected before cooldown expires");
+    }
+    @GameTest public void uploadCooldownUsesRealTimeAndSurvivesSessionChanges(GameTestHelper test) throws Exception {
+        var machines = ServerMachines.get(test.getLevel().getServer());
+        var clock = new AtomicLong(-TimeUnit.SECONDS.toNanos(1)); var burner = new RomBurner(machines, clock::get);
+        var position = new BlockPos(2, 2, 2); var second = new BlockPos(3, 2, 2);
+        test.setBlock(position, ModContent.BLOCKS.get("rom_burner")); test.setBlock(second, ModContent.BLOCKS.get("rom_burner"));
+        var player = player(test, position); var other = player(test, position);
+        try {
+            burner.open(player, test.absolutePos(position));
+            boolean invalid = false;
+            try { burner.prepareUpload(player, "", ""); } catch (java.io.IOException expected) { invalid = true; }
+            test.assertTrue(invalid, "Invalid metadata is rejected before consuming a slot");
+            UUID token = burner.prepareUpload(player, "Cancelled", "");
+            burner.cancel(player, token, "Cancelled"); expectCooldown(test, burner, player, 30);
+            burner.open(player, test.absolutePos(second)); expectCooldown(test, burner, player, 30);
+            burner.disconnect(player.getUUID()); burner.open(player, test.absolutePos(position));
+            expectCooldown(test, burner, player, 30);
+            burner.open(other, test.absolutePos(position));
+            UUID otherToken = burner.prepareUpload(other, "Independent player", "");
+            burner.cancel(other, otherToken, "Cancelled");
+            clock.addAndGet(TimeUnit.SECONDS.toNanos(29)); expectCooldown(test, burner, player, 1);
+            clock.addAndGet(TimeUnit.SECONDS.toNanos(1) - 1); expectCooldown(test, burner, player, 1);
+            clock.incrementAndGet(); token = burner.prepareUpload(player, "At thirty seconds", "");
+            burner.cancel(player, token, "Cancelled"); expectCooldown(test, burner, player, 30);
+        } finally {
+            burner.disconnect(player.getUUID()); burner.disconnect(other.getUUID());
+            remove(machines, player); remove(machines, other);
         }
         test.succeed();
     }

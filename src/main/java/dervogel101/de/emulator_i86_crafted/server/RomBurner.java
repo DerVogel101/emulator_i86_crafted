@@ -15,10 +15,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.LongSupplier;
 
 /** Player-owned menus/uploads; chips are burned from the player's inventory on the server thread. */
 public final class RomBurner {
     private static final int PAGE_SIZE = 6;
+    private static final long UPLOAD_INTERVAL = TimeUnit.SECONDS.toNanos(30);
     private static final class Session {
         final ServerLevel level;
         final BlockPos position;
@@ -26,12 +29,15 @@ public final class RomBurner {
         RomUpload upload;
         int page;
         long activeUntil;
-        String name = "ROM image", description = "";
+        String name = "ROM image", description = "", search = "";
         Session(ServerLevel level, BlockPos position) { this.level = level; this.position = position.immutable(); }
     }
     private final ServerMachines owner;
     private final Map<UUID, Session> sessions = new HashMap<>();
-    public RomBurner(ServerMachines owner) { this.owner = owner; }
+    private final Map<UUID, Long> uploadStarts = new HashMap<>();
+    private final LongSupplier nanoTime;
+    public RomBurner(ServerMachines owner) { this(owner, System::nanoTime); }
+    public RomBurner(ServerMachines owner, LongSupplier nanoTime) { this.owner = owner; this.nanoTime = nanoTime; }
     public void disconnect(UUID player) {
         var old = sessions.remove(player);
         if (old != null) refresh(old.level, old.position);
@@ -59,6 +65,11 @@ public final class RomBurner {
             switch (tag.getStringOr("action", "")) {
                 case "close" -> { disconnect(player.getUUID());  }
                 case "library" -> library(player, session);
+                case "search" -> {
+                    String query = tag.getStringOr("search", "");
+                    if (query.length() > 128) throw new IllegalArgumentException("Search allows up to 128 characters");
+                    session.search = query.strip(); session.page = 0; library(player, session);
+                }
                 case "previous" -> { session.page--; library(player, session); }
                 case "next" -> { session.page++; library(player, session); }
                 case "back" -> main(player, session, "");
@@ -85,6 +96,14 @@ public final class RomBurner {
         var session = sessions.get(player.getUUID());
         if (session == null || !usable(player, session)) throw new IllegalStateException("Open a nearby ROM burner before uploading");
         RomLibrary.validateMetadata(name, description);
+        long now = nanoTime.getAsLong();
+        uploadStarts.values().removeIf(start -> now - start >= UPLOAD_INTERVAL);
+        Long previous = uploadStarts.get(player.getUUID());
+        if (previous != null) {
+            long seconds = Math.ceilDiv(UPLOAD_INTERVAL - (now - previous), TimeUnit.SECONDS.toNanos(1));
+            throw new IllegalStateException("You can upload another ROM in " + seconds + " seconds.");
+        }
+        uploadStarts.put(player.getUUID(), now);
         session.name = name; session.description = description; session.menuNonce = null;
         session.uploadToken = UUID.randomUUID(); session.upload = new RomUpload();
         refresh(session.level, session.position);
@@ -97,11 +116,11 @@ public final class RomBurner {
         try {
             if (!session.upload.append(packet.index(), packet.bytes())) return;
             byte[] image = session.upload.image(); finishUpload(session);
-            var entry = owner.roms.upload(image, session.name, session.description);
+            var entry = owner.roms.upload(image, session.name, session.description, player.getUUID(), player.getScoreboardName());
             session.selected = entry.id(); main(player, session, "Uploaded " + entry.name());
         } catch (RomLibrary.DuplicateRom duplicate) {
             finishUpload(session); session.selected = duplicate.existing.id();
-            main(player, session, "Duplicate upload rejected. Selected the existing ROM; its original name and description are retained.");
+            main(player, session, "Duplicate upload rejected. Selected the existing ROM; its original name, description and uploader are retained.");
         } catch (IOException | IllegalArgumentException invalid) {
             finishUpload(session); main(player, session, invalid.getMessage());
         }
@@ -137,6 +156,7 @@ public final class RomBurner {
         var selected = session.selected == null ? null : owner.roms.entry(session.selected).orElse(null);
         String text = notice.isEmpty() ? "" : notice + "\n\n";
         text += selected == null ? "No ROM selected." : selected.name() + "\n" + selected.id() + "\n" + selected.description()
+                + "\nUploaded by: " + selected.uploaderName()
                 + (owner.roms.available(selected.id()) ? "" : "\nMissing or invalid ROM file.");
         text += "\n\nBurn uses one blank ROM chip from your inventory. Existing chips keep their reference permanently.";
         var inputs = List.of(ControlPanel.text("name", "Upload name", session.name, 128),
@@ -149,14 +169,18 @@ public final class RomBurner {
     }
     private void library(ServerPlayer player, Session session) {
         session.menuNonce = UUID.randomUUID();
-        var entries = owner.roms.entries(); int pages = Math.max(1, (entries.size() + PAGE_SIZE - 1) / PAGE_SIZE);
+        var entries = owner.roms.search(session.search); int pages = Math.max(1, (entries.size() + PAGE_SIZE - 1) / PAGE_SIZE);
         session.page = Math.max(0, Math.min(session.page, pages - 1));
         var buttons = new ArrayList<ControlPanel.Action>();
         var text = new StringBuilder("Page " + (session.page + 1) + " / " + pages + " — " + entries.size() + " saved ROMs");
+        if (!session.search.isEmpty()) text.append(" matching \"").append(session.search).append('"');
+        if (entries.isEmpty()) text.append("\n\nNo ROMs found.");
+        buttons.add(button(session, "Search", "search", null));
         int start = session.page * PAGE_SIZE;
         for (int i = start; i < Math.min(entries.size(), start + PAGE_SIZE); i++) {
             var entry = entries.get(i); int number = i + 1;
             text.append("\n\n").append(number).append(". ").append(entry.name()).append("\n").append(entry.id());
+            text.append("\nUploaded by: ").append(entry.uploaderName());
             String description = entry.description(); text.append("\n").append(description.substring(0, Math.min(160, description.length())));
             if (!owner.roms.available(entry.id())) text.append("\nMissing or invalid file");
             buttons.add(button(session, "Select " + number + ": " + entry.name(), "select", entry.id()));
@@ -164,7 +188,8 @@ public final class RomBurner {
         if (session.page > 0) buttons.add(button(session, "Previous page", "previous", null));
         if (session.page + 1 < pages) buttons.add(button(session, "Next page", "next", null));
         buttons.add(button(session, "Back to burner", "back", null));
-        show(player, session, "ROM library", text.toString(), List.of(), buttons);
+        show(player, session, "ROM library", text.toString(),
+                List.of(ControlPanel.text("search", "Search name or description", session.search, 128)), buttons);
     }
     private static ControlPanel.Action button(Session session, String label, String action, UUID rom) {
         return new ControlPanel.Action(label, action, rom == null ? Map.of() : Map.of("rom", rom.toString()));

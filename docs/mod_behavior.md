@@ -252,6 +252,12 @@ do not yet describe those capabilities fully.
 - The player selects a local ROM image through the ROM Burner workflow.
 - The client uploads the image to the server. The server verifies that it is
   exactly 256 KiB before saving it in the world folder.
+- Each player can start one upload every 30 real seconds across all burners.
+  Cancellation, invalid transfers and duplicates consume the slot. Reconnecting
+  does not reset the cooldown; restarting the server does.
+- Saved images record the uploader's server-authenticated UUID and name at upload
+  time. The library displays the uploader's name; duplicate uploads preserve the
+  first uploader. Library index v2 has no migration support for older formats.
 - A ROM chip stores a reference to the server's saved ROM image, not a client-local
   filesystem path. It must be inserted into the controller to be used.
 - Saved ROM images are immutable. Multiple chips may reference the same image.

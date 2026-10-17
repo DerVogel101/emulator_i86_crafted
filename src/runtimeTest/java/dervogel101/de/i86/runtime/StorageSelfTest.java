@@ -8,6 +8,7 @@ import dervogel101.de.state.CPUMemory;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.Arrays;
+import java.util.UUID;
 
 final class StorageSelfTest {
     static void run() throws Exception {
@@ -20,14 +21,24 @@ final class StorageSelfTest {
             for (String invalid : new String[]{"../staged.rom", "C:\\staged.rom", ".", "..", "x/y"}) expectIo(() -> RomLibrary.readUpload(folder, invalid));
             Files.write(folder.resolve("oversized.rom"), new byte[CPUMemory.ROM_SIZE + 1]);
             expectIo(() -> RomLibrary.readUpload(folder, "oversized.rom"));
-            var entry = library.upload(image, "First", "Original metadata");
+            UUID uploader = UUID.randomUUID();
+            var entry = library.upload(image, "First", "Original metadata", uploader, "OriginalPlayer");
+            assert entry.uploaderId().equals(uploader) && entry.uploaderName().equals("OriginalPlayer");
+            assert library.search("  FIRST  ").equals(java.util.List.of(entry));
+            assert library.search("METADATA").equals(java.util.List.of(entry)) : "Descriptions must be searchable";
+            assert library.search("\n \t").equals(library.entries()) : "Blank search returns all ROMs";
+            assert library.search("OriginalPlayer").isEmpty() : "Only names and descriptions are searched";
+            assert library.search(".*").isEmpty() : "Search is a literal substring, not a regular expression";
+            assert library.search("No matching ROM").isEmpty();
             expectIo(() -> library.upload(image, "", ""));
             expectIo(() -> library.upload(image, "Name", "x".repeat(4097)));
+            expectIo(() -> library.upload(image, "Name", "", uploader, " "));
+            expectIo(() -> library.upload(image, "Name", "", uploader, "x".repeat(129)));
             assert entry.id().version() == 7 && entry.id().variant() == 2;
             image[0] = 0;
             assert library.read(entry.id())[0] == 42 : "Library must own immutable image bytes";
             byte[] same = library.read(entry.id());
-            try { library.upload(same, "Second", "Must not overwrite"); throw new AssertionError("Duplicate accepted"); }
+            try { library.upload(same, "Second", "Must not overwrite", UUID.randomUUID(), "OtherPlayer"); throw new AssertionError("Duplicate accepted"); }
             catch (RomLibrary.DuplicateRom duplicate) { assert duplicate.existing.equals(entry); }
             var reopened = new RomLibrary(folder);
             assert reopened.entries().equals(java.util.List.of(entry));
@@ -42,6 +53,24 @@ final class StorageSelfTest {
             assert reopened.entry(entry.id()).isPresent() : "Missing file must retain recovery metadata";
             reopened.delete(entry.id());
             assert reopened.entries().isEmpty() && new RomLibrary(folder).entries().isEmpty();
+            var imported = reopened.upload(same, "Imported", "");
+            assert imported.uploaderId() == null && imported.uploaderName().equals("Server import");
+            assert new RomLibrary(folder).entry(imported.id()).orElseThrow().equals(imported);
+            byte[] another = same.clone(); another[0]++;
+            var searchable = reopened.upload(another, "Other ROM", "x".repeat(200) + "Deep description match");
+            assert reopened.search("DESCRIPTION MATCH").equals(java.util.List.of(searchable)) : "Search includes the full description beyond the preview";
+            assert reopened.search("ROM").equals(java.util.List.of(searchable));
+            assert reopened.search("").equals(java.util.List.of(imported, searchable)) : "Search preserves library order";
+            reopened.delete(searchable.id());
+            byte[] index = Files.readAllBytes(folder.resolve("library.index"));
+            byte[] invalidUploader = index.clone();
+            Arrays.fill(invalidUploader, invalidUploader.length - "Server import".length(), invalidUploader.length, (byte) ' ');
+            Files.write(folder.resolve("library.index"), invalidUploader);
+            expectIo(() -> new RomLibrary(folder));
+            byte[] oldIndex = index.clone(); oldIndex[7] = 1;
+            Files.write(folder.resolve("library.index"), oldIndex);
+            expectIo(() -> new RomLibrary(folder));
+            assert Arrays.equals(oldIndex, Files.readAllBytes(folder.resolve("library.index"))) : "Unsupported indexes must not be modified";
             Files.write(folder.resolve("library.index"), new byte[]{1, 2});
             expectIo(() -> new RomLibrary(folder));
         } finally {
@@ -91,7 +120,7 @@ final class StorageSelfTest {
             try (var files = Files.list(snapshots)) { for (Path file : files.toList()) Files.delete(file); }
             Files.delete(snapshots);
         }
-        System.out.println("Storage checks passed: ROM metadata/deduplication/immutability, UUIDv7, retained state and shared membership");
+        System.out.println("Storage checks passed: ROM uploader persistence/validation, deduplication/immutability, UUIDv7, retained state and shared membership");
     }
 
     private interface IoAction { void run() throws IOException; }
