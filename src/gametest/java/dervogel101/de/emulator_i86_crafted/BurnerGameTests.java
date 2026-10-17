@@ -47,6 +47,46 @@ public final class BurnerGameTests {
         tag.putString("token", sessionField(burner, player.getUUID(), "menuNonce").toString());
         tag.putString("action", action); tag.putString("search", search); burner.submit(player, tag);
     }
+    private static void done(RomBurner burner, ServerPlayer player, String name, String description) throws ReflectiveOperationException {
+        var tag = new net.minecraft.nbt.CompoundTag();
+        tag.putString("token", sessionField(burner, player.getUUID(), "menuNonce").toString());
+        tag.putString("action", "done"); tag.putString("name", name); tag.putString("description", description);
+        burner.submit(player, tag);
+    }
+    @GameTest public void creationSavesOnlyOnDoneWithLatestMetadataAndCancelDiscardsDraft(GameTestHelper test) throws Exception {
+        var machines = ServerMachines.get(test.getLevel().getServer()); var clock = new AtomicLong();
+        var burner = new RomBurner(machines, clock::get);
+        var position = new BlockPos(2, 2, 2); test.setBlock(position, ModContent.BLOCKS.get("rom_burner"));
+        var player = player(test, position); UUID saved = null; int before = machines.roms.entries().size();
+        try {
+            burner.open(player, test.absolutePos(position)); libraryAction(burner, player, "create", "");
+            done(burner, player, "No file", "");
+            test.assertValueEqual(machines.roms.entries().size(), before, "Done without a file creates nothing");
+            UUID token = burner.prepareUpload(player, "Before upload", "Draft description");
+            send(burner, player, token, image());
+            test.assertValueEqual(machines.roms.entries().size(), before, "A completed upload stays an unsaved draft");
+            done(burner, player, "", "Still editing");
+            test.assertValueEqual(machines.roms.entries().size(), before, "Invalid final metadata cannot save a draft");
+            test.assertTrue(sessionField(burner, player.getUUID(), "draft") != null, "Validation failure preserves uploaded bytes");
+            done(burner, player, "Final name €", "Final description\nSecond line");
+            var entry = machines.roms.entries().getLast(); saved = entry.id();
+            test.assertValueEqual(entry.name(), "Final name €", "Done uses the latest name after upload");
+            test.assertValueEqual(entry.description(), "Final description\nSecond line", "Done uses the latest multiline description");
+            libraryAction(burner, player, "create", ""); clock.addAndGet(TimeUnit.SECONDS.toNanos(30));
+            token = burner.prepareUpload(player, "Cancelled draft", "Never save this"); send(burner, player, token, image());
+            libraryAction(burner, player, "cancel_create", "");
+            test.assertTrue(sessionField(burner, player.getUUID(), "draft") == null, "Cancel discards uploaded draft bytes");
+            test.assertValueEqual(machines.roms.entries().size(), before + 1, "Cancel never creates a library entry");
+            libraryAction(burner, player, "create", ""); clock.addAndGet(TimeUnit.SECONDS.toNanos(30));
+            token = burner.prepareUpload(player, "Closed draft", "Never save this either"); send(burner, player, token, image());
+            UUID menu = (UUID) sessionField(burner, player.getUUID(), "menuNonce"); burner.close(player.getUUID(), menu);
+            test.assertValueEqual(machines.roms.entries().size(), before + 1, "Closing a draft never saves it");
+        } finally {
+            burner.disconnect(player.getUUID()); remove(machines, player);
+            if (saved != null) machines.roms.delete(saved);
+        }
+        test.succeed();
+    }
     @GameTest public void librarySearchRetainsItsFilterAndResetsPagination(GameTestHelper test) throws Exception {
         var machines = ServerMachines.get(test.getLevel().getServer()); var burner = machines.burner;
         var position = new BlockPos(2, 2, 2); test.setBlock(position, ModContent.BLOCKS.get("rom_burner"));
@@ -93,14 +133,16 @@ public final class BurnerGameTests {
             for (int index = 0; index < RomUpload.CHUNKS; index++) {
                 burner.chunk(player, new RomPackets.Chunk(token, index, Arrays.copyOfRange(bytes,
                         index * RomUpload.CHUNK_BYTES, (index + 1) * RomUpload.CHUNK_BYTES)));
-                test.assertValueEqual(machines.roms.entries().size(), before + (index == RomUpload.CHUNKS - 1 ? 1 : 0), "Partial uploads must never enter the library");
+                test.assertValueEqual(machines.roms.entries().size(), before, "Upload bytes must never enter the library before Done");
             }
+            done(burner, player, "First metadata", "Original description");
             var entry = machines.roms.entries().getLast(); uploaded = entry.id();
             test.assertTrue(Arrays.equals(machines.roms.read(uploaded), bytes), "Server must save the exact uploaded ROM");
             test.assertValueEqual(entry.uploaderId(), player.getUUID(), "Uploader UUID comes from the server player");
             test.assertValueEqual(entry.uploaderName(), player.getScoreboardName(), "Uploader name comes from the server player");
             burner.open(other, test.absolutePos(position));
             token = burner.prepareUpload(other, "Replacement metadata", "Must not win"); send(burner, other, token, bytes);
+            done(burner, other, "Replacement metadata", "Must not win");
             test.assertValueEqual(machines.roms.entries().size(), before + 1, "Duplicate upload must reuse the existing file");
             test.assertValueEqual(machines.roms.entry(uploaded).orElseThrow().name(), "First metadata", "First ROM name wins");
             test.assertValueEqual(machines.roms.entry(uploaded).orElseThrow().description(), "Original description", "First ROM description wins");

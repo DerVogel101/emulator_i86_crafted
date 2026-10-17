@@ -27,6 +27,8 @@ public final class RomBurner {
         final BlockPos position;
         UUID menuNonce, selected, uploadToken;
         RomUpload upload;
+        byte[] draft;
+        boolean creating;
         int page;
         long activeUntil;
         String name = "ROM image", description = "", search = "";
@@ -73,6 +75,21 @@ public final class RomBurner {
                 case "previous" -> { session.page--; library(player, session); }
                 case "next" -> { session.page++; library(player, session); }
                 case "back" -> main(player, session, "");
+                case "create" -> {
+                    session.creating = true; session.draft = null; session.name = "ROM image"; session.description = "";
+                    creation(player, session, "");
+                }
+                case "cancel_create" -> {
+                    session.creating = false; session.draft = null; finishUpload(session); main(player, session, "");
+                }
+                case "done" -> {
+                    if (!session.creating) throw new IllegalStateException("Open Create ROM first.");
+                    metadata(session, tag);
+                    if (session.draft == null) throw new IllegalStateException("Upload a ROM file before choosing Done.");
+                    var entry = owner.roms.upload(session.draft, session.name, session.description, player.getUUID(), player.getScoreboardName());
+                    session.selected = entry.id(); session.draft = null; session.creating = false;
+                    main(player, session, "Created " + entry.name());
+                }
                 case "select" -> {
                     String id = tag.getStringOr("rom", "");
                     if (id.length() != 36) throw new IllegalArgumentException("Invalid ROM ID");
@@ -81,16 +98,26 @@ public final class RomBurner {
                 }
                 case "burn" -> { burn(player, session.selected); busy(session); main(player, session, "ROM chip burned. Its reference is permanent."); }
                 case "upload" -> {
+                    if (!session.creating) throw new IllegalStateException("Open Create ROM before uploading.");
+                    metadata(session, tag);
                     if (!ServerPlayNetworking.canSend(player, RomPackets.ChooseFile.TYPE)) throw new IllegalStateException("Client ROM upload channel is unavailable");
-                    UUID token = prepareUpload(player, tag.getStringOr("name", ""), tag.getStringOr("description", ""));
+                    UUID token = prepareUpload(player, session.name, session.description);
                     ServerPlayNetworking.send(player, new RomPackets.ChooseFile(token));
                 }
                 default -> main(player, session, "Unknown burner action");
             }
+        } catch (RomLibrary.DuplicateRom duplicate) {
+            session.selected = duplicate.existing.id(); session.draft = null; session.creating = false;
+            main(player, session, "Duplicate upload rejected. Selected the existing ROM; its original name, description and uploader are retained.");
         } catch (IOException | IllegalArgumentException | IllegalStateException invalid) {
             finishUpload(session);
-            main(player, session, invalid.getMessage());
+            if (session.creating) creation(player, session, invalid.getMessage()); else main(player, session, invalid.getMessage());
         }
+    }
+    private static void metadata(Session session, CompoundTag tag) throws IOException {
+        String name = tag.getStringOr("name", ""), description = tag.getStringOr("description", "");
+        if (name.length() > 128 || description.length() > 4096) throw new IOException("ROM name or description is too long");
+        session.name = name; session.description = description;
     }
     public UUID prepareUpload(ServerPlayer player, String name, String description) throws IOException {
         var session = sessions.get(player.getUUID());
@@ -105,6 +132,7 @@ public final class RomBurner {
         }
         uploadStarts.put(player.getUUID(), now);
         session.name = name; session.description = description; session.menuNonce = null;
+        session.creating = true;
         session.uploadToken = UUID.randomUUID(); session.upload = new RomUpload();
         refresh(session.level, session.position);
         return session.uploadToken;
@@ -115,21 +143,17 @@ public final class RomBurner {
         if (!usable(player, session)) { unavailable(player); return; }
         try {
             if (!session.upload.append(packet.index(), packet.bytes())) return;
-            byte[] image = session.upload.image(); finishUpload(session);
-            var entry = owner.roms.upload(image, session.name, session.description, player.getUUID(), player.getScoreboardName());
-            session.selected = entry.id(); main(player, session, "Uploaded " + entry.name());
-        } catch (RomLibrary.DuplicateRom duplicate) {
-            finishUpload(session); session.selected = duplicate.existing.id();
-            main(player, session, "Duplicate upload rejected. Selected the existing ROM; its original name, description and uploader are retained.");
-        } catch (IOException | IllegalArgumentException invalid) {
-            finishUpload(session); main(player, session, invalid.getMessage());
+            session.draft = session.upload.image(); finishUpload(session);
+            creation(player, session, "ROM file uploaded (256 KiB). Choose Done to save it.");
+        } catch (IllegalArgumentException invalid) {
+            finishUpload(session); creation(player, session, invalid.getMessage());
         }
     }
     public void cancel(ServerPlayer player, UUID token, String message) {
         var session = sessions.get(player.getUUID());
         if (session == null || !token.equals(session.uploadToken)) return;
         finishUpload(session);
-        if (usable(player, session)) main(player, session, message); else unavailable(player);
+        if (usable(player, session)) creation(player, session, message); else unavailable(player);
     }
     public void burn(ServerPlayer player, UUID id) throws IOException {
         if (id == null) throw new IllegalArgumentException("Select a ROM from the library first");
@@ -159,13 +183,20 @@ public final class RomBurner {
                 + "\nUploaded by: " + selected.uploaderName()
                 + (owner.roms.available(selected.id()) ? "" : "\nMissing or invalid ROM file.");
         text += "\n\nBurn uses one blank ROM chip from your inventory. Existing chips keep their reference permanently.";
-        var inputs = List.of(ControlPanel.text("name", "Upload name", session.name, 128),
-                ControlPanel.text("description", "Upload description", session.description, 4096));
         var buttons = new ArrayList<ControlPanel.Action>();
         buttons.add(button(session, "Browse ROM library", "library", null));
-        buttons.add(button(session, "Choose local file and upload", "upload", null));
+        buttons.add(button(session, "Create ROM", "create", null));
         if (selected != null) buttons.add(button(session, "Burn blank chip", "burn", null));
-        show(player, session, "ROM burner", text, inputs, buttons);
+        show(player, session, "ROM burner", text, List.of(), buttons);
+    }
+    private void creation(ServerPlayer player, Session session, String notice) {
+        session.menuNonce = UUID.randomUUID();
+        String text = (notice.isEmpty() ? "" : notice + "\n\n")
+                + (session.draft == null ? "No file uploaded." : "ROM file ready (256 KiB).")
+                + "\nUpload a local ROM, enter its name and description, then choose Done. Cancel discards this draft.";
+        show(player, session, "Create ROM", text,
+                List.of(ControlPanel.text("name", "Name", session.name, 128), ControlPanel.text("description", "Description", session.description, 4096)),
+                List.of(button(session, "Upload", "upload", null), button(session, "Cancel", "cancel_create", null), button(session, "Done", "done", null)));
     }
     private void library(ServerPlayer player, Session session) {
         session.menuNonce = UUID.randomUUID();

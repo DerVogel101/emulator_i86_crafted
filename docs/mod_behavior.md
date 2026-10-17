@@ -250,6 +250,9 @@ do not yet describe those capabilities fully.
 ## ROM burner and ROM chips
 
 - The player selects a local ROM image through the ROM Burner workflow.
+- Create ROM opens a draft with Upload, Name, Description, Cancel and Done.
+  Upload stages the file; Done saves it with the current metadata. Cancel or
+  closing the menu discards the draft without creating a library entry.
 - The client uploads the image to the server. The server verifies that it is
   exactly 256 KiB before saving it in the world folder.
 - Each player can start one upload every 30 real seconds across all burners.

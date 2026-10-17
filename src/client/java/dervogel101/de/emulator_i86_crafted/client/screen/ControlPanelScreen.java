@@ -97,11 +97,15 @@ public final class ControlPanelScreen extends Screen {
         }
     }
     @Override public boolean mouseScrolled(double mouseX, double mouseY, double horizontal, double vertical) {
-        if (super.mouseScrolled(mouseX, mouseY, horizontal, vertical)) return true;
         if (mouseX >= x && mouseX < x + panelWidth && mouseY >= contentTop && mouseY < contentBottom) {
+            for (var placed : controls) if (placed.widget() instanceof MultiLineEditBox edit && edit.isMouseOver(mouseX, mouseY)) {
+                double before = edit.scrollAmount();
+                edit.mouseScrolled(mouseX, mouseY, horizontal, vertical);
+                if (edit.scrollAmount() != before) return true;
+            }
             scroll -= (int) (vertical * 28); positionControls(); return true;
         }
-        return false;
+        return super.mouseScrolled(mouseX, mouseY, horizontal, vertical);
     }
     @Override public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         for (var placed : controls) placed.widget().visible = event.y() >= contentTop && event.y() < contentBottom
