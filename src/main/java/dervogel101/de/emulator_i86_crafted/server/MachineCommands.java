@@ -130,7 +130,8 @@ public final class MachineCommands {
         var library = ServerMachines.get(context.getSource().getServer()).roms;
         return page(context.getSource(), library.entries(), page,
                 entry -> entry.id() + " — " + entry.name() + " — " + entry.description() + " — uploaded by " + entry.uploaderName()
-                        + (entry.uploaderId() == null ? "" : " [" + entry.uploaderId() + "]") + " — available=" + library.available(entry.id()));
+                        + (entry.uploaderId() == null ? "" : " [" + entry.uploaderId() + "]")
+                        + " — visibility=" + (entry.isPublic() ? "Public" : "Private") + " — available=" + library.available(entry.id()));
     }
     private static int memoryList(CommandContext<CommandSourceStack> context, int page) {
         var machines = ServerMachines.get(context.getSource().getServer());

@@ -1,18 +1,20 @@
 # ROM burner workflow
 
-1. Put a blank ROM chip in your player inventory and right-click a ROM Burner.
-2. Browse the saved ROM library, or enter an upload name and description and choose **Choose local file and upload**.
-3. The desktop file picker runs in a small separate Swing JVM using the same Java runtime as Minecraft. Select a readable image of exactly 256 KiB. Selecting it uploads the image; it does not burn the chip yet.
-4. The server validates and saves the ROM, then selects its library entry. Choose **Burn blank chip** to turn one blank inventory chip into a permanent reference to that image.
-5. Insert the burned chip into a powered-off mainframe controller.
+1. Put a blank ROM chip in your inventory and right-click the ROM Burner.
+2. Browse the saved ROM library, or choose **Create ROM** to open a draft.
+3. Enter a name and description, choose **Public** or **Private** under **Visibility**, and use **Upload** to select a local image of exactly 256 KiB. The desktop file picker runs in a separate Swing JVM using Minecraft's Java runtime. Uploading stages the file without saving a library entry or burning a chip.
+4. Choose **Done** to save the image with the current name, description, and visibility. **Cancel** or closing the menu discards the draft. Uploads and validation errors retain the visibility selection. Each new draft defaults to Public.
+5. Choose **Burn blank chip** to turn one blank inventory chip into a permanent reference to the selected ROM. Insert the chip into a powered-off mainframe controller.
 
-The library displays stable ROM UUIDs, names, descriptions and uploader names and supports paging. Each image records the server-authenticated uploader's UUID and name at upload time. Uploading identical bytes selects the existing entry and rejects replacement metadata. Its first name, description and uploader remain authoritative. Multiple chips may reference that entry. Burned chips cannot be rewritten, including after their file is removed.
+Visibility cannot change after creation. Public ROMs appear to everyone. Private ROMs appear only to their uploader, identified by the server-authenticated player UUID. Only that player can browse, select, or burn the private entry through the burner. Burned private chips can be given to other players and used in their mainframes.
 
-Enter a query in **Search name or description** and press **Search** to filter the library. Matching is a case-insensitive literal substring of either the name or the full description, with surrounding query whitespace ignored. Pages retain the applied search; applying a search starts at the first page. Clear the field and press **Search** to show all ROMs again.
+The library displays stable ROM UUIDs, names, descriptions, uploader names, and visibility, with paging. Each image records its uploader's server-authenticated UUID and name; its UUID records upload time. Public uploads with identical contents select the existing public entry, retaining its original name, description, and uploader. Every private upload creates a separate ROM ID, file, and metadata record, even if an identical public or private image exists. Private copies do not prevent a public upload. Multiple chips may reference an entry. Burned chips cannot be rewritten, including when their saved file has been removed.
 
-Administrative ROM listings also show the uploader's UUID. Player-issued administrative imports record that player; console and internal imports display **Server import**. Administrative imports do not use the burner's upload cooldown.
+Enter a query in **Search name or description** and press **Search** to filter the library. Matching is a case-insensitive literal substring of the name or full description, with surrounding whitespace ignored. Only visible entries contribute to results, counts, and pages. Pages retain the applied search; applying a search starts at the first page. Clear the field and press **Search** to show all ROMs visible to you again.
 
-The library index uses format v2. Older formats are rejected without modifying their files; no migration is provided.
+Administrative ROM listings include all entries, their visibility, and uploader UUIDs. Player-issued administrative imports record that player; console and internal imports display **Server import**. Administrative imports create public ROMs and do not use the burner's cooldown. Administrative listing, chip recovery, and deletion retain access to private entries.
+
+Library index v3 automatically migrates valid v2 indexes on load, marking every existing ROM public while preserving IDs, image files, ordering, metadata, uploaders, and chip references. The complete index is validated before replacement. Unsupported formats, including v1, and corrupt indexes are rejected without modifying the index.
 
 Only admins can delete saved images. Files remain registered when chips are removed or lost. A chip whose image disappears is flagged invalid when its inventory/controller state is refreshed, and a running CPU using an unusable ROM powers off.
 

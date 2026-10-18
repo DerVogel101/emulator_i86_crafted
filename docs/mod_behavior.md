@@ -251,40 +251,49 @@ do not yet describe those capabilities fully.
 
 ## ROM burner and ROM chips
 
-- The player selects a local ROM image through the ROM Burner workflow.
-- Create ROM opens a draft with Upload, Name, Description, Cancel and Done.
-  Upload stages the file; Done saves it with the current metadata. Cancel or
-  closing the menu discards the draft without creating a library entry.
-- The client uploads the image to the server. The server verifies that it is
-  exactly 256 KiB before saving it in the world folder.
+- The player selects a local ROM image through the ROM Burner workflow. Create ROM
+  opens a draft with Upload, Name, Description, Visibility, Cancel, and Done. Public is
+  the default for every new draft.
+- Upload stages the image; Done saves it with the current metadata and visibility.
+  Uploads and validation errors preserve the selected visibility. Cancel or closing the
+  menu discards the draft without creating a library entry.
+- The server verifies that the image is exactly 256 KiB before saving it in the world
+  folder. The chip references a server-owned image, not a client-local filesystem path.
 - Each player can start one upload every 30 real seconds across all burners.
-  Cancellation, invalid transfers and duplicates consume the slot. Reconnecting
-  does not reset the cooldown; restarting the server does.
-- Saved images record the uploader's server-authenticated UUID and name at upload
-  time. The library displays the uploader's name; duplicate uploads preserve the
-  first uploader. Library index v2 has no migration support for older formats.
-- A ROM chip stores a reference to the server's saved ROM image, not a client-local
-  filesystem path. It must be inserted into the controller to be used.
-- Saved ROM images are immutable. Multiple chips may reference the same image.
-  Once burned, a chip keeps its image reference permanently; another ROM requires
-  another chip.
-- The server maintains a content-hash-to-file index. An upload identical to an
-  existing ROM is rejected as a duplicate. The first uploaded image and its
-  original name/description win; another upload cannot overwrite them. Identify
-  the existing library entry so it can be selected without uploading again.
-  Multiple chips can still reference that existing file. New image files use a
-  UUIDv7 filename. Hash algorithm and index serialization are implementation
-  details; deduplication must compare ROM content, not the user-provided name.
-- Uploads allow an in-game ROM name and description. The ROM library lists all
-  saved images and their metadata for browsing and selecting existing ROMs.
+  Cancellation, invalid transfers, and duplicates consume the slot. Reconnecting does
+  not reset the cooldown; restarting the server does.
+- Saved images record the uploader's server-authenticated UUID and name; their UUID
+  records upload time. Visibility is immutable after creation. Public images are
+  visible to everyone; only the uploader can browse, select, or burn a private entry
+  through the burner. Search results, counts, and pages exclude other players' private
+  entries.
+- Burned private chips remain shareable and usable by other players. Administrative
+  commands can list, recover chips for, and delete all entries. Administrative imports
+  create public ROMs.
+- Library index v3 automatically migrates valid v2 indexes to Public, preserving ROM
+  IDs, files, ordering, metadata, uploaders, and chip references. The complete old
+  index is validated before replacement. Unsupported formats, including v1, and corrupt
+  indexes are rejected without modifying the index.
+- Saved ROM images are immutable. Multiple chips may reference the same image. Once
+  burned, a chip keeps its image reference permanently; another ROM requires another
+  chip.
+- Public uploads deduplicate by contents against public entries only. The existing
+  entry's original name, description, and uploader remain authoritative and that entry
+  is selected. Every private upload gets a separate UUID, file, and metadata record,
+  including identical uploads by the same player. Private entries do not prevent public
+  uploads of the same contents.
+- New image files use UUIDv7 filenames. Hash algorithms and index serialization are
+  implementation details; public deduplication compares ROM contents, not user-provided
+  names.
+- Uploads allow an in-game ROM name and description. The library displays visible
+  entries and their metadata, including visibility, for browsing and selection.
 - ROM chips may be inserted, removed, or exchanged only while the mainframe is off.
-- If its referenced file is missing, the chip is marked invalid and cannot supply
-  a usable ROM. If a running mainframe's referenced ROM disappears or becomes
-  unusable, stop execution and power that mainframe off. Show an error in its
-  controller and installed Access Terminal, and send the normal debugger fault/
-  status notification. Keep startup blocked until a valid ROM is available so the
-  powered PSU cannot cause a restart loop. ROM files are not garbage-collected
-  when a referencing chip is removed or destroyed.
+- If the referenced file is missing, the chip is marked invalid and cannot supply a
+  usable ROM. If a running mainframe's ROM disappears or becomes unusable, execution
+  stops and the mainframe powers off. Its controller, installed Access Terminal, and
+  normal debugger fault/status notification report the error. Startup remains blocked
+  until a valid ROM is available; a powered PSU must not cause a restart loop. ROM
+  files are not garbage-collected when a referencing chip is removed or destroyed.
 
 ## External debugger
 

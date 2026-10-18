@@ -31,10 +31,17 @@ public final class RomCreationClientGameTest implements FabricClientGameTest {
             context.waitFor(client -> client.gui.screen() instanceof ControlPanelScreen panel && panel.model().title().equals("Create ROM"));
             context.runOnClient(client -> {
                 var panel = (ControlPanelScreen) client.gui.screen();
+                assertVisibility(panel, "Public"); press(panel, "Public");
                 edit(panel, "Before upload €", "Description before upload\nSecond line"); press(panel, "Done");
             });
             context.waitFor(client -> client.gui.screen() instanceof ControlPanelScreen panel && panel.model().body().contains("Upload a ROM file before"));
-            context.runOnClient(client -> assertEdits((ControlPanelScreen) client.gui.screen(), "Before upload €", "Description before upload\nSecond line"));
+            context.runOnClient(client -> {
+                var panel = (ControlPanelScreen) client.gui.screen();
+                assertEdits(panel, "Before upload €", "Description before upload\nSecond line");
+                assertVisibility(panel, "Private"); press(panel, "Private"); press(panel, "Done");
+            });
+            context.waitFor(client -> client.gui.screen() instanceof ControlPanelScreen panel && panel.model().body().contains("Upload a ROM file before"));
+            context.runOnClient(client -> assertVisibility((ControlPanelScreen) client.gui.screen(), "Public"));
             byte[] image = new byte[256 * 1024]; new Random().nextBytes(image);
             server.runOnServer(host -> {
                 var burner = ServerMachines.get(host).burner; var player = host.getPlayerList().getPlayers().getFirst();
@@ -46,16 +53,25 @@ public final class RomCreationClientGameTest implements FabricClientGameTest {
             context.runOnClient(client -> {
                 var panel = (ControlPanelScreen) client.gui.screen();
                 assertEdits(panel, "Before upload €", "Description before upload\nSecond line");
+                assertVisibility(panel, "Public"); press(panel, "Public");
                 edit(panel, "Final ROM €", "Final description\nAfter upload");
             });
             context.takeScreenshot(TestScreenshotOptions.of("i86-create-rom").withSize(1280, 720));
+            context.runOnClient(client -> {
+                var panel = (ControlPanelScreen) client.gui.screen();
+                panel.mouseScrolled(number(panel, "x") + 30, number(panel, "contentTop") + 20, 0, -2);
+                var done = panel.children().stream().filter(child -> child instanceof Button button && button.getMessage().getString().equals("Done"))
+                        .map(Button.class::cast).findFirst().orElseThrow();
+                if (done.getY() < number(panel, "contentTop") || done.getBottom() > number(panel, "contentBottom"))
+                    throw new AssertionError("Visibility field made Done unreachable by scrolling");
+            });
             context.runOnClient(client -> press((ControlPanelScreen) client.gui.screen(), "Done"));
             server.waitFor(host -> ServerMachines.get(host).roms.search("Final ROM €").stream()
-                    .anyMatch(entry -> entry.description().equals("Final description\nAfter upload")));
+                    .anyMatch(entry -> !entry.isPublic() && entry.description().equals("Final description\nAfter upload")));
             context.waitFor(client -> client.gui.screen() instanceof ControlPanelScreen panel && panel.model().title().equals("ROM burner"));
             context.runOnClient(client -> press((ControlPanelScreen) client.gui.screen(), "Create ROM"));
             context.waitFor(client -> client.gui.screen() instanceof ControlPanelScreen panel && panel.model().title().equals("Create ROM"));
-            context.runOnClient(client -> { var panel = (ControlPanelScreen) client.gui.screen(); edit(panel, "Discarded", "Discarded description"); press(panel, "Cancel"); });
+            context.runOnClient(client -> { var panel = (ControlPanelScreen) client.gui.screen(); assertVisibility(panel, "Public"); edit(panel, "Discarded", "Discarded description"); press(panel, "Cancel"); });
             context.waitFor(client -> client.gui.screen() instanceof ControlPanelScreen panel && panel.model().title().equals("ROM burner"));
             server.runOnServer(host -> { if (!ServerMachines.get(host).roms.search("Discarded").isEmpty()) throw new AssertionError("Cancel saved a ROM"); });
             context.runOnClient(client -> client.gui.screen().onClose()); connection.waitForServerboundPackets();
@@ -80,7 +96,7 @@ public final class RomCreationClientGameTest implements FabricClientGameTest {
                 if (number(panel, "scroll") <= before) throw new AssertionError("Description boundary swallowed panel scrolling");
                 panel.onClose();
             });
-            System.out.println("I86_ROM_CREATION_OK: current metadata, multiline text, staging, Done, Cancel, body/editor wheel scrolling");
+            System.out.println("I86_ROM_CREATION_OK: final visibility and metadata, retained selection, multiline text, staging, Done, Cancel, body/editor wheel scrolling");
         } catch (Exception failure) { throw new IllegalStateException("ROM creation client check failed", failure); }
         finally { context.runOnClient(client -> { client.options.guiScale().set(scale); client.resizeGui(); }); }
     }
@@ -95,6 +111,13 @@ public final class RomCreationClientGameTest implements FabricClientGameTest {
             if (child instanceof EditBox edit && !edit.getValue().equals(name)) throw new AssertionError("Name was lost");
             if (child instanceof MultiLineEditBox edit && !edit.getValue().equals(description)) throw new AssertionError("Description was lost");
         }
+    }
+    private static void assertVisibility(ControlPanelScreen panel, String expected) {
+        var field = panel.model().fields().stream().filter(value -> value.key().equals("visibility")).findFirst().orElseThrow();
+        if (!field.value().equals(expected) || !field.options().equals(List.of("Public", "Private")))
+            throw new AssertionError("Unexpected visibility selector: " + field);
+        if (panel.children().stream().noneMatch(child -> child instanceof Button button && button.getMessage().getString().equals(expected)))
+            throw new AssertionError("Missing visibility choice: " + expected);
     }
     private static void press(ControlPanelScreen panel, String label) {
         for (var child : panel.children()) if (child instanceof Button button && button.getMessage().getString().equals(label)) {

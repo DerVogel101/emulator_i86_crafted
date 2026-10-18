@@ -53,6 +53,86 @@ public final class BurnerGameTests {
         tag.putString("action", "done"); tag.putString("name", name); tag.putString("description", description);
         burner.submit(player, tag);
     }
+    @GameTest public void privateUploadsFilterBrowsingAndRejectOtherPlayersWhileChipsRemainShareable(GameTestHelper test) throws Exception {
+        var machines = ServerMachines.get(test.getLevel().getServer());
+        var clock = new AtomicLong(); var burner = new RomBurner(machines, clock::get);
+        var position = new BlockPos(2, 2, 2);
+        test.setBlock(position, ModContent.BLOCKS.get("rom_burner"));
+        var owner = player(test, position); var other = player(test, position);
+        var created = new ArrayList<UUID>(); String key = UUID.randomUUID().toString();
+        byte[] bytes = image();
+        bytes[bytes.length - 16] = (byte) 0xB8; bytes[bytes.length - 15] = 0x34; bytes[bytes.length - 14] = 0x12;
+        try {
+            created.add(machines.roms.upload(bytes, key + " public", "").id());
+            burner.open(owner, test.absolutePos(position));
+            libraryAction(burner, owner, "create", "");
+            test.assertValueEqual(sessionField(burner, owner.getUUID(), "isPublic"), true, "Create defaults to Public");
+            send(burner, owner, burner.prepareUpload(owner, key + " draft", ""), bytes);
+            visibilityDone(burner, owner, key + " invalid", "Unlisted");
+            test.assertTrue(sessionField(burner, owner.getUUID(), "draft") != null, "Invalid visibility keeps draft");
+            visibilityDone(burner, owner, "", "Private");
+            test.assertValueEqual(sessionField(burner, owner.getUUID(), "isPublic"), false, "Validation failure preserves Private");
+            visibilityDone(burner, owner, key + " private", "Private");
+            var privateEntry = machines.roms.entries().getLast(); created.add(privateEntry.id());
+            test.assertTrue(!privateEntry.isPublic() && privateEntry.uploaderId().equals(owner.getUUID()), "Done saves final visibility and authenticated owner");
+            test.assertTrue(!privateEntry.id().equals(created.getFirst()), "Private upload can duplicate public contents");
+            libraryAction(burner, owner, "create", "");
+            test.assertValueEqual(sessionField(burner, owner.getUUID(), "isPublic"), true, "New draft defaults to Public");
+            clock.addAndGet(TimeUnit.SECONDS.toNanos(30));
+            send(burner, owner, burner.prepareUpload(owner, key + " again", ""), bytes);
+            visibilityDone(burner, owner, key + " again", "Private");
+            created.add(machines.roms.entries().getLast().id());
+            test.assertTrue(!created.getLast().equals(privateEntry.id()), "Repeated private upload gets its own ID");
+            for (int i = 0; i < 5; i++) created.add(machines.roms.upload(bytes, key + " hidden " + i, "", owner.getUUID(), owner.getScoreboardName(), false).id());
+            created.add(machines.roms.upload(bytes, key + " other", "", other.getUUID(), other.getScoreboardName(), false).id());
+            test.assertValueEqual(machines.roms.search(key, owner.getUUID()).size(), 8, "Owner sees public and own private ROMs");
+            test.assertValueEqual(machines.roms.search(key, other.getUUID()).size(), 2, "Other sees public and own private ROMs only");
+            libraryAction(burner, owner, "search", key); libraryAction(burner, owner, "next", "");
+            test.assertValueEqual(sessionField(burner, owner.getUUID(), "page"), 1, "Owner can reach second page");
+            burner.open(other, test.absolutePos(position));
+            libraryAction(burner, other, "search", key); libraryAction(burner, other, "next", "");
+            test.assertValueEqual(sessionField(burner, other.getUUID(), "page"), 0, "Hidden entries cannot add browser pages");
+            select(burner, other, privateEntry.id());
+            test.assertTrue(sessionField(burner, other.getUUID(), "selected") == null, "Forged private UUID cannot be selected");
+            other.getInventory().clearContent(); other.getInventory().setItem(0, new ItemStack(ModContent.ITEMS.get("rom_chip")));
+            boolean rejected = false;
+            try { burner.burn(other, privateEntry.id()); } catch (IllegalArgumentException expected) { rejected = true; }
+            test.assertTrue(rejected && !other.getInventory().getItem(0).has(ModComponents.ROM_ID), "Forbidden burn preserves blank chip");
+            select(burner, owner, privateEntry.id());
+            test.assertValueEqual(sessionField(burner, owner.getUUID(), "selected"), privateEntry.id(), "Owner can select private ROM");
+            owner.getInventory().clearContent(); owner.getInventory().setItem(0, new ItemStack(ModContent.ITEMS.get("rom_chip")));
+            burner.burn(owner, privateEntry.id());
+            var chip = owner.getInventory().removeItemNoUpdate(0); other.getInventory().setItem(0, chip);
+            chip.getItem().inventoryTick(chip, test.getLevel(), other, EquipmentSlot.MAINHAND);
+            test.assertTrue(!chip.getOrDefault(ModComponents.ROM_INVALID, false), "Shared private chip remains valid");
+            var world = new WorldRecords(); var record = world.allocate(); record.paused = true;
+            record.controllers.add(new WorldRecords.Location("minecraft:overworld", 1, 64, 1));
+            var machine = new MainframeMachine(world, record, machines.roms, new DiskClaims());
+            try {
+                test.assertTrue(machine.powerOn(dervogel101.de.i86.runtime.HardwareProfile.complete(), chip.get(ModComponents.ROM_ID), 1, "private_chip_test", world.createDisk()), "Shared chip can boot private ROM");
+                machine.step();
+                test.assertValueEqual(machine.onWorker(cpu -> cpu.registers().getAx()), 0x1234, "Shared ROM executes reset program");
+            } finally { machine.unload(); }
+        } finally {
+            burner.disconnect(owner.getUUID()); burner.disconnect(other.getUUID());
+            for (UUID id : created) machines.roms.delete(id);
+        }
+        test.succeed();
+    }
+
+    private static void visibilityDone(RomBurner burner, ServerPlayer player, String name, String visibility) throws ReflectiveOperationException {
+        var tag = new net.minecraft.nbt.CompoundTag();
+        tag.putString("token", sessionField(burner, player.getUUID(), "menuNonce").toString());
+        tag.putString("action", "done"); tag.putString("name", name); tag.putString("description", "Private upload description");
+        tag.putString("visibility", visibility); burner.submit(player, tag);
+    }
+
+    private static void select(RomBurner burner, ServerPlayer player, UUID id) throws ReflectiveOperationException {
+        var tag = new net.minecraft.nbt.CompoundTag();
+        tag.putString("token", sessionField(burner, player.getUUID(), "menuNonce").toString());
+        tag.putString("action", "select"); tag.putString("rom", id.toString()); burner.submit(player, tag);
+    }
+
     @GameTest public void creationSavesOnlyOnDoneWithLatestMetadataAndCancelDiscardsDraft(GameTestHelper test) throws Exception {
         var machines = ServerMachines.get(test.getLevel().getServer()); var clock = new AtomicLong();
         var burner = new RomBurner(machines, clock::get);

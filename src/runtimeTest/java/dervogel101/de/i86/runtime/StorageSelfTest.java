@@ -13,6 +13,8 @@ import java.util.UUID;
 final class StorageSelfTest {
     static void run() throws Exception {
         legacyKeyboardFormats();
+        romVisibility();
+        romVisibilityMigration();
         Path folder = Files.createTempDirectory("i86-rom-library");
         try {
             var library = new RomLibrary(folder);
@@ -65,7 +67,7 @@ final class StorageSelfTest {
             reopened.delete(searchable.id());
             byte[] index = Files.readAllBytes(folder.resolve("library.index"));
             byte[] invalidUploader = index.clone();
-            Arrays.fill(invalidUploader, invalidUploader.length - "Server import".length(), invalidUploader.length, (byte) ' ');
+            Arrays.fill(invalidUploader, invalidUploader.length - 1 - "Server import".length(), invalidUploader.length - 1, (byte) ' ');
             Files.write(folder.resolve("library.index"), invalidUploader);
             expectIo(() -> new RomLibrary(folder));
             byte[] oldIndex = index.clone(); oldIndex[7] = 1;
@@ -122,6 +124,115 @@ final class StorageSelfTest {
             Files.delete(snapshots);
         }
         System.out.println("Storage checks passed: ROM uploader persistence/validation, deduplication/immutability, UUIDv7, retained state and shared membership");
+    }
+
+    private static void romVisibility() throws IOException {
+        Path folder = Files.createTempDirectory("i86-rom-visibility");
+        try {
+            var library = new RomLibrary(folder);
+            byte[] image = new byte[CPUMemory.ROM_SIZE];
+            UUID owner = UUID.randomUUID(), other = UUID.randomUUID();
+            var first = library.upload(image, "Private", "Hidden description", owner, "Owner", false);
+            var second = library.upload(image, "Private again", "", owner, "Owner", false);
+            var third = library.upload(image, "Other private", "", other, "Other", false);
+            var shared = library.upload(image, "Public", "Shared description", owner, "Owner", true);
+            assert library.entries().size() == 4 && library.entries().stream().map(RomLibrary.Entry::id).distinct().count() == 4;
+            assert library.search("", owner).equals(java.util.List.of(first, second, shared));
+            assert library.search("", other).equals(java.util.List.of(third, shared));
+            assert library.search("", UUID.randomUUID()).equals(java.util.List.of(shared));
+            assert library.search("hidden", other).isEmpty();
+            assert library.search(" HIDDEN ", owner).equals(java.util.List.of(first));
+            assert !first.visibleTo(null) && shared.visibleTo(null);
+            expectIo(() -> library.upload(image, "Ownerless", "", null, "Server import", false));
+            var reopened = new RomLibrary(folder);
+            assert reopened.entries().equals(library.entries());
+            for (var entry : reopened.entries()) assert Arrays.equals(image, reopened.read(entry.id()));
+            reopened.delete(first.id());
+            var afterPrivateDeletion = new RomLibrary(folder);
+            try {
+                afterPrivateDeletion.upload(image, "Duplicate public", "");
+                throw new AssertionError("Deleting private copy removed public duplicate protection");
+            } catch (RomLibrary.DuplicateRom duplicate) { assert duplicate.existing.equals(shared); }
+            afterPrivateDeletion.delete(shared.id());
+            var afterPublicDeletion = new RomLibrary(folder);
+            assert afterPublicDeletion.search("", UUID.randomUUID()).isEmpty();
+            var replacement = afterPublicDeletion.upload(image, "New public", "");
+            assert replacement.isPublic() && !replacement.id().equals(shared.id());
+            assert Arrays.equals(image, afterPublicDeletion.read(second.id()));
+            assert Arrays.equals(image, afterPublicDeletion.read(third.id()));
+
+            writeRomIndex(folder, 3, java.util.List.of(new RomLibrary.Entry(second.id(), second.hash(), "Ownerless", "", null, "Server import", false)));
+            expectUnchangedIndexFailure(folder);
+            writeRomIndex(folder, 3, java.util.List.of(replacement,
+                    new RomLibrary.Entry(second.id(), replacement.hash(), "Duplicate public", "", owner, "Owner", true)));
+            expectUnchangedIndexFailure(folder);
+        } finally { deleteRomTestFolder(folder); }
+    }
+
+    private static void romVisibilityMigration() throws IOException {
+        Path folder = Files.createTempDirectory("i86-rom-migration");
+        try {
+            var library = new RomLibrary(folder);
+            byte[] image = new byte[CPUMemory.ROM_SIZE];
+            var first = library.upload(image, "Old player ROM", "Description", UUID.randomUUID(), "Original player");
+            byte[] other = image.clone(); other[0] = 42;
+            var second = library.upload(other, "Old server ROM", "");
+            var entries = java.util.List.of(first, second);
+            writeRomIndex(folder, 2, entries);
+            byte[] legacy = Files.readAllBytes(folder.resolve("library.index"));
+            byte[] trailing = Arrays.copyOf(legacy, legacy.length + 1);
+            byte[] unsupported = legacy.clone(); unsupported[7] = 1;
+            byte[] future = legacy.clone(); future[7] = 4;
+            for (byte[] bad : new byte[][]{trailing, Arrays.copyOf(legacy, legacy.length - 1), unsupported, future}) {
+                Files.write(folder.resolve("library.index"), bad);
+                expectUnchangedIndexFailure(folder);
+            }
+            writeRomIndex(folder, 2, java.util.List.of(first, first));
+            expectUnchangedIndexFailure(folder);
+            Files.write(folder.resolve("library.index"), legacy);
+            var migrated = new RomLibrary(folder);
+            assert migrated.entries().equals(entries) : "Migration must preserve IDs, order, metadata and uploaders";
+            assert migrated.entries().stream().allMatch(RomLibrary.Entry::isPublic);
+            assert migrated.search("", UUID.randomUUID()).equals(entries);
+            assert Arrays.equals(image, Files.readAllBytes(folder.resolve(first.id() + ".rom")));
+            assert Arrays.equals(other, Files.readAllBytes(folder.resolve(second.id() + ".rom")));
+            assert Arrays.equals(image, migrated.read(first.id()));
+            try (var in = new java.io.DataInputStream(Files.newInputStream(folder.resolve("library.index")))) {
+                assert in.readInt() == 0x49383652 && in.readInt() == 3;
+            }
+            assert new RomLibrary(folder).entries().equals(entries);
+            try {
+                migrated.upload(image, "Replacement metadata", "");
+                throw new AssertionError("Migrated public ROM must still deduplicate");
+            } catch (RomLibrary.DuplicateRom duplicate) { assert duplicate.existing.equals(first); }
+        } finally { deleteRomTestFolder(folder); }
+    }
+
+    private static void writeRomIndex(Path folder, int version, java.util.List<RomLibrary.Entry> entries) throws IOException {
+        try (var out = new java.io.DataOutputStream(Files.newOutputStream(folder.resolve("library.index")))) {
+            out.writeInt(0x49383652); out.writeInt(version); out.writeInt(entries.size());
+            for (var entry : entries) {
+                out.writeLong(entry.id().getMostSignificantBits()); out.writeLong(entry.id().getLeastSignificantBits());
+                out.writeUTF(entry.hash()); out.writeUTF(entry.name()); out.writeUTF(entry.description());
+                out.writeBoolean(entry.uploaderId() != null);
+                if (entry.uploaderId() != null) {
+                    out.writeLong(entry.uploaderId().getMostSignificantBits()); out.writeLong(entry.uploaderId().getLeastSignificantBits());
+                }
+                out.writeUTF(entry.uploaderName());
+                if (version == 3) out.writeBoolean(entry.isPublic());
+            }
+        }
+    }
+
+    private static void expectUnchangedIndexFailure(Path folder) throws IOException {
+        byte[] before = Files.readAllBytes(folder.resolve("library.index"));
+        expectIo(() -> new RomLibrary(folder));
+        assert Arrays.equals(before, Files.readAllBytes(folder.resolve("library.index"))) : "Invalid index must not be rewritten";
+    }
+
+    private static void deleteRomTestFolder(Path folder) throws IOException {
+        try (var files = Files.list(folder)) { for (Path file : files.toList()) Files.delete(file); }
+        Files.delete(folder);
     }
 
     private static void legacyKeyboardFormats() throws IOException {

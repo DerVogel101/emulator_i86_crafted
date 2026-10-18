@@ -28,7 +28,7 @@ public final class RomBurner {
         UUID menuNonce, selected, uploadToken;
         RomUpload upload;
         byte[] draft;
-        boolean creating;
+        boolean creating, isPublic = true;
         int page;
         long activeUntil;
         String name = "ROM image", description = "", search = "";
@@ -81,7 +81,7 @@ public final class RomBurner {
                 case "next" -> { session.page++; library(player, session); }
                 case "back" -> main(player, session, "");
                 case "create" -> {
-                    session.creating = true; session.draft = null; session.name = "ROM image"; session.description = "";
+                    session.creating = true; session.draft = null; session.name = "ROM image"; session.description = ""; session.isPublic = true;
                     creation(player, session, "");
                 }
                 case "cancel_create" -> {
@@ -91,7 +91,7 @@ public final class RomBurner {
                     if (!session.creating) throw new IllegalStateException("Open Create ROM first.");
                     metadata(session, tag);
                     if (session.draft == null) throw new IllegalStateException("Upload a ROM file before choosing Done.");
-                    var entry = owner.roms.upload(session.draft, session.name, session.description, player.getUUID(), player.getScoreboardName());
+                    var entry = owner.roms.upload(session.draft, session.name, session.description, player.getUUID(), player.getScoreboardName(), session.isPublic);
                     session.selected = entry.id(); session.draft = null; session.creating = false;
                     owner.indicators.failure(session.level, session.position, false);
                     owner.indicators.pulse(session.level, session.position, 2);
@@ -100,7 +100,8 @@ public final class RomBurner {
                 case "select" -> {
                     String id = tag.getStringOr("rom", "");
                     if (id.length() != 36) throw new IllegalArgumentException("Invalid ROM ID");
-                    var entry = owner.roms.entry(UUID.fromString(id)).orElseThrow(() -> new IllegalArgumentException("ROM no longer exists"));
+                    var entry = owner.roms.entry(UUID.fromString(id)).filter(rom -> rom.visibleTo(player.getUUID()))
+                            .orElseThrow(() -> new IllegalArgumentException("ROM no longer exists"));
                     session.selected = entry.id(); main(player, session, "");
                 }
                 case "burn" -> { burn(player, session.selected); busy(session); main(player, session, "ROM chip burned. Its reference is permanent."); }
@@ -126,6 +127,11 @@ public final class RomBurner {
         String name = tag.getStringOr("name", ""), description = tag.getStringOr("description", "");
         if (name.length() > 128 || description.length() > 4096) throw new IOException("ROM name or description is too long");
         session.name = name; session.description = description;
+        session.isPublic = switch (tag.getStringOr("visibility", session.isPublic ? "Public" : "Private")) {
+            case "Public" -> true;
+            case "Private" -> false;
+            default -> throw new IOException("Choose Public or Private visibility");
+        };
     }
     public UUID prepareUpload(ServerPlayer player, String name, String description) throws IOException {
         var session = sessions.get(player.getUUID());
@@ -169,7 +175,8 @@ public final class RomBurner {
     }
     public void burn(ServerPlayer player, UUID id) throws IOException {
         if (id == null) throw new IllegalArgumentException("Select a ROM from the library first");
-        var entry = owner.roms.entry(id).orElseThrow(() -> new IllegalArgumentException("Unknown ROM ID"));
+        var entry = owner.roms.entry(id).filter(rom -> rom.visibleTo(player.getUUID()))
+                .orElseThrow(() -> new IllegalArgumentException("Unknown ROM ID"));
         var operationSession = sessions.get(player.getUUID());
         if (operationSession != null) owner.indicators.pulse(operationSession.level, operationSession.position, 2);
         if (!owner.roms.available(id)) throw new IOException("The selected ROM file is missing or invalid");
@@ -197,10 +204,11 @@ public final class RomBurner {
         notice = Objects.toString(notice, "ROM operation failed");
         if (!usable(player, session)) { unavailable(player); return; }
         session.menuNonce = UUID.randomUUID();
-        var selected = session.selected == null ? null : owner.roms.entry(session.selected).orElse(null);
+        var selected = session.selected == null ? null : owner.roms.entry(session.selected)
+                .filter(rom -> rom.visibleTo(player.getUUID())).orElse(null);
         String text = notice.isEmpty() ? "" : notice + "\n\n";
         text += selected == null ? "No ROM selected." : selected.name() + "\n" + selected.id() + "\n" + selected.description()
-                + "\nUploaded by: " + selected.uploaderName()
+                + "\nUploaded by: " + selected.uploaderName() + "\nVisibility: " + (selected.isPublic() ? "Public" : "Private")
                 + (owner.roms.available(selected.id()) ? "" : "\nMissing or invalid ROM file.");
         text += "\n\nBurn uses one blank ROM chip from your inventory. Existing chips keep their reference permanently.";
         var buttons = new ArrayList<ControlPanel.Action>();
@@ -214,13 +222,15 @@ public final class RomBurner {
         String text = (notice.isEmpty() ? "" : notice + "\n\n")
                 + (session.draft == null ? "No file uploaded." : "ROM file ready (256 KiB).")
                 + "\nUpload a local ROM, enter its name and description, then choose Done. Cancel discards this draft.";
+        text += "\n\nPublic ROMs are listed for everyone. Private ROMs can only be browsed and burned by you; burned chips can be shared. Visibility cannot change after creation.";
         show(player, session, "Create ROM", text,
-                List.of(ControlPanel.text("name", "Name", session.name, 128), ControlPanel.text("description", "Description", session.description, 4096)),
+                List.of(ControlPanel.text("name", "Name", session.name, 128), ControlPanel.text("description", "Description", session.description, 4096),
+                        ControlPanel.option("visibility", "Visibility", session.isPublic ? "Public" : "Private", List.of("Public", "Private"))),
                 List.of(button(session, "Upload", "upload", null), button(session, "Cancel", "cancel_create", null), button(session, "Done", "done", null)));
     }
     private void library(ServerPlayer player, Session session) {
         session.menuNonce = UUID.randomUUID();
-        var entries = owner.roms.search(session.search); int pages = Math.max(1, (entries.size() + PAGE_SIZE - 1) / PAGE_SIZE);
+        var entries = owner.roms.search(session.search, player.getUUID()); int pages = Math.max(1, (entries.size() + PAGE_SIZE - 1) / PAGE_SIZE);
         session.page = Math.max(0, Math.min(session.page, pages - 1));
         var buttons = new ArrayList<ControlPanel.Action>();
         var text = new StringBuilder("Page " + (session.page + 1) + " / " + pages + " — " + entries.size() + " saved ROMs");
@@ -232,6 +242,7 @@ public final class RomBurner {
             var entry = entries.get(i); int number = i + 1;
             text.append("\n\n").append(number).append(". ").append(entry.name()).append("\n").append(entry.id());
             text.append("\nUploaded by: ").append(entry.uploaderName());
+            text.append("\nVisibility: ").append(entry.isPublic() ? "Public" : "Private");
             String description = entry.description(); text.append("\n").append(description.substring(0, Math.min(160, description.length())));
             if (!owner.roms.available(entry.id())) text.append("\nMissing or invalid file");
             buttons.add(button(session, "Select " + number + ": " + entry.name(), "select", entry.id()));
