@@ -19,6 +19,6 @@ public final class ModBlockEntities {
         ARRAY = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, ModContent.id("array"), new BlockEntityType<>(ArrayBlockEntity::new,
                 Set.of(ModContent.BLOCKS.get("harddisk_array"), ModContent.BLOCKS.get("ender_tunnel_array"))));
         PORT = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, ModContent.id("external_port"),
-                new BlockEntityType<>(PortBlockEntity::new, Set.of(ModContent.BLOCKS.get("redstone_port"), ModContent.BLOCKS.get("sign_port"))));
+                new BlockEntityType<>(PortBlockEntity::new, Set.of(ModContent.BLOCKS.get("redstone_port"), ModContent.BLOCKS.get("sign_port"), ModContent.BLOCKS.get("keyboard"))));
     }
 }

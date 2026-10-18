@@ -148,8 +148,10 @@ public final class MachineDialogs {
         if (binding.kind() == PortBindings.Kind.REDSTONE) {
             form.info.append(settings.input() ? "\nInput: every analog change can raise an IRQ." : "\nOutput port: input IRQs are inactive.");
             form.inputs.add(PortDialogs.option("irq", "Redstone IRQ mode", settings.irq().name(), Arrays.stream(RedstoneIrqMode.values()).map(Enum::name).toList()));
-        } else form.inputs.add(PortDialogs.option("sides", "Click IRQs: 0=off, 1=front, 2=back, 3=both", Integer.toString(settings.signSides()), List.of("0", "1", "2", "3")));
-        if (form.controls()) form.add("Apply IRQ settings", tag -> {
+        } else if (binding.kind() == PortBindings.Kind.SIGN)
+            form.inputs.add(PortDialogs.option("sides", "Click IRQs: 0=off, 1=front, 2=back, 3=both", Integer.toString(settings.signSides()), List.of("0", "1", "2", "3")));
+        else form.info.append("\nKeyboard input interrupts are automatic.");
+        if (form.controls() && binding.kind() != PortBindings.Kind.KEYBOARD) form.add("Apply IRQ settings", tag -> {
             form.edit();
             if (form.machines.records.ports.at(location).filter(binding::equals).isEmpty())
                 throw new IllegalStateException("Port settings changed; reopen its device settings");

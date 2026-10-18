@@ -8,7 +8,8 @@ import java.util.Optional;
 public record HardwareProfile(Map<Hardware, Integer> counts) {
     public static HardwareProfile complete() {
         var counts = new EnumMap<Hardware, Integer>(Hardware.class);
-        for (var hardware : Hardware.values()) counts.put(hardware, hardware.maximum);
+        // Keep the legacy 21-position default; keyboards need an explicitly installed controller.
+        for (var hardware : Hardware.values()) if (hardware != Hardware.KEYBOARD) counts.put(hardware, hardware.maximum);
         return new HardwareProfile(counts);
     }
 
@@ -44,6 +45,8 @@ public record HardwareProfile(Map<Hardware, Integer> counts) {
     public int signCapacity() {
         return 32 * count(Hardware.GPU);
     }
+
+    public int keyboardCapacity() { return 8 * count(Hardware.KEYBOARD); }
 
     public Optional<String> validationError() {
         for (var hardware : Hardware.values()) {

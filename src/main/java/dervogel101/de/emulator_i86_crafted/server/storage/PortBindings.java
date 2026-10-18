@@ -6,7 +6,7 @@ import java.util.*;
 
 /** Saved assignments include unloaded ports, so chunk loading cannot hide conflicts. */
 public final class PortBindings {
-    public enum Kind { REDSTONE, SIGN }
+    public enum Kind { REDSTONE, SIGN, KEYBOARD }
     public record Settings(long mainframe, int slot, String name, boolean input, RedstoneIrqMode irq, int signSides) {
         public Settings {
             Objects.requireNonNull(name); Objects.requireNonNull(irq);

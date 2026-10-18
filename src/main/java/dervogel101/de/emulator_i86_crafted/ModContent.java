@@ -38,6 +38,7 @@ public final class ModContent {
         registerBlock("super_structure", null);
         registerBlock("redstone_port", null);
         registerBlock("sign_port", null);
+        registerBlock("keyboard", null);
         registerBlock("rom_burner", null);
         registerItem("rom_chip", 1);
         SPEED_SHARDS.put(registerItem("speed_shard_1", 1), ShardSpeed.TIER_1);
@@ -59,6 +60,7 @@ public final class ModContent {
         MachineBlock machine = hardware == Hardware.CONTROLLER ? new ControllerBlock(properties)
                 : hardware == Hardware.DISK || hardware == Hardware.SHARED_MEMORY ? new ArrayBlock(properties, hardware) : path.equals("redstone_port") ? new PortBlock(properties, dervogel101.de.emulator_i86_crafted.server.storage.PortBindings.Kind.REDSTONE)
                 : path.equals("sign_port") ? new PortBlock(properties, dervogel101.de.emulator_i86_crafted.server.storage.PortBindings.Kind.SIGN)
+                : path.equals("keyboard") ? new PortBlock(properties, dervogel101.de.emulator_i86_crafted.server.storage.PortBindings.Kind.KEYBOARD)
                 : path.equals("rom_burner") ? new RomBurnerBlock(properties)
                 : new MachineBlock(properties, hardware);
         var block = Registry.register(BuiltInRegistries.BLOCK, key, machine);

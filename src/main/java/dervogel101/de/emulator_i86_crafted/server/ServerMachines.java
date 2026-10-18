@@ -25,6 +25,7 @@ public final class ServerMachines {
     public final RomLibrary roms;
     public final DebuggerLeases leases = new DebuggerLeases();
     public final ServerPorts ports = new ServerPorts(this);
+    public final ServerKeyboards keyboards = new ServerKeyboards();
     public final RomBurner burner = new RomBurner(this);
     public final ServerDebugger debugger = new ServerDebugger(this);
     public final ServerIndicators indicators = new ServerIndicators();
@@ -94,6 +95,7 @@ public final class ServerMachines {
             PortDialogs.disconnect(handler.getPlayer().getUUID());
             MachineDialogs.disconnect(handler.getPlayer().getUUID());
             if (machines != null) machines.burner.disconnect(handler.getPlayer().getUUID());
+            if (machines != null) machines.keyboards.disconnect(handler.getPlayer().getUUID());
         });
         ServerLifecycleEvents.SERVER_STARTED.register(ServerMachines::get);
         ServerBlockEntityEvents.BLOCK_ENTITY_LOAD.register((entity, level) -> {
@@ -113,6 +115,7 @@ public final class ServerMachines {
         });
         ServerTickEvents.START_SERVER_TICK.register(server -> get(server).tick(server));
         ServerTickEvents.END_SERVER_TICK.register(MachineDialogs::tick);
+        ServerTickEvents.END_SERVER_TICK.register(server -> get(server).keyboards.tick());
         ServerTickEvents.END_SERVER_TICK.register(server -> get(server).publishIndicators(server));
         ServerLifecycleEvents.BEFORE_SAVE.register((server, flush, force) -> get(server).save());
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {

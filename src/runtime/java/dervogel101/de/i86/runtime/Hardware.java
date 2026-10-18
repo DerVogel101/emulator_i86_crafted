@@ -14,7 +14,8 @@ public enum Hardware {
     POWER("power_supply", "Power Supply", 1, true),
     RESET("reset_port", "Reset Port", 1, true),
     NMI("nmi_port", "NMI Port", 1, true),
-    TEST("test_port", "TEST Port", 1, true);
+    TEST("test_port", "TEST Port", 1, true),
+    KEYBOARD("keyboard_controller", "Keyboard Controller", 1, false);
 
     public final String id;
     public final String displayName;

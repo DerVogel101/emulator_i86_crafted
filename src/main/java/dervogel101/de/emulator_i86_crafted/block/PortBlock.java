@@ -32,7 +32,11 @@ public final class PortBlock extends MachineBlock implements EntityBlock {
     }
     @Override public BlockEntity newBlockEntity(BlockPos pos, BlockState state) { return new PortBlockEntity(pos, state); }
     @Override protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (player instanceof ServerPlayer serverPlayer && level.getBlockEntity(pos) instanceof PortBlockEntity port) PortDialogs.open(serverPlayer, port);
+        if (player instanceof ServerPlayer serverPlayer && level.getBlockEntity(pos) instanceof PortBlockEntity port) {
+            if (kind == PortBindings.Kind.KEYBOARD && !player.isShiftKeyDown())
+                ServerMachines.get(serverPlayer.level().getServer()).keyboards.capture(serverPlayer, port);
+            else PortDialogs.open(serverPlayer, port);
+        }
         return InteractionResult.SUCCESS;
     }
     @Override protected boolean isSignalSource(BlockState state) { return kind == PortBindings.Kind.REDSTONE; }

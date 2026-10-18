@@ -14,6 +14,59 @@ import net.minecraft.world.level.block.entity.*;
 import java.util.*;
 
 public final class PortGameTests {
+    @GameTest public void keyboardCapacityBindingsAndSixFacings(GameTestHelper test) {
+        var owner = ServerMachines.get(test.getLevel().getServer()); var record = retainedController(test);
+        var first = port(test, new BlockPos(2, 2, 2), "keyboard", record.id, 7);
+        test.assertTrue(owner.ports.status(first).contains("capacity 0"), "Keyboard controller is optional and required for capacity");
+        var counts = new EnumMap<Hardware, Integer>(record.hardware.counts());
+        counts.put(Hardware.GPU, 3); counts.put(Hardware.KEYBOARD, 1); record.hardware = new HardwareProfile(counts);
+        test.assertValueEqual(owner.ports.status(first), "Online", "One controller enables slot seven");
+        for (var facing : Direction.values()) {
+            test.setBlock(new BlockPos(2, 2, 2), first.getBlockState().setValue(PortBlock.PORT_FACING, facing));
+            test.assertValueEqual(test.getLevel().getBlockState(first.getBlockPos()).getValue(PortBlock.PORT_FACING), facing,
+                    "Keyboard supports every facing");
+        }
+        var second = port(test, new BlockPos(6, 2, 2), "keyboard", record.id, 7);
+        test.assertTrue(owner.ports.status(first).startsWith("Duplicate"), "Keyboard slots are exclusive");
+        owner.ports.unload(second);
+        test.assertTrue(owner.ports.status(first).startsWith("Duplicate"), "Unloaded assignments still conflict");
+        owner.ports.remove(test.getLevel(), second.getBlockPos());
+        test.assertValueEqual(owner.ports.status(first), "Online", "Removing the conflicting binding restores the device");
+        boolean rejected = false;
+        try { owner.ports.configure(first, new PortBindings.Settings(record.id, 8, "Invalid", true, RedstoneIrqMode.DISABLED, 0), UUID.randomUUID()); }
+        catch (IllegalArgumentException expected) { rejected = true; }
+        test.assertTrue(rejected, "Slot eight is rejected");
+        counts.put(Hardware.KEYBOARD, 2); rejected = false;
+        try { new HardwareProfile(counts); } catch (IllegalArgumentException expected) { rejected = true; }
+        test.assertTrue(rejected, "Only one keyboard controller is allowed");
+        test.succeed();
+    }
+
+    @GameTest public void keyboardUnloadAndPowerOffClearTheCpuFifo(GameTestHelper test) throws Exception {
+        var owner = ServerMachines.get(test.getLevel().getServer()); var record = retainedController(test);
+        var counts = new EnumMap<Hardware, Integer>(record.hardware.counts());
+        counts.put(Hardware.GPU, 3); counts.put(Hardware.KEYBOARD, 1); record.hardware = new HardwareProfile(counts);
+        record.paused = true;
+        var keyboard = port(test, new BlockPos(2, 2, 2), "keyboard", record.id, 0);
+        UUID rom;
+        try { rom = owner.roms.upload(new byte[256 * 1024], "Keyboard check", "Paused FIFO check").id(); }
+        catch (RomLibrary.DuplicateRom duplicate) { rom = duplicate.existing.id(); }
+        var machine = new MainframeMachine(owner.records, record, owner.roms, new DiskClaims());
+        try {
+            test.assertTrue(machine.powerOn(record.hardware, rom, 1, "keyboard_check", null), "Keyboard CPU powers on");
+            owner.ports.register(keyboard); owner.ports.tick(List.of(machine));
+            var bridge = machine.bridge();
+            test.assertTrue(bridge.submitKeyboardInput(0, 'A'), "Connected keyboard accepts input");
+            machine.onWorker(cpu -> { cpu.beforeInstruction(); test.assertValueEqual(cpu.io().read8(0x8170), (int)'A', "Input reaches CPU"); return null; });
+            owner.ports.unload(keyboard);
+            machine.onWorker(cpu -> { test.assertValueEqual(cpu.io().read8(0x8171), 0, "Unload clears ready and ACK"); return null; });
+            owner.ports.register(keyboard); owner.ports.tick(List.of(machine));
+            test.assertTrue(bridge.submitKeyboardInput(0, 'B'), "Reconnect accepts new input");
+            machine.powerOff("Keyboard check complete"); owner.ports.tick(List.of(machine));
+            test.assertFalse(bridge.submitKeyboardInput(0, 'C'), "Power off disconnects the old FIFO");
+        } finally { machine.powerOff("Keyboard fixture cleanup"); owner.ports.unload(keyboard); }
+        test.succeed();
+    }
     @GameTest public void signTargetsFollowAllSixMountingFaces(GameTestHelper test) {
         var machines = ServerMachines.get(test.getLevel().getServer());
         var record = retainedController(test);
@@ -149,7 +202,7 @@ public final class PortGameTests {
     private static PortBlockEntity port(GameTestHelper test, BlockPos pos, String type, long id, int slot) {
         test.setBlock(pos, ModContent.BLOCKS.get(type).defaultBlockState().setValue(PortBlock.PORT_FACING, Direction.EAST));
         var port = (PortBlockEntity) test.getLevel().getBlockEntity(test.absolutePos(pos));
-        port.settings(new PortBindings.Settings(id, slot, "Port", false, RedstoneIrqMode.ANALOG, 3));
+        port.settings(new PortBindings.Settings(id, slot, "Port", type.equals("keyboard"), RedstoneIrqMode.ANALOG, 3));
         return port;
     }
     private static WorldRecords.Mainframe retainedController(GameTestHelper test) {

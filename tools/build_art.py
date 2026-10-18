@@ -12,7 +12,7 @@ BLOCKS = (
     "mainframe_controller", "atomic_clock", "interrupt_controller", "access_terminal",
     "gpu_array", "gpio_controller", "harddisk_array", "ender_tunnel_array",
     "integrated_storage", "power_supply", "reset_port", "nmi_port", "test_port",
-    "super_structure", "redstone_port", "sign_port", "rom_burner",
+    "super_structure", "redstone_port", "sign_port", "rom_burner", "keyboard_controller", "keyboard",
 )
 COLORS = {
     "cyan": (85, 218, 225), "mint": (121, 227, 179), "amber": (244, 181, 86),
@@ -20,7 +20,7 @@ COLORS = {
 }
 ACCENTS = dict(zip(BLOCKS, (
     "cyan", "cyan", "amber", "mint", "blue", "cyan", "amber", "violet",
-    "mint", "amber", "red", "amber", "blue", "cyan", "cyan", "mint", "amber",
+    "mint", "amber", "red", "amber", "blue", "cyan", "cyan", "mint", "amber", "mint", "cyan",
 )))
 MATERIALS = {
     "body": (31, 38, 47), "frame": (55, 65, 76), "trim": (105, 119, 130),
@@ -317,6 +317,20 @@ def machine(id, input_mode=True, mount="wall"):
         for slot in range(4):
             x = 6.4 + slot * 0.8
             e.append(cap_piece((x, 2.1, 15.8), (x + 0.8, 2.9, 15.95), mount, "black"))
+    elif id == "keyboard_controller":
+        e += [front(3, 5, 10, 7.4, "black", 0.4)]
+        for row in range(4):
+            for column in range(2):
+                socket(e, 3.6 + column * 4.8, 5.6 + row * 1.5, "copper", width=3.8, height=1.0)
+    elif id == "keyboard":
+        e += [front(2.8, 4.7, 10.7, 7.9, "black", 0.4)]
+        for row in range(4):
+            for column in range(9):
+                e += [front(3.1 + column * .82, 6.3 + row * 1.35, .65, 1.0, "ceramic", .12)]
+        for row in range(4):
+            for column in range(3):
+                e += [front(10.9 + column * .78, 6.3 + row * 1.35, .58, 1.0, "trim", .12)]
+        e += [front(4.2, 5.1, 5.6, .85, "ceramic", .12), front(11.7, 5.1, 1.5, .85, "trim", .12)]
     elif id == "rom_burner":
         socket(e, 3, 6.2, "trim", width=10, height=5.6)
         for x in (4.2, 5.7, 7.2, 8.7, 10.2, 11.7):
@@ -368,7 +382,7 @@ def block_models():
     Image.new("RGBA", (16, 16), (255, 255, 255, 255)).save(ASSETS / "textures/block/led.png")
     Image.new("RGBA", (16, 16), (0, 255, 255, 255)).save(ASSETS / "textures/block/signal_cyan.png")
     for id in BLOCKS:
-        facings = ["north", "east", "south", "west"] + (["up", "down"] if id in ("redstone_port", "sign_port") else [])
+        facings = ["north", "east", "south", "west"] + (["up", "down"] if id in ("redstone_port", "sign_port", "keyboard") else [])
         parts = []
         for input_mode in ([True, False] if id == "redstone_port" else [True]):
             suffix = ("_input" if input_mode else "_output") if id == "redstone_port" else ""

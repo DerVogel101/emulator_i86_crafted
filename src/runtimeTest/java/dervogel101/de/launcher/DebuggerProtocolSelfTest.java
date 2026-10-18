@@ -56,7 +56,7 @@ public final class DebuggerProtocolSelfTest {
         fails(() -> DebuggerProtocol.readFrame(new ByteArrayInputStream(new byte[]{0, 0, 0})));
         fails(() -> DebuggerProtocol.readFrame(new ByteArrayInputStream(new byte[]{0, 0, 0, 4, 1})));
         var trailing = Arrays.copyOf(wire, wire.length + 1); fails(() -> DebuggerProtocol.event(trailing));
-        var version = wire.clone(); version[0] = 2; fails(() -> DebuggerProtocol.event(version));
+        var version = wire.clone(); version[0] = 1; fails(() -> DebuggerProtocol.event(version));
         var kind = wire.clone(); kind[1] = 99; fails(() -> DebuggerProtocol.event(kind));
         var action = DebuggerProtocol.encode(request); action[2] = (byte) 255; fails(() -> DebuggerProtocol.request(action));
         for (int size : new int[]{0, 1, 2, 3, 11, 16, wire.length / 2, wire.length - 1}) {

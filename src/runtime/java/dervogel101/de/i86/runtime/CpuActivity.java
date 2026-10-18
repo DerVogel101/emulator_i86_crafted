@@ -28,6 +28,7 @@ public final class CpuActivity {
     public void readIo(int port) {
         if (!enabled) return;
         mark(Hardware.CONTROLLER, SECOND);
+        if (port >= 0x8170 && port <= 0x817f) mark(Hardware.KEYBOARD, FIRST);
         if (port < 0x100 && (port & 1) == 0) {
             inputs[port >>> 1] |= FIRST; inputDirty = true; mark(Hardware.GPIO, FIRST);
         } else if (port >= 0x100 && port <= 0x80ff && (port & 255) < 0x82) {
@@ -38,6 +39,7 @@ public final class CpuActivity {
     public void writeIo(int port) {
         if (!enabled) return;
         mark(Hardware.CONTROLLER, THIRD);
+        if (port >= 0x8170 && port <= 0x817f) mark(Hardware.KEYBOARD, SECOND);
         if (port < 0x100 && (port & 1) != 0) {
             outputs[port >>> 1] |= SECOND; outputDirty = true; mark(Hardware.GPIO, SECOND);
         } else if (port >= 0x100 && port <= 0x80ff && (port & 255) < 0x82) {

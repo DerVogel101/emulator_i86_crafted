@@ -12,6 +12,7 @@ import java.util.UUID;
 
 final class StorageSelfTest {
     static void run() throws Exception {
+        legacyKeyboardFormats();
         Path folder = Files.createTempDirectory("i86-rom-library");
         try {
             var library = new RomLibrary(folder);
@@ -123,6 +124,43 @@ final class StorageSelfTest {
         System.out.println("Storage checks passed: ROM uploader persistence/validation, deduplication/immutability, UUIDv7, retained state and shared membership");
     }
 
+    private static void legacyKeyboardFormats() throws IOException {
+        for (int version : new int[]{1, 2}) {
+            var bytes = new java.io.ByteArrayOutputStream();
+            try (var out = new java.io.DataOutputStream(bytes)) {
+                out.writeInt(0x49383657); out.writeInt(version); out.writeLong(2); out.writeLong(123);
+                out.writeInt(1); out.writeLong(1);
+                for (String text : new String[]{"Legacy", "Powered off", "", ""}) out.writeUTF(text);
+                for (int i = 0; i < 4; i++) out.writeBoolean(false);
+                out.writeShort(0); out.writeShort(0); out.writeByte(0); out.writeLong(0);
+                out.writeBoolean(false); out.writeBoolean(false);
+                for (var hardware : Hardware.values()) if (hardware != Hardware.KEYBOARD)
+                    out.writeByte(HardwareProfile.complete().count(hardware));
+                out.writeInt(CPUMemory.NVRAM_SIZE); out.write(new byte[CPUMemory.NVRAM_SIZE]);
+                out.writeInt(0); out.writeInt(0); out.writeInt(0); out.writeInt(0); out.writeInt(0);
+                if (version == 2) {
+                    out.writeInt(0); out.writeInt(1); out.writeLong(1);
+                    out.write(new byte[128 + 128 * 128]);
+                }
+            }
+            var world = WorldRecords.load(bytes.toByteArray());
+            var record = world.mainframe(1).orElseThrow();
+            assert record.name.equals("Legacy") && world.gameTicks == 123;
+            assert record.hardware.keyboardCapacity() == 0 && record.hardware.signCapacity() == 128;
+            assert WorldRecords.load(world.save()).mainframe(1).orElseThrow().hardware.keyboardCapacity() == 0;
+        }
+        var world = new WorldRecords(); var record = world.allocate();
+        var counts = new java.util.EnumMap<Hardware, Integer>(HardwareProfile.complete().counts());
+        counts.put(Hardware.GPU, 3); counts.put(Hardware.KEYBOARD, 1); record.hardware = new HardwareProfile(counts);
+        var location = new WorldRecords.Location("minecraft:overworld", 1, 64, 2);
+        var kind = dervogel101.de.emulator_i86_crafted.server.storage.PortBindings.Kind.KEYBOARD;
+        world.ports.put(location, kind, new dervogel101.de.emulator_i86_crafted.server.storage.PortBindings.Settings(
+                record.id, 7, "Keyboard", true, RedstoneIrqMode.DISABLED, 0));
+        var restored = WorldRecords.load(world.save());
+        assert restored.mainframe(record.id).orElseThrow().hardware.keyboardCapacity() == 8;
+        assert restored.ports.at(location).orElseThrow().kind() == kind;
+        assert restored.ports.at(location).orElseThrow().settings().slot() == 7;
+    }
     private interface IoAction { void run() throws IOException; }
     private static void expectIo(IoAction action) {
         try { action.run(); throw new AssertionError("Expected invalid data to fail"); }

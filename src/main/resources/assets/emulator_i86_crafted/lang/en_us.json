@@ -22,5 +22,7 @@
   "item.emulator_i86_crafted.speed_shard_3": "Speed Shard III",
   "itemGroup.emulator_i86_crafted.mainframes": "i86 Mainframes",
   "tooltip.emulator_i86_crafted.steps_per_tick": "Steps per tick: %s",
-  "tooltip.emulator_i86_crafted.batches_per_tick": "Batches per tick: %s"
+  "tooltip.emulator_i86_crafted.batches_per_tick": "Batches per tick: %s",
+  "block.emulator_i86_crafted.keyboard": "Keyboard",
+  "block.emulator_i86_crafted.keyboard_controller": "Keyboard Controller"
 }

@@ -33,6 +33,7 @@ do not yet describe those capabilities fully.
 | Mainframe Controller | 1 | No | One CPU, identity, ROM/crystal slots, debugger access |
 | Atomic Clock | 1 | Yes | Timers and mapped host clock |
 | Interrupt Controller | 1 | Yes | Device IRQ queue and device-management GUI |
+| Keyboard Controller | 1 | Yes | Eight external keyboards, each with an eight-byte input FIFO |
 | Access Terminal | 1 | Yes | CPU output/log and exceptions |
 | GPU Array | 4 | Yes | 32 sign ports per array |
 | GPIO Controller | 4 | No | 32 redstone ports per controller; minimum one controller |
@@ -334,3 +335,7 @@ do not yet describe those capabilities fully.
   is explicitly selected while off; do not silently recreate the deleted region
   from its stale binding. The explicit selection may create a fresh zeroed region.
 - Without an Ender Tunnel Array, shared-memory reads are zero and writes are ignored.
+
+## Keyboards
+
+See [Keyboard](keyboard.md) for capture, layouts, reserved bytes, FIFO/ACK timing, IRQs and the C library. One optional controller enables eight devices; it uses an existing wall position.

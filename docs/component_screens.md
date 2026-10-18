@@ -42,3 +42,7 @@ Speed shard tooltips show configured **Steps per tick** and **Batches per tick**
 for their tier. The active server sends all three tier settings when a player
 connects; disconnecting clears those values so another server cannot inherit stale
 tooltips. Outside a connection the standard tier defaults are shown.
+
+## Keyboard input and settings
+
+Normal right-click on a powered, online Keyboard captures input with a right-edge icon. Escape releases capture. Shift+right-click opens the existing port settings for mainframe ID, slot 0-7 and name; rebinding requires power off. The Keyboard Controller is optional, limited to one, and enables eight independent FIFOs. See [Keyboard](keyboard.md).

@@ -17,6 +17,7 @@ public class Emulator_i86_crafted implements ModInitializer {
         dervogel101.de.emulator_i86_crafted.network.PanelPackets.initialize();
         dervogel101.de.emulator_i86_crafted.network.ShardPackets.initialize();
         dervogel101.de.emulator_i86_crafted.network.IndicatorPackets.initialize();
+        dervogel101.de.emulator_i86_crafted.network.KeyboardPackets.initialize();
         ModMenus.initialize();
         ServerMachines.initialize();
         MachineCommands.initialize();

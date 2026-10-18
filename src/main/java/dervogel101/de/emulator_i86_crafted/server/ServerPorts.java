@@ -45,6 +45,7 @@ public final class ServerPorts {
             port.applySettings(next);
     }
     public void unload(PortBlockEntity port) {
+        owner.keyboards.connect(port, null);
         loaded.remove(port); port.online = false; port.sampledBridge = null;
         port.signTarget = null; port.signVersion = Long.MIN_VALUE;
         signs.values().forEach(ports -> ports.remove(port));
@@ -54,6 +55,8 @@ public final class ServerPorts {
         for (var port : List.copyOf(loaded)) if (port.getLevel() == level && port.getBlockPos().equals(pos)) unload(port);
     }
     public void configure(PortBlockEntity port, PortBindings.Settings next, UUID player) {
+        if (port.kind() == PortBindings.Kind.KEYBOARD && (next.slot() >= 8 || !next.input()))
+            throw new IllegalArgumentException("Keyboard slot must be 0–7 and input only");
         var old = port.settings();
         boolean attachment = old.mainframe() != next.mainframe() || old.slot() != next.slot()
                 || port.kind() == PortBindings.Kind.REDSTONE && old.input() != next.input();
@@ -88,7 +91,10 @@ public final class ServerPorts {
         if (record.conflicted()) return "Offline: duplicate controller ID at " + record.controllers;
         if (record.controllers.stream().noneMatch(p -> p.dimension().equals(location.dimension()))) return "Offline: controller is in another dimension";
         var hardware = owner.portHardware(record.id);
-        int capacity = binding.kind() == PortBindings.Kind.REDSTONE ? hardware.redstoneCapacity() : hardware.signCapacity();
+        int capacity = switch (binding.kind()) {
+            case REDSTONE -> hardware.redstoneCapacity(); case SIGN -> hardware.signCapacity();
+            case KEYBOARD -> hardware.keyboardCapacity();
+        };
         if (settings.slot() >= capacity) return "Offline: slot " + settings.slot() + " needs more installed modules (capacity " + capacity + ")";
         return "Online";
     }
@@ -97,10 +103,11 @@ public final class ServerPorts {
         for (var machine : machines) { machine.outputs(); active.put(machine.record.id, machine); }
         signs.clear();
         for (var port : List.copyOf(loaded)) {
-            if (port.isRemoved()) { loaded.remove(port); continue; }
+            if (port.isRemoved()) { owner.keyboards.connect(port, null); loaded.remove(port); continue; }
             ServerLevel level = (ServerLevel) port.getLevel();
             // World reads would renew UNKNOWN tickets and prevent this chunk from unloading.
             if (!level.shouldTickBlocksAt(net.minecraft.world.level.ChunkPos.pack(port.getBlockPos()))) {
+                owner.keyboards.connect(port, null);
                 port.online = false; port.sampledBridge = null; port.signTarget = null;
                 continue;
             }
@@ -113,6 +120,7 @@ public final class ServerPorts {
             if (!online || !port.online) { port.sampledBridge = null; port.signTarget = null; port.signVersion = Long.MIN_VALUE; }
             port.status = status; port.online = online;
             if (!online) {
+                owner.keyboards.connect(port, null);
                 port.signal(0); visual(port, false); port.indicatorSignal = null;
                 owner.indicators.set(level, port.getBlockPos(), status.equals("Unbound") ? 0 : 3, 0); continue;
             }
@@ -121,10 +129,12 @@ public final class ServerPorts {
             BlockPos target = port.getBlockPos().relative(port.getBlockState().getValue(PortBlock.PORT_FACING));
             boolean targetLoaded = level.hasChunkAt(target);
             var snapshot = machine == null ? dervogel101.de.i86.runtime.CpuActivity.Snapshot.EMPTY : machine.activity();
-            int lamps = record.powered ? port.kind() == PortBindings.Kind.REDSTONE
+            int lamps = record.powered && port.kind() != PortBindings.Kind.KEYBOARD ? port.kind() == PortBindings.Kind.REDSTONE
                     ? (s.input() ? snapshot.inputs()[s.slot()] & 1 : snapshot.outputs()[s.slot()] & 2)
                     : snapshot.signs()[s.slot()] & 3 : 0;
-            if (port.kind() == PortBindings.Kind.REDSTONE) {
+            if (port.kind() == PortBindings.Kind.KEYBOARD) {
+                owner.keyboards.connect(port, record.powered ? bridge : null);
+            } else if (port.kind() == PortBindings.Kind.REDSTONE) {
                 port.signal(s.input() ? 0 : record.redstoneOutputs[s.slot()] & 15);
                 int strength = s.input() && targetLoaded ? level.getSignal(target, port.getBlockState().getValue(PortBlock.PORT_FACING)) : 0;
                 int currentSignal = s.input() ? strength : port.signal();
@@ -168,7 +178,7 @@ public final class ServerPorts {
             if (record == null) continue;
             var machine = active.get(record.id);
             var snapshot = machine == null ? dervogel101.de.i86.runtime.CpuActivity.Snapshot.EMPTY : machine.activity();
-            int activity = !record.powered ? 0 : port.kind() == PortBindings.Kind.SIGN ? snapshot.signs()[settings.slot()] & 3
+            int activity = !record.powered || port.kind() == PortBindings.Kind.KEYBOARD ? 0 : port.kind() == PortBindings.Kind.SIGN ? snapshot.signs()[settings.slot()] & 3
                     : settings.input() ? snapshot.inputs()[settings.slot()] & 1 : snapshot.outputs()[settings.slot()] & 2;
             owner.indicators.set(level, port.getBlockPos(), ServerMachines.indicatorStatus(record, snapshot), activity);
         }

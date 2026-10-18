@@ -8,7 +8,7 @@ import static dervogel101.de.launcher.DebuggerBackend.*;
 /** Bounded binary messages shared by Minecraft's connection and the JDK-only Swing helper. */
 public final class DebuggerProtocol {
     public static final int MAX_FRAME = 128 * 1024;
-    private static final int VERSION = 1, STATE = 1, FAILURE = 2, CLOSED = 3, REQUEST = 4;
+    private static final int VERSION = 2, STATE = 1, FAILURE = 2, CLOSED = 3, REQUEST = 4;
     public enum Action {
         RUN, RUN_TO, STEP_OVER, PAUSE, STEP, SKIP, SET_PC, RESET, POWER_CYCLE, NMI,
         MEMORY_BASE, IO_BASE, CODE_ADDRESS, FOLLOW_PC, SELECT_CHANNEL, SELECT_SIGN, SELECT_TIMER,

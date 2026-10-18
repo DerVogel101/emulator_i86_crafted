@@ -109,3 +109,7 @@ overhead was 2.84% for I/O, 0.71% for NVRAM, and 0.19% for shared-memory loops.
 Individual paired runs ranged roughly from -4% to +6%, so small differences are
 within noise. This measures incremental CPU telemetry, not whole-game FPS/TPS,
 server scalability, or shader compatibility. Sodium/Iris were not tested.
+
+## Keyboards
+
+Keyboard blocks use the normal port connection/status indicator and pulse the first activity segment for accepted input. Keyboard Controller activity records character publication and I/O reads on the first segment and ACK writes on the second. All six keyboard facings use the existing rotated indicator geometry.

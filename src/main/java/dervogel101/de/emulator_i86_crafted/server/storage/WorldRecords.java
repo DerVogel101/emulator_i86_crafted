@@ -87,7 +87,7 @@ public final class WorldRecords {
     public byte[] save() throws IOException {
         var bytes = new ByteArrayOutputStream();
         try (var out = new DataOutputStream(bytes)) {
-            out.writeInt(0x49383657); out.writeInt(2); out.writeLong(nextId); out.writeLong(gameTicks); out.writeInt(mainframes.size());
+            out.writeInt(0x49383657); out.writeInt(3); out.writeLong(nextId); out.writeLong(gameTicks); out.writeInt(mainframes.size());
             for (Mainframe record : mainframes.values()) {
                 out.writeLong(record.id); out.writeUTF(record.name); out.writeUTF(record.status); out.writeUTF(record.sharedId); out.writeUTF(record.structureKey);
                 out.writeBoolean(record.powered); out.writeBoolean(record.paused); out.writeBoolean(record.faulted); out.writeBoolean(record.sharedReselection);
@@ -120,7 +120,7 @@ public final class WorldRecords {
         try (var in = new DataInputStream(new ByteArrayInputStream(bytes))) {
             if (in.readInt() != 0x49383657) throw new IOException("Unsupported mainframe world format");
             int version = in.readInt();
-            if (version < 1 || version > 2) throw new IOException("Unsupported mainframe world format");
+            if (version < 1 || version > 3) throw new IOException("Unsupported mainframe world format");
             world.nextId = in.readLong();
             world.gameTicks = in.readLong();
             if (world.nextId < 1 || world.gameTicks < 0) throw new IOException("Invalid next mainframe ID or world tick");
@@ -136,7 +136,8 @@ public final class WorldRecords {
                 record.shardTier = in.readUnsignedByte(); record.instructions = in.readLong();
                 record.romId = readUuid(in); record.diskId = readUuid(in);
                 var hardware = new EnumMap<Hardware, Integer>(Hardware.class);
-                for (Hardware part : Hardware.values()) hardware.put(part, in.readUnsignedByte());
+                for (Hardware part : Hardware.values())
+                    if (version >= 3 || part != Hardware.KEYBOARD) hardware.put(part, in.readUnsignedByte());
                 record.hardware = new HardwareProfile(hardware);
                 record.nvram = readBytes(in, CPUMemory.NVRAM_SIZE, CPUMemory.NVRAM_SIZE);
                 record.execution = readBytes(in, 0, 2 * 1024 * 1024); record.recovery = readBytes(in, 0, 1024 * 1024);

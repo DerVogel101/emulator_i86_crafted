@@ -25,23 +25,25 @@ public final class PortDialogs {
         OPEN.put(player.getUUID(), new Session(port, nonce));
         var inputs = new ArrayList<ControlPanel.Field>();
         inputs.add(text("mainframe", "Mainframe ID (0 = unbound)", Long.toString(s.mainframe()), 20));
-        inputs.add(text("slot", "Slot ID (0–127)", Integer.toString(s.slot()), 3));
+        inputs.add(text("slot", port.kind() == PortBindings.Kind.KEYBOARD ? "Slot ID (0–7)" : "Slot ID (0–127)", Integer.toString(s.slot()), 3));
         inputs.add(text("name", "Friendly name", s.name(), 128));
         if (port.kind() == PortBindings.Kind.REDSTONE) {
             inputs.add(option("direction", "Direction", s.input() ? "input" : "output", List.of("input", "output")));
             inputs.add(option("irq", "Input interrupt", s.irq().name(), Arrays.stream(RedstoneIrqMode.values()).map(Enum::name).toList()));
-        } else inputs.add(option("sides", "Sign click interrupts: 0=off, 1=front, 2=back, 3=both", Integer.toString(s.signSides()), List.of("0", "1", "2", "3")));
+        } else if (port.kind() == PortBindings.Kind.SIGN) inputs.add(option("sides", "Sign click interrupts: 0=off, 1=front, 2=back, 3=both", Integer.toString(s.signSides()), List.of("0", "1", "2", "3")));
         StringBuilder info = new StringBuilder(machines.ports.status(port));
-        info.append("\nAttaching or changing a slot/direction requires power off. Names and IRQ settings may be changed while powered.");
+        info.append(port.kind() == PortBindings.Kind.KEYBOARD
+                ? "\nAttaching or changing a slot requires power off. Names may be changed while powered. Keyboard input interrupts are automatic."
+                : "\nAttaching or changing a slot/direction requires power off. Names and IRQ settings may be changed while powered.");
         for (var record : machines.records.mainframes().stream().filter(record -> record.controllers.stream()
                 .anyMatch(p -> p.dimension().equals(player.level().dimension().identifier().toString()))).limit(12).toList())
             info.append("\n").append(record.displayName()).append(record.powered ? " — on" : " — off");
         boolean control = s.mainframe() == 0 || machines.leases.canControl(s.mainframe(), player.getUUID());
         if (!control) info.append("\nRead only: another player controls the debugger.");
         var buttons = control ? List.of(button("Apply", nonce, "apply"), button("Unbind", nonce, "unbind")) : List.<ControlPanel.Action>of();
-        String icon = port.kind() == PortBindings.Kind.SIGN ? "sign_port" : "redstone_port";
+        String icon = switch (port.kind()) { case SIGN -> "sign_port"; case REDSTONE -> "redstone_port"; case KEYBOARD -> "keyboard"; };
         PanelPackets.open(player, new ControlPanel(ControlPanel.Kind.PORT, nonce, icon,
-                port.kind() == PortBindings.Kind.SIGN ? "Sign Port" : "Redstone Port", info.toString(), inputs, buttons));
+                port.kind() == PortBindings.Kind.KEYBOARD ? "Keyboard" : port.kind() == PortBindings.Kind.SIGN ? "Sign Port" : "Redstone Port", info.toString(), inputs, buttons));
     }
     public static void submit(ServerPlayer player, Tag payload) {
         if (!(payload instanceof CompoundTag tag)) return;

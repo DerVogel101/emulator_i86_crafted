@@ -93,7 +93,7 @@ for (const file of await readdir(resolve(assets, 'blockstates'))) {
   const id = file.replace(/\.json$/, '');
   const { multipart } = await readJson(resolve(assets, 'blockstates', file));
   assert.ok(multipart?.length, id + ': multipart model required');
-  const facings = ['north', 'east', 'south', 'west', ...(['redstone_port', 'sign_port'].includes(id) ? ['up', 'down'] : [])];
+  const facings = ['north', 'east', 'south', 'west', ...(['redstone_port', 'sign_port', 'keyboard'].includes(id) ? ['up', 'down'] : [])];
   for (const part of multipart) {
     await localReference(part.apply.model, 'models', '.json');
     assert.ok(Object.keys(part.when).every(key => ['facing', 'powered', 'active', 'input'].includes(key)));
