@@ -25,7 +25,7 @@ public final class RemoteDebuggerSelfTest {
             SwingUtilities.invokeAndWait(() -> {
                 Runnable localFile = () -> { throw new AssertionError("Remote file control invoked"); };
                 panel.set(new DeviceViewPanel(() -> debugger, localFile, localFile, localFile, localFile, localFile));
-                panel.get().update(first.devices(), first.images(), true);
+                panel.get().update(first.devices(), first.images(), true, first.machine());
                 for (JButton button : buttons(panel.get())) {
                     if (Set.of("Set input", "Front click", "Back click", "Open", "New", "Save", "Save As", "Disconnect").contains(button.getText())) {
                         assert !button.isVisible() && !button.isEnabled(); button.doClick();
@@ -41,7 +41,7 @@ public final class RemoteDebuggerSelfTest {
             int size = commands.size();
             writeFrame(server, encode(new State(22, false, paused))); take(views);
             SwingUtilities.invokeAndWait(() -> {
-                panel.get().update(first.devices(), first.images(), true);
+                panel.get().update(first.devices(), first.images(), true, first.machine());
                 assert buttons(panel.get()).stream().filter(button -> button.getText().equals("Apply")).noneMatch(JButton::isEnabled);
                 assert buttons(panel.get()).stream().filter(button -> button.getText().startsWith("Reload")).allMatch(JButton::isEnabled);
             });
@@ -56,6 +56,10 @@ public final class RemoteDebuggerSelfTest {
             size = commands.size(); debugger.writeMemory(0, 9);
             assert commands.size() == size && take(errors).contains("Pause the CPU");
             debugger.pause(); assert requests(commands).getLast().action() == Action.PAUSE;
+            debugger.selectKeyboard(7);
+            assert requests(commands).getLast().equals(new Request(Action.SELECT_KEYBOARD, 7, 0, 0));
+            debugger.keyboardInput(7, 0x92);
+            assert requests(commands).getLast().equals(new Request(Action.KEYBOARD_INPUT, 7, 0x92, 0)) : "Typing works while the ROM runs";
             writeFrame(server, encode(new State(22, true, paused, false))); take(views);
             assert debugger.canControl() && !debugger.canEdit();
             size = commands.size(); debugger.writeMemory(0, 9);

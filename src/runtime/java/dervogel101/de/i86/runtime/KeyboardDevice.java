@@ -5,6 +5,17 @@ import java.util.function.IntConsumer;
 
 /** Bounded host admission and CPU publication share one lock, including the visible head. */
 public final class KeyboardDevice {
+    public record Snapshot(boolean connected, byte[] queue, boolean ready, boolean ackPending) {
+        public static final Snapshot EMPTY = new Snapshot(false, new byte[0], false, false);
+        public Snapshot {
+            queue = queue.clone();
+            if (queue.length > CAPACITY || ready && queue.length == 0 || ackPending && !ready
+                    || !connected && (queue.length != 0 || ready || ackPending))
+                throw new IllegalArgumentException("Invalid keyboard snapshot");
+            for (byte value : queue) if (value == 0) throw new IllegalArgumentException("Invalid keyboard byte");
+        }
+        @Override public byte[] queue() { return queue.clone(); }
+    }
     public static final int BASE = 0x8170, SLOTS = 8, CAPACITY = 8;
     public static final int ACK_PENDING = 1, READY = 2;
     private final Slot[] slots = new Slot[SLOTS];
@@ -26,6 +37,13 @@ public final class KeyboardDevice {
         if (!enabled || !slot.connected || slot.queue.size() == CAPACITY) return false;
         slot.queue.addLast(value);
         return true;
+    }
+    public synchronized Snapshot snapshot(int index) {
+        var slot = slot(index);
+        byte[] queue = new byte[slot.queue.size()];
+        int i = 0;
+        for (int value : slot.queue) queue[i++] = (byte) value;
+        return new Snapshot(slot.connected, queue, slot.visible, slot.pending);
     }
     public synchronized int read(int offset) {
         var slot = slot(offset >>> 1);

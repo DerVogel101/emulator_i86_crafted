@@ -8,12 +8,12 @@ import static dervogel101.de.launcher.DebuggerBackend.*;
 /** Bounded binary messages shared by Minecraft's connection and the JDK-only Swing helper. */
 public final class DebuggerProtocol {
     public static final int MAX_FRAME = 128 * 1024;
-    private static final int VERSION = 2, STATE = 1, FAILURE = 2, CLOSED = 3, REQUEST = 4;
+    private static final int VERSION = 3, STATE = 1, FAILURE = 2, CLOSED = 3, REQUEST = 4;
     public enum Action {
         RUN, RUN_TO, STEP_OVER, PAUSE, STEP, SKIP, SET_PC, RESET, POWER_CYCLE, NMI,
         MEMORY_BASE, IO_BASE, CODE_ADDRESS, FOLLOW_PC, SELECT_CHANNEL, SELECT_SIGN, SELECT_TIMER,
         SEND_IRQ, TIMER_AUTOMATIC, WRITE_TIMER, RESET_TIMER, WRITE_SIGN_LINE, WRITE_MEMORY, WRITE_IO,
-        REDSTONE_IRQ, SIGN_IRQ, CLOSE
+        REDSTONE_IRQ, SIGN_IRQ, CLOSE, SELECT_KEYBOARD, KEYBOARD_INPUT
     }
     public record Request(Action action, int a, int b, int c, String text) {
         public Request { Objects.requireNonNull(action); Objects.requireNonNull(text); }
@@ -87,6 +87,10 @@ public final class DebuggerProtocol {
         for (var part : Hardware.values()) { bounded(m.hardware().count(part), 0, part.maximum); out.writeByte(m.hardware().count(part)); }
         bounded(m.shardTier(), 0, 3); out.writeByte(m.shardTier()); text(out, m.memoryId(), 32);
         out.writeInt(m.speed().stepsPerTick()); out.writeInt(m.speed().batchesPerTick());
+        var keyboard = s.devices().keyboard();
+        bounded(s.devices().keyboardIndex(), 0, 7); out.writeByte(s.devices().keyboardIndex());
+        out.writeBoolean(keyboard.connected()); out.writeBoolean(keyboard.ready()); out.writeBoolean(keyboard.ackPending());
+        byte[] queue = keyboard.queue(); bounded(queue.length, 0, 8); out.writeByte(queue.length); out.write(queue);
         // Running, powered-off and unloaded updates carry only the available header state.
         if (state.detailed() && s.running()) throw new IOException("Running debugger state cannot contain detailed views");
         if (!state.detailed()) return;
@@ -121,7 +125,11 @@ public final class DebuggerProtocol {
         var machine = new MachineState(powered, psu, new HardwareProfile(parts), tier, text(in, 32), new ShardSpeed(in.readInt(), in.readInt()));
         var images = new ImageState(null, false, null, false, disk);
         String registers = ""; int memoryBase = 0, ioBase = 0; byte[] memory = new byte[256], io = new byte[256];
-        var code = new ArrayList<Disassembler8086.Instruction>(); var devices = emptyDevices();
+        int keyboardIndex = in.readUnsignedByte(); bounded(keyboardIndex, 0, 7);
+        boolean connected = in.readBoolean(), ready = in.readBoolean(), pending = in.readBoolean();
+        int queued = in.readUnsignedByte(); bounded(queued, 0, 8);
+        var keyboard = new KeyboardDevice.Snapshot(connected, fixed(in, queued), ready, pending);
+        var code = new ArrayList<Disassembler8086.Instruction>(); var devices = emptyDevices().withKeyboard(keyboardIndex, keyboard);
         if (detailed && running) throw new IOException("Running debugger state contains detailed views");
         if (detailed) {
             registers = text(in, 4096); memoryBase = in.readInt(); bounded(memoryBase, 0, 0xFFFFF); memory = fixed(in, 256);
@@ -134,19 +142,19 @@ public final class DebuggerProtocol {
             int channel = in.readUnsignedByte(), sign = in.readUnsignedByte(), timer = in.readUnsignedByte();
             bounded(channel, 0, 127); bounded(sign, 0, 127); bounded(timer, 0, 5);
             devices = new DeviceSnapshot(channel, sign, timer, fixed(in, 2), fixed(in, 130), fixed(in, 5), fixed(in, 3), fixed(in, 5),
-                    in.readBoolean(), value(RedstoneIrqMode.values(), in.readUnsignedByte()), in.readUnsignedByte());
+                    in.readBoolean(), value(RedstoneIrqMode.values(), in.readUnsignedByte()), in.readUnsignedByte(), keyboardIndex, keyboard);
             bounded(devices.signIrqSides(), 0, 3);
         }
         return new State(id, control, new Snapshot(name, status, registers, rate, count, memoryBase, memory, ioBase, io,
                 List.copyOf(code), running, faulted, devices, log, images, test, machine), detailed);
     }
     public static DeviceSnapshot emptyDevices() {
-        return new DeviceSnapshot(0, 0, 0, new byte[2], new byte[130], new byte[5], new byte[3], new byte[5], true, RedstoneIrqMode.DISABLED, 0);
+        return new DeviceSnapshot(0, 0, 0, new byte[2], new byte[130], new byte[5], new byte[3], new byte[5], true, RedstoneIrqMode.DISABLED, 0, 0, KeyboardDevice.Snapshot.EMPTY);
     }
     public static Snapshot retainPausedViews(Snapshot previous, Snapshot update) {
         if (previous == null) return update;
         return new Snapshot(update.romName(), update.status(), previous.registers(), update.instructionsPerSecond(), update.totalInstructions(),
-                previous.memoryBase(), previous.memory(), previous.ioBase(), previous.io(), previous.code(), update.running(), update.faulted(), previous.devices(),
+                previous.memoryBase(), previous.memory(), previous.ioBase(), previous.io(), previous.code(), update.running(), update.faulted(), previous.devices().withKeyboard(update.devices().keyboardIndex(), update.devices().keyboard()),
                 update.terminalLog(), update.images(), update.testHigh(), update.machine());
     }
 

@@ -23,6 +23,22 @@ These codes repurpose Windows-1258 characters that standard DE/US typing cannot 
 
 ## I/O
 
+The standalone launcher and remote Swing debugger have an **I/O → Devices → Keyboard** tab.
+Select slot 0–7 to inspect the FIFO bytes, current head, READY, ACK-pending, ports and IRQ ID.
+Click **Capture keys** to type; Escape or leaving that input area releases capture. Select DE or US
+to match the active keyboard layout. Text composition and paste are ignored; arrows and numpad
+keys use the same special codes as Minecraft input. Full queues beep and reject new input.
+
+The launcher supplies eight virtual keyboards when its Keyboard Controller is installed and powered.
+Power off to install the controller using **Hardware**; the legacy default profile does not include it.
+The remote debugger uses loaded, connected keyboard blocks already bound to the selected mainframe.
+Only the controlling player may send keys, while running or paused; observers can inspect slots.
+Live FIFO snapshots continue while running without exposing the paused CPU's register/memory views.
+**Request data ACK** uses the keyboard control port and remains separate from global IRQ ACK.
+Remote manual ACK requires a paused CPU. Closing capture or the debugger does not discard input;
+power-off or detaching the device clears it. Local virtual connections are rebuilt on session restore,
+with their transient queues empty.
+
 Slot `n` uses base port `0x8170 + 2*n`.
 
 | Port | Read | Write |

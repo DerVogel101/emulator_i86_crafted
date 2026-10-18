@@ -121,6 +121,7 @@ public final class ServerDebugger {
             case SELECT_CHANNEL -> view.channel = range(a, 127);
             case SELECT_SIGN -> view.sign = range(a, 127);
             case SELECT_TIMER -> view.timer = range(a, 5);
+            case SELECT_KEYBOARD -> view.keyboard = range(a, 7);
             default -> { return false; }
         }
         return true;
@@ -157,6 +158,15 @@ public final class ServerDebugger {
             case SEND_IRQ -> {
                 paused(record); range(a, 0xFFFF);
                 loaded(machine).onWorker(cpu -> { cpu.hostBridge().submitIrq(a); cpu.beforeInstruction(); return null; });
+            }
+            case KEYBOARD_INPUT -> {
+                range(a, 7);
+                if (!dervogel101.de.i86.runtime.KeyboardInput.allowedByte(b)) throw new IllegalArgumentException("Invalid keyboard byte");
+                if (!record.powered) throw new IllegalStateException("Power on the mainframe before typing");
+                var bridge = loaded(machine).bridge();
+                if (bridge == null || !record.hardware.has(Hardware.KEYBOARD) || !bridge.keyboardSnapshot(a).connected())
+                    throw new IllegalStateException("Keyboard is offline or unbound");
+                if (!bridge.submitKeyboardInput(a, b)) throw new IllegalStateException("Keyboard FIFO is full");
             }
             case TIMER_AUTOMATIC -> {
                 paused(record); range(a, 5); range(b, 1);
@@ -232,7 +242,9 @@ public final class ServerDebugger {
             var state = new MachineState(record.powered, record.powered, hardware, record.shardTier, record.sharedId, owner.shardSpeed(record.shardTier));
             boolean running = record.powered && !record.paused && !record.faulted;
             var snapshot = new Snapshot(limit(name, 512), limit(status, 2048), "", session.rate, count, 0, new byte[256], 0, new byte[256], List.of(),
-                    running, record.faulted, DebuggerProtocol.emptyDevices(), limit(log, 16384), images, false, state);
+                    running, record.faulted, DebuggerProtocol.emptyDevices().withKeyboard(session.view.keyboard,
+                            machine == null || machine.bridge() == null ? dervogel101.de.i86.runtime.KeyboardDevice.Snapshot.EMPTY
+                                    : machine.bridge().keyboardSnapshot(session.view.keyboard)), limit(log, 16384), images, false, state);
             boolean detailed = machine != null && machine.bridge() != null && record.powered && record.paused;
             if (detailed) {
                 var header = snapshot;

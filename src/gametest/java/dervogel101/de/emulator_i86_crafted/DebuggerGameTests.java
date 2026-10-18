@@ -15,6 +15,48 @@ import java.io.IOException;
 import java.util.*;
 
 public final class DebuggerGameTests {
+    @GameTest public void keyboardDebuggerInputUsesLiveFifosAndEnforcesOwnership(GameTestHelper test) throws Exception {
+        var responses = new HashMap<UUID, List<CustomPacketPayload>>();
+        try (var wall = new MachineGameTests.Wall(test, 61440)) {
+            var observer = test.makeMockServerPlayerInLevel(); observer.setPos(wall.player.position());
+            var service = new ServerDebugger(wall.machines, (player, packet) -> responses.computeIfAbsent(player.getUUID(), ignored -> new ArrayList<>()).add(packet));
+            try {
+                byte[] image = new byte[256 * 1024];
+                image[image.length - 16] = 15; image[image.length - 15] = 1;
+                image[image.length - 14] = (byte)0xeb; image[image.length - 13] = (byte)0xfc;
+                UUID rom;
+                try { rom = wall.machines.roms.upload(image, "Keyboard debugger", "Yield without ACK").id(); }
+                catch (RomLibrary.DuplicateRom duplicate) { rom = duplicate.existing.id(); }
+                var counts = new EnumMap<Hardware, Integer>(HardwareProfile.complete().counts()); counts.put(Hardware.KEYBOARD, 1);
+                var machine = wall.machines.machine(wall.record().id);
+                test.assertTrue(machine.powerOn(new HardwareProfile(counts), rom, 1, "keyboard_debugger", wall.machines.records.createDisk()), "Start keyboard CPU");
+                machine.pause(true); machine.bridge().submitKeyboardConnection(7, true);
+                var ownerToken = service.open(wall.player, wall.controller);
+                var observerToken = service.open(observer, wall.controller);
+                send(service, wall.player, ownerToken, DebuggerProtocol.Action.SELECT_KEYBOARD, 7, 0, 0);
+                send(service, observer, observerToken, DebuggerProtocol.Action.KEYBOARD_INPUT, 7, 'X', 0);
+                test.assertTrue(failure(responses, observer).message().contains("Read only"), "Observers cannot type");
+                send(service, wall.player, ownerToken, DebuggerProtocol.Action.KEYBOARD_INPUT, 8, 'X', 0);
+                send(service, wall.player, ownerToken, DebuggerProtocol.Action.KEYBOARD_INPUT, 7, 27, 0);
+                send(service, wall.player, ownerToken, DebuggerProtocol.Action.KEYBOARD_INPUT, 0, 'X', 0);
+                test.assertValueEqual(machine.bridge().keyboardSnapshot(7).queue().length, 0, "Invalid and unbound inputs do not enter FIFO");
+                for (int i = 0; i < 8; i++) send(service, wall.player, ownerToken, DebuggerProtocol.Action.KEYBOARD_INPUT, 7, 'A' + i, 0);
+                send(service, wall.player, ownerToken, DebuggerProtocol.Action.KEYBOARD_INPUT, 7, 'Z', 0);
+                test.assertTrue(failure(responses, wall.player).message().contains("full"), "Full FIFO rejects the ninth byte");
+                machine.onWorker(cpu -> { cpu.beforeInstruction(); cpu.io().write8(0x817f, 1); cpu.beforeInstruction(); cpu.beforeTick(); return null; });
+                send(service, wall.player, ownerToken, DebuggerProtocol.Action.RUN, 0, 0, 0);
+                send(service, wall.player, ownerToken, DebuggerProtocol.Action.KEYBOARD_INPUT, 7, 0x92, 0);
+                service.tick(1);
+                var live = state(responses, wall.player);
+                test.assertTrue(live.snapshot().running() && !live.detailed(), "Running CPU exposes no detailed CPU views");
+                test.assertValueEqual(live.snapshot().devices().keyboardIndex(), 7, "Selected keyboard is retained");
+                test.assertValueEqual(live.snapshot().devices().keyboard().queue().length, 8, "Running owner input reaches the FIFO");
+                test.assertValueEqual(Byte.toUnsignedInt(live.snapshot().devices().keyboard().queue()[7]), 0x92, "Special key arrives intact");
+                send(service, wall.player, ownerToken, DebuggerProtocol.Action.PAUSE, 0, 0, 0);
+            } finally { service.shutdown(); }
+        }
+        test.succeed();
+    }
     @GameTest
     public void authenticatedDebuggerSessionsEnforceOwnershipAndPublishServerState(GameTestHelper test) throws Exception {
         var responses = new HashMap<UUID, List<CustomPacketPayload>>();

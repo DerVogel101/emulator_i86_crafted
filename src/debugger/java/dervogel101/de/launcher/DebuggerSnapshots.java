@@ -7,7 +7,7 @@ import static dervogel101.de.launcher.DebuggerBackend.*;
 /** Captures only copied viewports; call on the paused CPU's worker. */
 public final class DebuggerSnapshots {
     public static final class View {
-        public int memoryBase = 0xFFF00, ioBase, codeCs = 0xFFFF, codeIp, channel, sign, timer;
+        public int memoryBase = 0xFFF00, ioBase, codeCs = 0xFFFF, codeIp, channel, sign, timer, keyboard;
         public boolean followPc = true;
     }
     private DebuggerSnapshots() {}
@@ -15,7 +15,7 @@ public final class DebuggerSnapshots {
         if (header.running() || !header.machine().powered()) throw new IllegalStateException("Pause a powered CPU before requesting detailed views");
         if (view.memoryBase < 0 || view.memoryBase > 0xFFFFF || view.ioBase < 0 || view.ioBase > 0xFFFF
                 || view.codeCs < 0 || view.codeCs > 0xFFFF || view.codeIp < 0 || view.codeIp > 0xFFFF
-                || view.channel < 0 || view.channel > 127 || view.sign < 0 || view.sign > 127 || view.timer < 0 || view.timer > 5)
+                || view.channel < 0 || view.channel > 127 || view.sign < 0 || view.sign > 127 || view.timer < 0 || view.timer > 5 || view.keyboard < 0 || view.keyboard > 7)
             throw new IllegalArgumentException("Invalid debugger viewport");
         cpu.beforeInstruction();
         var r = cpu.registers();
@@ -28,7 +28,7 @@ public final class DebuggerSnapshots {
         var devices = new DeviceSnapshot(view.channel, view.sign, view.timer, ports(cpu, view.channel * 2, 2),
                 ports(cpu, 0x0100 + view.sign * 0x100, 130), ports(cpu, 0x8100 + view.timer * 8, 5),
                 ports(cpu, 0xFF00, 3), ports(cpu, 0x8160, 5), cpu.hostBridge().timerAutomatic(view.timer),
-                cpu.hostBridge().redstoneIrqMode(view.channel), cpu.hostBridge().signIrqSides(view.sign));
+                cpu.hostBridge().redstoneIrqMode(view.channel), cpu.hostBridge().signIrqSides(view.sign), view.keyboard, cpu.hostBridge().keyboardSnapshot(view.keyboard));
         int cs = view.followPc ? r.getCs() : view.codeCs, ip = view.followPc ? r.getIp() : view.codeIp;
         var code = new ArrayList<Disassembler8086.Instruction>();
         for (int i = 0; i < 25; i++) { var row = Disassembler8086.decode(cpu.memory(), cs, ip); code.add(row); ip = row.nextIp(); }
@@ -56,6 +56,7 @@ public final class DebuggerSnapshots {
         if (port <= 0x812F) { int offset = (port - 0x8100) & 7; return offset >= 2 && offset <= 4; }
         if (port <= 0x8150) return true;
         if (port >= 0x8160 && port <= 0x8164) return true;
+        if (port >= 0x8170 && port <= 0x817f) return (port & 1) != 0;
         return port == 0xFF02;
     }
 }

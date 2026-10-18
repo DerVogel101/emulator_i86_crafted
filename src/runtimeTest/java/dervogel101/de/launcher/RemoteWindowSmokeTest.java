@@ -43,14 +43,30 @@ public final class RemoteWindowSmokeTest {
                 var mainTabs = tabs(frame, "Memory"); mainTabs.setSelectedIndex(mainTabs.indexOfTab("I/O"));
                 var tabs = tabs(frame, "Devices"); tabs.setSelectedIndex(tabs.indexOfTab("Devices"));
                 var devices = components(frame).stream().filter(c -> c instanceof DeviceViewPanel).map(c -> (DeviceViewPanel) c).findFirst().orElseThrow();
-                devices.setSelectedIndex(1);
+                devices.setSelectedIndex(devices.indexOfTab("Signs"));
                 frame.validate();
                 if (!devices.isShowing() || !devices.getSelectedComponent().isShowing()) throw new AssertionError("Sign view is not visible");
             });
             capture(frame, output.resolve("signs.png"));
+            SwingUtilities.invokeAndWait(() -> {
+                var devices = (DeviceViewPanel)components(frame).stream().filter(c -> c instanceof DeviceViewPanel).findFirst().orElseThrow();
+                devices.setSelectedIndex(devices.indexOfTab("Keyboard"));
+                frame.toFront(); button(frame, "Capture keys").doClick();
+            });
+            await(() -> KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner() instanceof JPanel panel
+                    && panel.getKeyListeners().length != 0);
+            key(java.awt.event.KeyEvent.VK_LEFT);
+            await(() -> keyboardCommands(commands) == 1);
+            capture(frame, output.resolve("keyboard.png"));
+            key(java.awt.event.KeyEvent.VK_ESCAPE);
+            await(() -> button(frame, "Capture keys").isFocusOwner());
+            key(java.awt.event.KeyEvent.VK_LEFT);
+            if (keyboardCommands(commands) != 1) throw new AssertionError("Escape failed to release keyboard capture");
             DebuggerProtocol.writeFrame(server, DebuggerProtocol.encode(new DebuggerProtocol.State(42, false, snapshot)));
             await(() -> !button(frame, "Step").isEnabled());
             SwingUtilities.invokeAndWait(() -> {
+                if (button(frame, "Capture keys").isEnabled() || button(frame, "Request data ACK").isEnabled())
+                    throw new AssertionError("Observer keyboard controls must be disabled");
                 if (components(frame).stream().filter(c -> c instanceof JLabel).map(c -> ((JLabel) c).getText()).noneMatch(text -> text != null && text.contains("read only")))
                     throw new AssertionError("Observer window lacks a read-only status");
             });
@@ -59,7 +75,7 @@ public final class RemoteWindowSmokeTest {
             await(() -> !frame.isDisplayable());
             if (!errors.isEmpty()) throw new AssertionError(errors.toString());
             packagedEntryPoint(output, snapshot);
-            System.out.println("SWING_SMOKE_OK: owner step, observer guards, sign font, layout and server-driven close; helper classpath=" + RemoteLauncherMain.helperClasspath());
+            System.out.println("SWING_SMOKE_OK: owner step, keyboard capture/Escape, observer guards, sign font, layout and server-driven close; helper classpath=" + RemoteLauncherMain.helperClasspath());
         } finally {
             if (backend.get() != null) backend.get().close(); server.close();
             SwingUtilities.invokeAndWait(() -> { for (Window frame : Window.getWindows()) frame.dispose(); });
@@ -86,11 +102,39 @@ public final class RemoteWindowSmokeTest {
             byte[] text = (line < 4 ? "Front € Grüße " : "Back  äÖü ß " ).getBytes(java.nio.charset.Charset.forName("windows-1252"));
             System.arraycopy(text, 0, sign, line * 16 + 1, text.length);
         }
-        var devices = new DeviceSnapshot(0, 0, 0, new byte[]{7, 12}, sign, new byte[5], new byte[3], new byte[5], true, dervogel101.de.i86.runtime.RedstoneIrqMode.ANALOG, 3);
-        var machine = new MachineState(true, true, dervogel101.de.i86.runtime.HardwareProfile.complete(), 1, "ui_check", dervogel101.de.i86.runtime.ShardSpeed.TIER_1);
+        var devices = new DeviceSnapshot(0, 0, 0, new byte[]{7, 12}, sign, new byte[5], new byte[3], new byte[5], true, dervogel101.de.i86.runtime.RedstoneIrqMode.ANALOG, 3,
+                0, new dervogel101.de.i86.runtime.KeyboardDevice.Snapshot(true, new byte[]{65}, true, false));
+        var counts = new java.util.EnumMap<dervogel101.de.i86.runtime.Hardware, Integer>(dervogel101.de.i86.runtime.HardwareProfile.complete().counts());
+        counts.put(dervogel101.de.i86.runtime.Hardware.KEYBOARD, 1);
+        var machine = new MachineState(true, true, new dervogel101.de.i86.runtime.HardwareProfile(counts), 1, "ui_check", dervogel101.de.i86.runtime.ShardSpeed.TIER_1);
         return new Snapshot("UI check [42] — Example ROM", "Paused", "AX 1234 BX 0042 CX 0000 DX 0000 SP 2000 BP 0000 SI 0000 DI 0000\nCS FFFF DS 0000 ES 0000 SS 0000 IP 0000 FLAGS 0002 PC FFFF0", 0, 12,
                 0xFFF00, memory, 0, io, List.of(new Disassembler8086.Instruction(0xFFFF, 0, new byte[]{15, 1}, "YIELD", "TICK", false, false)), false, false,
                 devices, "Connected to the server-owned CPU.\nWindows-1252: € ä ö ü ß\n", new ImageState(null, false, null, false, true), false, machine);
+    }
+    private static void key(int keyCode) throws Exception {
+        SwingUtilities.invokeAndWait(() -> {
+            var focus = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+            if (focus == null) throw new AssertionError("No keyboard focus owner");
+            focus.dispatchEvent(new java.awt.event.KeyEvent(focus, java.awt.event.KeyEvent.KEY_PRESSED,
+                    System.currentTimeMillis(), 0, keyCode, java.awt.event.KeyEvent.CHAR_UNDEFINED));
+            focus.dispatchEvent(new java.awt.event.KeyEvent(focus, java.awt.event.KeyEvent.KEY_RELEASED,
+                    System.currentTimeMillis(), 0, keyCode, java.awt.event.KeyEvent.CHAR_UNDEFINED));
+        });
+    }
+    private static int keyboardCommands(ByteArrayOutputStream commands) {
+        try {
+            int count = 0;
+            var input = new ByteArrayInputStream(commands.toByteArray());
+            byte[] frame;
+            while ((frame = DebuggerProtocol.readFrame(input)) != null) {
+                var request = DebuggerProtocol.request(frame);
+                if (request.action() == DebuggerProtocol.Action.KEYBOARD_INPUT) {
+                    if (request.a() != 0 || request.b() != 0x92) throw new AssertionError("Incorrect captured key");
+                    count++;
+                }
+            }
+            return count;
+        } catch (java.io.IOException error) { throw new java.io.UncheckedIOException(error); }
     }
     private static void capture(JFrame frame, Path path) throws Exception {
         var image = new AtomicReference<BufferedImage>();

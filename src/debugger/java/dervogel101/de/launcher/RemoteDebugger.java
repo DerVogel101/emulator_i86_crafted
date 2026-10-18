@@ -77,6 +77,8 @@ public final class RemoteDebugger implements DebuggerBackend {
     @Override public void selectChannel(int channel) { view(SELECT_CHANNEL, channel, 0); }
     @Override public void selectSign(int sign) { view(SELECT_SIGN, sign, 0); }
     @Override public void selectTimer(int timer) { view(SELECT_TIMER, timer, 0); }
+    @Override public void selectKeyboard(int slot) { view(SELECT_KEYBOARD, slot, 0); }
+    @Override public void keyboardInput(int slot, int value) { command(KEYBOARD_INPUT, slot, value, 0, "", false); }
     @Override public void memoryBase(int address) { view(MEMORY_BASE, address, 0); }
     @Override public void ioBase(int port) { view(IO_BASE, port, 0); }
     @Override public void codeAddress(int cs, int ip) { view(CODE_ADDRESS, cs, ip); }

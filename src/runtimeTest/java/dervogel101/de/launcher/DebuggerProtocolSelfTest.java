@@ -15,6 +15,9 @@ public final class DebuggerProtocolSelfTest {
         assert state.snapshot().registers().equals("Register secret");
         assert Arrays.equals(state.snapshot().memory(), paused.memory());
         assert state.snapshot().devices().timerIndex() == 5;
+        assert state.snapshot().devices().keyboardIndex() == 7;
+        assert Arrays.equals(state.snapshot().devices().keyboard().queue(), new byte[]{65, (byte)0x92});
+        assert state.snapshot().devices().keyboard().ready();
         assert state.snapshot().code().getFirst().assembly().equals("YIELD TICK");
         assert state.snapshot().terminalLog().equals(paused.terminalLog());
         assert state.snapshot().images().nvramPath() == null && state.snapshot().images().storagePath() == null;
@@ -26,7 +29,10 @@ public final class DebuggerProtocolSelfTest {
         var live = (DebuggerProtocol.State) DebuggerProtocol.event(running);
         assert live.snapshot().registers().isEmpty() && live.snapshot().code().isEmpty();
         assert Arrays.equals(live.snapshot().memory(), new byte[256]);
+        assert live.snapshot().devices().keyboardIndex() == 6;
+        assert Arrays.equals(live.snapshot().devices().keyboard().queue(), new byte[]{66});
         var retained = DebuggerProtocol.retainPausedViews(paused, live.snapshot());
+        assert retained.devices().keyboardIndex() == 6 && retained.devices().keyboard().queue()[0] == 66 : "Live keyboard replaces the paused keyboard view";
         assert retained.running() && retained.registers().equals(paused.registers());
         assert retained.memory()[0] == (byte) 0xE4;
         assert !live.control();
@@ -67,7 +73,8 @@ public final class DebuggerProtocolSelfTest {
 
     static Snapshot snapshot(boolean running, String registers, byte marker) {
         byte[] memory = new byte[256], io = new byte[256]; Arrays.fill(memory, marker); Arrays.fill(io, marker);
-        var devices = new DeviceSnapshot(127, 127, 5, new byte[]{marker, marker}, new byte[130], new byte[5], new byte[3], new byte[5], false, RedstoneIrqMode.ANALOG, 3);
+        var devices = new DeviceSnapshot(127, 127, 5, new byte[]{marker, marker}, new byte[130], new byte[5], new byte[3], new byte[5], false, RedstoneIrqMode.ANALOG, 3,
+                running ? 6 : 7, new KeyboardDevice.Snapshot(true, running ? new byte[]{66} : new byte[]{65, (byte)0x92}, true, false));
         var images = new ImageState(java.nio.file.Path.of("private-client-file"), true, java.nio.file.Path.of("private-disk-file"), true, true);
         var machine = new MachineState(true, true, HardwareProfile.complete(), 3, "named_region", ShardSpeed.TIER_3);
         var code = List.of(new Disassembler8086.Instruction(0xFFFF, 0, new byte[]{15, 1}, "YIELD", "TICK", false, false));
