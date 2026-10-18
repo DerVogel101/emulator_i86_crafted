@@ -1,1 +1,18 @@
 Monosign is based on Monocraft v4.2.1 by Idrees Hassan (SIL OFL 1.1). Its glyph advances were set to 810/1080 em, and pixel-style glyphs for U+0192, U+02C6, and U+02DC were added. The included monosign-license.txt applies to the modified font.
+
+Original Monocraft copyright and author:
+Copyright (c) 2022, Idrees Hassan (https://github.com/IdreesInc/Monocraft)
+
+Monosign Bitmap is a further modified version for the i86 Emulator project.
+The Minecraft font provider uses textures/font/monosign.png, rasterized from the
+supplied Monosign TTF at 8 pixels (Minecraft's rounded size 7.5). Every supported
+source character is retained. Glyphs use a six-pixel advance; wide or overhanging
+glyphs are fitted into five ink columns to keep terminal columns aligned.
+The atlas includes the original copyright, author, and license in PNG metadata.
+
+The original monosign.ttf is retained unchanged for the standalone Swing
+debugger and as the source of the bitmap conversion. The full SIL Open Font
+License 1.1 in monosign-license.txt applies to both the TTF and bitmap derivative;
+these font assets are not relicensed under the mod's BSD license.
+
+Regenerate the bitmap and font definition with tools/build_sign_font.py.

@@ -14,6 +14,7 @@ import net.fabricmc.fabric.api.client.gametest.v1.screenshot.TestScreenshotOptio
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.core.*;
 import net.minecraft.network.chat.FontDescription;
+import net.minecraft.network.chat.Component;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.events.ContainerEventHandler;
 import net.minecraft.client.input.MouseButtonInfo;
@@ -106,6 +107,11 @@ public final class LiveClientGameTest implements FabricClientGameTest {
                     if (!sign.getText(SignTextSlot.FRONT).getMessages(false).getFirst().getStyle().getFont().equals(font)
                             || !sign.getText(SignTextSlot.BACK).getMessages(false).getFirst().getStyle().getFont().equals(font))
                         throw new AssertionError("Mod sign font did not reach the actual client");
+                    "MWi .ÄÖÜäöüß€ƒˆ˜ŒŠŸ¬¶—…™".codePoints().forEach(cp -> {
+                        var glyph = Component.literal(Character.toString(cp)).withStyle(style -> style.withFont(font));
+                        if (client.font.width(glyph) != 6)
+                            throw new AssertionError("Bitmap sign glyph must retain six-pixel advance: U+" + Integer.toHexString(cp));
+                    });
                 });
                 server.runOnServer(host -> host.overworld().setBlock(fixture.sign().above(), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL));
                 server.runCommand("tp @a 10.5 95.1 -2 0 0"); connection.waitForClientboundPackets(); context.waitTicks(5);
