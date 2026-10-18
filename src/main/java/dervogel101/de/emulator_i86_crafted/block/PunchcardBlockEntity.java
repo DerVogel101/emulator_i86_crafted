@@ -7,7 +7,6 @@ import dervogel101.de.emulator_i86_crafted.server.storage.PunchcardLibrary;
 import dervogel101.de.i86.runtime.*;
 import net.minecraft.core.*;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.*;
 import net.minecraft.world.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -44,9 +43,6 @@ public final class PunchcardBlockEntity extends PortBlockEntity implements World
         try { persist(); }
         catch (IOException failure) { status = failure.getMessage(); device.mediaError(); connect(null); }
         if (level instanceof ServerLevel server) {
-            int sounds = device.takeSounds();
-            if ((sounds & 1) != 0) server.playSound(null,worldPosition,SoundEvents.DISPENSER_DISPENSE,SoundSource.BLOCKS,.35f,1.5f);
-            if ((sounds & 2) != 0) server.playSound(null,worldPosition,SoundEvents.PISTON_EXTEND,SoundSource.BLOCKS,.35f,1.4f);
             int lamps = device.takeActivity();
             var state = getBlockState();
             var visual = state.setValue(PunchcardBlock.LOADED,device.active() != null).setValue(PunchcardBlock.OUTPUT,device.output() != null)

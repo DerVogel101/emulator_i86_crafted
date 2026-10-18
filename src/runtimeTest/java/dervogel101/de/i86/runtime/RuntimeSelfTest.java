@@ -30,6 +30,7 @@ public final class RuntimeSelfTest {
         MachineSelfTest.run();
         DebuggerMachineSelfTest.run();
         IndicatorSelfTest.run();
+        SoundActivitySelfTest.run();
         System.out.println("Runtime checks passed: hardware, capacity, pacing, yields, tick expiry, wall formation, worker");
     }
 

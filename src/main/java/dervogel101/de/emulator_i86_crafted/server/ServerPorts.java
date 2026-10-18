@@ -171,6 +171,8 @@ public final class ServerPorts {
                 if (sign != null && (port.signTarget != sign || port.signVersion != record.signVersions[s.slot()])) {
                     writeSign(level, sign, record.signOutputs[s.slot()]);
                     owner.arrayActivity(record.id, dervogel101.de.i86.runtime.Hardware.GPU, s.slot(), 4);
+                    // Audio-only bit: synchronizing text must not impersonate the sign's click LED.
+                    owner.indicators.pulse(level, port.getBlockPos(), dervogel101.de.i86.runtime.IndicatorState.SIGN_WRITE >>> 2);
                     port.signVersion = record.signVersions[s.slot()];
                 }
                 port.signTarget = sign;

@@ -16,7 +16,7 @@ public final class IndicatorPackets {
     public record Entry(BlockPos position, int flags) {
         public Entry {
             position = position.immutable();
-            if (flags < 0 || flags > 31 && flags != IndicatorState.REMOVE) throw new IllegalArgumentException("Invalid LED flags");
+            if (flags < 0 || flags > 63 && flags != IndicatorState.REMOVE) throw new IllegalArgumentException("Invalid indicator flags");
         }
     }
     public record Update(String dimension, List<Entry> entries) implements CustomPacketPayload {

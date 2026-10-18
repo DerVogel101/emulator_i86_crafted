@@ -185,5 +185,14 @@ for (const [id, expected] of carried) {
   assert.equal(copy.source, 'block_entity');
   assert.deepEqual(new Set(copy.include), new Set(expected), id + ': portable components');
 }
+const sounds = await readJson(resolve(assets, 'sounds.json'));
+for (const [id, event] of Object.entries(sounds)) {
+  assert.ok(names[event.subtitle], 'Missing sound subtitle: ' + id);
+  assert.ok(event.sounds.length > 0, 'Empty sound event: ' + id);
+  for (const sound of event.sounds) {
+    assert.equal(sound.type, 'event', 'Machine sounds must reuse vanilla events');
+    assert.ok(sound.name.startsWith('minecraft:'), 'External sound asset: ' + id);
+  }
+}
 console.log('Resource checks passed: ' + blockCount + ' 3D blocks, ' + items.length + ' items, ' + animations
-  + ' interpolated textures; all states, model references and portable drops');
+  + ' interpolated textures; all states, model references, portable drops and ' + Object.keys(sounds).length + ' vanilla sound cues');

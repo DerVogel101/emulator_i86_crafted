@@ -78,7 +78,7 @@ public final class KeyboardClientGameTest implements FabricClientGameTest {
             context.waitFor(client -> client.gui.screen() == null);
         } catch (Exception failure) { throw new RuntimeException(failure); }
     }
-    private static Fixture build(MinecraftServer server) throws Exception {
+    static Fixture build(MinecraftServer server) throws Exception {
         var level = server.overworld(); var owner = ServerMachines.get(server); var origin = new BlockPos(1, 96, 1);
         for (int i = 0; i < 21; i++) {
             String id = i < Hardware.values().length ? Hardware.values()[i].id : "super_structure";

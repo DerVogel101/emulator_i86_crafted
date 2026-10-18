@@ -3,6 +3,7 @@ package dervogel101.de.i86.runtime;
 /** Wire format and client decay for four lamps; no Minecraft or persistent state. */
 public final class IndicatorState {
     public static final int OFF = 0, RUNNING = 1, IDLE = 2, FAILURE = 3, REMOVE = 255;
+    public static final int SIGN_WRITE = 32;
     public static final long FADE_NANOS = 75_000_000L;
     private IndicatorState() {}
     public static int pack(int status, int activity) { return status | ((activity & 7) << 2); }

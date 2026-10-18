@@ -34,5 +34,21 @@
   "item.emulator_i86_crafted.memory_chip_material": "Memory Chip",
   "item.emulator_i86_crafted.blank_processing_material": "Blank Processing Material",
   "item.emulator_i86_crafted.fpu_material": "FPU",
-  "item.emulator_i86_crafted.antenna_array_material": "Antenna Array"
+  "item.emulator_i86_crafted.antenna_array_material": "Antenna Array",
+  "subtitles.emulator_i86_crafted.fan": "Machine fan hums",
+  "subtitles.emulator_i86_crafted.start": "Mainframe starts",
+  "subtitles.emulator_i86_crafted.stop": "Mainframe stops",
+  "subtitles.emulator_i86_crafted.fault": "Machine reports a fault",
+  "subtitles.emulator_i86_crafted.relay": "Relay clicks",
+  "subtitles.emulator_i86_crafted.disk": "Hard disk seeks",
+  "subtitles.emulator_i86_crafted.terminal": "Terminal prints",
+  "subtitles.emulator_i86_crafted.sign": "Sign display updates",
+  "subtitles.emulator_i86_crafted.key": "Keyboard key clicks",
+  "subtitles.emulator_i86_crafted.card_read": "Punchcard reader scans",
+  "subtitles.emulator_i86_crafted.card_write": "Punchcard writer punches",
+  "subtitles.emulator_i86_crafted.card_feed": "Punchcard mechanism advances",
+  "subtitles.emulator_i86_crafted.paper": "Punchcard paper feeds",
+  "subtitles.emulator_i86_crafted.burn": "ROM burner finishes",
+  "subtitles.emulator_i86_crafted.clock": "Clock ticks",
+  "subtitles.emulator_i86_crafted.link": "Ender tunnel transfers"
 }

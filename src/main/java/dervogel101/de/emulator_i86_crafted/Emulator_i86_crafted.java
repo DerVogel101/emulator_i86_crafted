@@ -11,6 +11,7 @@ public class Emulator_i86_crafted implements ModInitializer {
     public void onInitialize() {
         ModComponents.initialize();
         ModContent.initialize();
+        ModSounds.initialize();
         ModBlockEntities.initialize();
         dervogel101.de.emulator_i86_crafted.network.RomPackets.initialize();
         dervogel101.de.emulator_i86_crafted.network.DebuggerPackets.initialize();

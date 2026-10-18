@@ -1,0 +1,18 @@
+{
+  "machine.fan": {"subtitle":"subtitles.emulator_i86_crafted.fan","sounds":[{"name":"minecraft:block.beacon.ambient","type":"event"}]},
+  "machine.start": {"subtitle":"subtitles.emulator_i86_crafted.start","sounds":[{"name":"minecraft:block.note_block.bit","type":"event"}]},
+  "machine.stop": {"subtitle":"subtitles.emulator_i86_crafted.stop","sounds":[{"name":"minecraft:block.copper_bulb.turn_off","type":"event"}]},
+  "machine.fault": {"subtitle":"subtitles.emulator_i86_crafted.fault","sounds":[{"name":"minecraft:block.note_block.bass","type":"event"}]},
+  "machine.relay": {"subtitle":"subtitles.emulator_i86_crafted.relay","sounds":[{"name":"minecraft:block.comparator.click","type":"event"}]},
+  "machine.disk": {"subtitle":"subtitles.emulator_i86_crafted.disk","sounds":[{"name":"minecraft:block.dispenser.dispense","type":"event"}]},
+  "machine.terminal": {"subtitle":"subtitles.emulator_i86_crafted.terminal","sounds":[{"name":"minecraft:block.note_block.hat","type":"event"}]},
+  "machine.sign": {"subtitle":"subtitles.emulator_i86_crafted.sign","sounds":[{"name":"minecraft:block.comparator.click","type":"event"}]},
+  "machine.key": {"subtitle":"subtitles.emulator_i86_crafted.key","sounds":[{"name":"minecraft:block.wooden_button.click_on","type":"event"}]},
+  "machine.card_read": {"subtitle":"subtitles.emulator_i86_crafted.card_read","sounds":[{"name":"minecraft:block.dispenser.dispense","type":"event"}]},
+  "machine.card_write": {"subtitle":"subtitles.emulator_i86_crafted.card_write","sounds":[{"name":"minecraft:block.crafter.craft","type":"event"}]},
+  "machine.card_feed": {"subtitle":"subtitles.emulator_i86_crafted.card_feed","sounds":[{"name":"minecraft:block.piston.extend","type":"event"},{"name":"minecraft:block.piston.contract","type":"event"}]},
+  "machine.paper": {"subtitle":"subtitles.emulator_i86_crafted.paper","sounds":[{"name":"minecraft:item.book.page_turn","type":"event"}]},
+  "machine.burn": {"subtitle":"subtitles.emulator_i86_crafted.burn","sounds":[{"name":"minecraft:block.note_block.bit","type":"event"}]},
+  "machine.clock": {"subtitle":"subtitles.emulator_i86_crafted.clock","sounds":[{"name":"minecraft:block.note_block.hat","type":"event"}]},
+  "machine.link": {"subtitle":"subtitles.emulator_i86_crafted.link","sounds":[{"name":"minecraft:block.note_block.hat","type":"event"}]}
+}

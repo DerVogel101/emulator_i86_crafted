@@ -364,6 +364,9 @@ public final class PortGameTests {
         machines.ports.tick(List.of());
         record.acceptOutputs(new CPUIO.OutputChanges(Map.of(), Map.of(3, new CPUIO.SignSnapshot(bytes))));
         machines.ports.tick(List.of());
+        machines.indicators.flush(test.getLevel().getServer());
+        test.assertTrue((machines.indicators.state(test.getLevel(), port.getBlockPos()) & dervogel101.de.i86.runtime.IndicatorState.SIGN_WRITE) != 0,
+                "Completed sign writes share the indicator batch's audio-only bit");
         test.assertTrue((machines.indicators.state(test.getLevel(), port.getBlockPos()) & 16) == 0, "Dirty sign writes are separate from clicks");
         test.assertValueEqual(sign.getText(SignTextSlot.FRONT).getMessages(false).getFirst().getString(), "€ä", "Dirty bridge output must overwrite edits");
         test.succeed();

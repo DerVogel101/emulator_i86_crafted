@@ -64,13 +64,13 @@ public final class IndicatorGameTests {
 
     @GameTest public void fourLampPacketsAreBoundedAndRoundTrip(GameTestHelper test) {
         var packet = new IndicatorPackets.Update("minecraft:overworld", List.of(
-                new IndicatorPackets.Entry(new BlockPos(-20, 96, 100), IndicatorState.pack(3, 7)),
+                new IndicatorPackets.Entry(new BlockPos(-20, 96, 100), IndicatorState.pack(3, 7) | IndicatorState.SIGN_WRITE),
                 new IndicatorPackets.Entry(BlockPos.ZERO, IndicatorState.REMOVE)));
         var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), test.getLevel().registryAccess());
         try {
             IndicatorPackets.Update.CODEC.encode(buffer, packet);
             test.assertValueEqual(IndicatorPackets.Update.CODEC.decode(buffer), packet, "LED batch codec round-trips");
-            try { new IndicatorPackets.Entry(BlockPos.ZERO, 32); test.fail("Reserved flags accepted"); }
+            try { new IndicatorPackets.Entry(BlockPos.ZERO, 64); test.fail("Reserved flags accepted"); }
             catch (IllegalArgumentException expected) { }
             try { new IndicatorPackets.Update("x", java.util.Collections.nCopies(IndicatorPackets.LIMIT + 1, packet.entries().getFirst())); test.fail("Unbounded batch accepted"); }
             catch (IllegalArgumentException expected) { }

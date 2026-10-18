@@ -40,6 +40,7 @@ public final class ClientIndicators {
             if (level != current) { LAMPS.clear(); level = current; }
             long now = System.nanoTime();
             for (var entry : packet.entries()) {
+                ClientMachineSounds.update(current, entry.position(), entry.flags());
                 if (entry.flags() == IndicatorState.REMOVE) LAMPS.remove(entry.position());
                 else LAMPS.computeIfAbsent(entry.position(), ignored -> new IndicatorState.Lamps()).update(entry.flags(), now);
             }
