@@ -14,7 +14,7 @@ import net.minecraft.world.level.block.state.*;
 import net.minecraft.world.level.block.state.properties.*;
 import net.minecraft.world.phys.BlockHitResult;
 
-public final class PortBlock extends MachineBlock implements EntityBlock {
+public class PortBlock extends MachineBlock implements EntityBlock {
     public static final EnumProperty<Direction> PORT_FACING = BlockStateProperties.FACING;
     public static final BooleanProperty INPUT = BooleanProperty.create("input");
     private final PortBindings.Kind kind;

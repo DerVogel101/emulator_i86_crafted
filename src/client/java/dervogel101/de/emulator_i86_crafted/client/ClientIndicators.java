@@ -54,7 +54,7 @@ public final class ClientIndicators {
                         || !camera.cullFrustum.isVisible(new AABB(pos))) continue;
                 var state = level.getBlockState(pos);
                 if (!(state.getBlock() instanceof MachineBlock block) || block == ModContent.BLOCKS.get("super_structure")) continue;
-                Direction facing = state.getValue(block instanceof PortBlock ? PortBlock.PORT_FACING : MachineBlock.FACING);
+                Direction facing = state.getValue(state.hasProperty(PortBlock.PORT_FACING) ? PortBlock.PORT_FACING : MachineBlock.FACING);
                 boolean sign = block == ModContent.BLOCKS.get("sign_port");
                 var lamps = entry.getValue();
                 for (int slot = 0; slot < 4; slot++) {

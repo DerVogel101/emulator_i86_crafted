@@ -9,7 +9,7 @@ public record HardwareProfile(Map<Hardware, Integer> counts) {
     public static HardwareProfile complete() {
         var counts = new EnumMap<Hardware, Integer>(Hardware.class);
         // Keep the legacy 21-position default; keyboards need an explicitly installed controller.
-        for (var hardware : Hardware.values()) if (hardware != Hardware.KEYBOARD) counts.put(hardware, hardware.maximum);
+        for (var hardware : Hardware.values()) if (hardware != Hardware.KEYBOARD && hardware != Hardware.PUNCHCARD) counts.put(hardware, hardware.maximum);
         return new HardwareProfile(counts);
     }
 

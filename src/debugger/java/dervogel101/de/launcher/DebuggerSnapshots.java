@@ -7,7 +7,7 @@ import static dervogel101.de.launcher.DebuggerBackend.*;
 /** Captures only copied viewports; call on the paused CPU's worker. */
 public final class DebuggerSnapshots {
     public static final class View {
-        public int memoryBase = 0xFFF00, ioBase, codeCs = 0xFFFF, codeIp, channel, sign, timer, keyboard;
+        public int memoryBase = 0xFFF00, ioBase, codeCs = 0xFFFF, codeIp, channel, sign, timer, keyboard, punchcard;
         public boolean followPc = true;
     }
     private DebuggerSnapshots() {}
@@ -28,7 +28,8 @@ public final class DebuggerSnapshots {
         var devices = new DeviceSnapshot(view.channel, view.sign, view.timer, ports(cpu, view.channel * 2, 2),
                 ports(cpu, 0x0100 + view.sign * 0x100, 130), ports(cpu, 0x8100 + view.timer * 8, 5),
                 ports(cpu, 0xFF00, 3), ports(cpu, 0x8160, 5), cpu.hostBridge().timerAutomatic(view.timer),
-                cpu.hostBridge().redstoneIrqMode(view.channel), cpu.hostBridge().signIrqSides(view.sign), view.keyboard, cpu.hostBridge().keyboardSnapshot(view.keyboard));
+                cpu.hostBridge().redstoneIrqMode(view.channel), cpu.hostBridge().signIrqSides(view.sign), view.keyboard, cpu.hostBridge().keyboardSnapshot(view.keyboard))
+                .withPunchcard(view.punchcard,cpu.hostBridge().punchcardSnapshot(view.punchcard),cpu.hostBridge().punchcardName(view.punchcard));
         int cs = view.followPc ? r.getCs() : view.codeCs, ip = view.followPc ? r.getIp() : view.codeIp;
         var code = new ArrayList<Disassembler8086.Instruction>();
         for (int i = 0; i < 25; i++) { var row = Disassembler8086.decode(cpu.memory(), cs, ip); code.add(row); ip = row.nextIp(); }
@@ -50,6 +51,7 @@ public final class DebuggerSnapshots {
         return address >= 0 && address < 0x9FFF3 || address >= 0xA0000 && address < 0xC0000;
     }
     public static boolean writableIo(int port) {
+        if (port >= 0x8200 && port <= 0x89ff) return (port & 63) <= 0x20 || (port & 63) == 0x22 || (port & 63) == 0x2c;
         if (port < 0 || port > 0xFFFF) return false;
         if (port < 0x100) return (port & 1) == 1;
         if (port <= 0x80FF) return (port & 0xFF) < 0x80 || (port & 0xFF) == 0x81;

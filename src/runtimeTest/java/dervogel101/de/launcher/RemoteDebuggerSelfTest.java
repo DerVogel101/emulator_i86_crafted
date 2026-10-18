@@ -38,7 +38,10 @@ public final class RemoteDebuggerSelfTest {
             assert requests.size() == 2 && requests.getFirst().action() == Action.STEP;
             assert requests.get(1).equals(new Request(Action.WRITE_MEMORY, 0x1234, 0x5A, 0));
             assert views.isEmpty() : "Remote commands cannot execute a local CPU or manufacture its state";
-            int size = commands.size();
+            debugger.punchcardCommand(16,8,"00".repeat(32),1);
+        assert requests(commands).getLast().equals(new Request(Action.PUNCHCARD_COMMAND,16,8,1,"00".repeat(32)));
+        assert DebuggerSnapshots.writableIo(0x862c) && !DebuggerSnapshots.writableIo(0x862d);
+        int size = commands.size();
             writeFrame(server, encode(new State(22, false, paused))); take(views);
             SwingUtilities.invokeAndWait(() -> {
                 panel.get().update(first.devices(), first.images(), true, first.machine());
@@ -68,6 +71,12 @@ public final class RemoteDebuggerSelfTest {
             try { debugger.loadRom(java.nio.file.Path.of("private-rom-file")); }
             catch (UnsupportedOperationException expected) { refused = true; }
             assert refused : "A remote window cannot load a private ROM into a local substitute CPU";
+            refused = false;
+            try { debugger.insertPunchcard(16,dervogel101.de.i86.runtime.PunchcardDeck.blank()); } catch (UnsupportedOperationException expected) { refused = true; }
+            assert refused : "Remote media insertion must use Minecraft blocks";
+            refused = false;
+            try { debugger.savePunchcard(0,false,java.nio.file.Path.of("private.pdeck")); } catch (UnsupportedOperationException expected) { refused = true; }
+            assert refused : "Remote debugger cannot export world files";
             debugger.close();
             assert ended.await(5, TimeUnit.SECONDS);
             assert requests(commands).getLast().action() == Action.CLOSE;

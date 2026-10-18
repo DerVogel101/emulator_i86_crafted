@@ -45,6 +45,7 @@ public final class ServerPorts {
             port.applySettings(next);
     }
     public void unload(PortBlockEntity port) {
+        if (port instanceof PunchcardBlockEntity punchcard) punchcard.connect(null);
         owner.keyboards.connect(port, null);
         loaded.remove(port); port.online = false; port.sampledBridge = null;
         port.signTarget = null; port.signVersion = Long.MIN_VALUE;
@@ -55,6 +56,7 @@ public final class ServerPorts {
         for (var port : List.copyOf(loaded)) if (port.getLevel() == level && port.getBlockPos().equals(pos)) unload(port);
     }
     public void configure(PortBlockEntity port, PortBindings.Settings next, UUID player) {
+        if (port instanceof PunchcardBlockEntity && next.slot() >= 16) throw new IllegalArgumentException("Punchcard slot must be 0–15");
         if (port.kind() == PortBindings.Kind.KEYBOARD && (next.slot() >= 8 || !next.input()))
             throw new IllegalArgumentException("Keyboard slot must be 0–7 and input only");
         var old = port.settings();
@@ -94,6 +96,7 @@ public final class ServerPorts {
         int capacity = switch (binding.kind()) {
             case REDSTONE -> hardware.redstoneCapacity(); case SIGN -> hardware.signCapacity();
             case KEYBOARD -> hardware.keyboardCapacity();
+            case PUNCHCARD_READER, PUNCHCARD_WRITER -> hardware.has(dervogel101.de.i86.runtime.Hardware.PUNCHCARD) ? 16 : 0;
         };
         if (settings.slot() >= capacity) return "Offline: slot " + settings.slot() + " needs more installed modules (capacity " + capacity + ")";
         return "Online";
@@ -107,6 +110,7 @@ public final class ServerPorts {
             ServerLevel level = (ServerLevel) port.getLevel();
             // World reads would renew UNKNOWN tickets and prevent this chunk from unloading.
             if (!level.shouldTickBlocksAt(net.minecraft.world.level.ChunkPos.pack(port.getBlockPos()))) {
+                if (port instanceof PunchcardBlockEntity punchcard) punchcard.connect(null);
                 owner.keyboards.connect(port, null);
                 port.online = false; port.sampledBridge = null; port.signTarget = null;
                 continue;
@@ -120,12 +124,19 @@ public final class ServerPorts {
             if (!online || !port.online) { port.sampledBridge = null; port.signTarget = null; port.signVersion = Long.MIN_VALUE; }
             port.status = status; port.online = online;
             if (!online) {
+                if (port instanceof PunchcardBlockEntity punchcard) punchcard.hostTick(null);
                 owner.keyboards.connect(port, null);
                 port.signal(0); visual(port, false); port.indicatorSignal = null;
                 owner.indicators.set(level, port.getBlockPos(), status.equals("Unbound") ? 0 : 3, 0); continue;
             }
             var record = owner.records.mainframe(s.mainframe()).orElseThrow();
             var machine = active.get(record.id); CpuHostBridge bridge = machine == null ? null : machine.bridge();
+            if (port instanceof PunchcardBlockEntity punchcard) {
+                visual(port, record.powered);
+                punchcard.hostTick(record.powered ? bridge : null);
+                if (machine != null) machine.activity(dervogel101.de.i86.runtime.Hardware.PUNCHCARD, punchcard.device.read(0x21) & 2);
+                continue;
+            }
             BlockPos target = port.getBlockPos().relative(port.getBlockState().getValue(PortBlock.PORT_FACING));
             boolean targetLoaded = level.hasChunkAt(target);
             var snapshot = machine == null ? dervogel101.de.i86.runtime.CpuActivity.Snapshot.EMPTY : machine.activity();
@@ -172,6 +183,7 @@ public final class ServerPorts {
         var active = new HashMap<Long, MainframeMachine>();
         for (var machine : machines) active.put(machine.record.id, machine);
         for (var port : loaded) if (!port.isRemoved() && port.online) {
+            if (port instanceof PunchcardBlockEntity) continue;
             var level = (ServerLevel) port.getLevel();
             if (!level.shouldTickBlocksAt(net.minecraft.world.level.ChunkPos.pack(port.getBlockPos()))) continue;
             var settings = port.settings(); var record = owner.records.mainframe(settings.mainframe()).orElse(null);

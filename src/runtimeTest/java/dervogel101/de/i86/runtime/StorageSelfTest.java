@@ -245,7 +245,7 @@ final class StorageSelfTest {
                 for (int i = 0; i < 4; i++) out.writeBoolean(false);
                 out.writeShort(0); out.writeShort(0); out.writeByte(0); out.writeLong(0);
                 out.writeBoolean(false); out.writeBoolean(false);
-                for (var hardware : Hardware.values()) if (hardware != Hardware.KEYBOARD)
+                for (var hardware : Hardware.values()) if (hardware != Hardware.KEYBOARD && hardware != Hardware.PUNCHCARD)
                     out.writeByte(HardwareProfile.complete().count(hardware));
                 out.writeInt(CPUMemory.NVRAM_SIZE); out.write(new byte[CPUMemory.NVRAM_SIZE]);
                 out.writeInt(0); out.writeInt(0); out.writeInt(0); out.writeInt(0); out.writeInt(0);

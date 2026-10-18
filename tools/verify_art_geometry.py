@@ -88,10 +88,11 @@ def check():
     checked = 0
     for path in sorted((ASSETS / "blockstates").glob("*.json")):
         data = json.loads(path.read_text())
-        facings = ("north", "east", "south", "west", "up", "down") if path.stem in ("sign_port", "redstone_port") else ("north",)
+        facings = ("north", "east", "south", "west", "up", "down") if path.stem in ("sign_port", "redstone_port") else ("north", "east", "south", "west") if path.stem in ("punchcard_reader", "punchcard_writer") else ("north",)
+        media_states = (False, True) if path.stem in ("punchcard_reader", "punchcard_writer") else (False,)
         for facing in facings:
-            for powered, active, input_mode in itertools.product((False, True), repeat=3):
-                state = dict(facing=facing, powered=str(powered).lower(), active=str(active).lower(), input=str(input_mode).lower())
+            for powered, active, input_mode, loaded, output in itertools.product((False, True), (False, True), (False, True), media_states, media_states):
+                state = dict(facing=facing, powered=str(powered).lower(), active=str(active).lower(), input=str(input_mode).lower(), loaded=str(loaded).lower(), output=str(output).lower())
                 selected = [part for part in data["multipart"] if all(state.get(key) == value for key, value in part["when"].items())]
                 elements = [element for part in selected for element in model_elements(part["apply"]["model"])]
                 label = f"{path.stem}/{facing}/power={powered}/active={active}/input={input_mode}"

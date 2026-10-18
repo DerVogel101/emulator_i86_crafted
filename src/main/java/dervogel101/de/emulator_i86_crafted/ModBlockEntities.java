@@ -12,8 +12,11 @@ public final class ModBlockEntities {
     public static BlockEntityType<ControllerBlockEntity> CONTROLLER;
     public static BlockEntityType<ArrayBlockEntity> ARRAY;
     public static BlockEntityType<PortBlockEntity> PORT;
+    public static BlockEntityType<dervogel101.de.emulator_i86_crafted.block.PunchcardBlockEntity> PUNCHCARD;
     private ModBlockEntities() {}
     public static void initialize() {
+        PUNCHCARD = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, ModContent.id("punchcard"),
+                new BlockEntityType<>(dervogel101.de.emulator_i86_crafted.block.PunchcardBlockEntity::new, Set.of(ModContent.BLOCKS.get("punchcard_reader"), ModContent.BLOCKS.get("punchcard_writer"))));
         CONTROLLER = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, ModContent.id("mainframe_controller"),
                 new BlockEntityType<>(ControllerBlockEntity::new, Set.of(ModContent.BLOCKS.get("mainframe_controller"))));
         ARRAY = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, ModContent.id("array"), new BlockEntityType<>(ArrayBlockEntity::new,

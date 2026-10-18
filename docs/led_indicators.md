@@ -52,6 +52,8 @@ segments reuse the existing pin-level state and remain available before boot.
 | GPU Array | Status | Sign memory read | Sign memory written | Transfer between GPU and world signs |
 | GPIO Controller | Status | Input register read | Output register written | Input IRQ generated |
 | Harddisk Array | Status | Disk read | Disk write | Disk image saved |
+| Punchcard Reader/Writer | Status | Row/name transfer | Deck present | Card switch/eject |
+| Punchcard Controller | Status | Connected-device activity | Decks present | Card switch/eject |
 | Ender Tunnel Array | Status | Shared memory read | Shared memory written | Another CPU accessed the shared region |
 | Integrated Storage | Status | NVRAM read | NVRAM written | World save completed successfully |
 | Power Supply | Status | Redstone power input high | Power-on event | Power-off event |

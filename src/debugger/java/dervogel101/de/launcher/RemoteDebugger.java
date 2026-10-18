@@ -62,6 +62,9 @@ public final class RemoteDebugger implements DebuggerBackend {
     private void command(DebuggerProtocol.Action action) { command(action, 0, 0, 0, "", false); }
     private UnsupportedOperationException localOnly() { return new UnsupportedOperationException("Use the Minecraft block GUI for hardware and world-owned images"); }
     @Override public boolean remote() { return true; }
+    @Override public void selectPunchcard(int index) { if (index < 0 || index >= 32) throw new IllegalArgumentException("Punchcard slot"); view(SELECT_PUNCHCARD,index,0); }
+    @Override public void punchcardCommand(int index,int operation,String hex) { punchcardCommand(index,operation,hex,0); }
+    @Override public void punchcardCommand(int index,int operation,String hex,int metadata) { command(PUNCHCARD_COMMAND,index,operation,metadata,hex,true); }
     @Override public boolean canControl() { return control && !closed.get(); }
     @Override public boolean canEdit() { return canControl() && detailed && !latest.running() && latest.machine().powered(); }
     @Override public void run() { command(RUN); }

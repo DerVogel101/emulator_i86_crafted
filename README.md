@@ -21,6 +21,8 @@ Tier defaults are 1,000/5,000/10,000 steps per tick, in ten paced batches each. 
 
 World data is stored under `<world>/data/emulator_i86_crafted/`. Back up that directory together with the world. [Admin commands](docs/admin_recovery.md) recover retained controller/disk/ROM identities.
 
+The optional [Punchcard Controller](docs/punchcards.md) enables 16 readers and 16 writers, with hopper-fed decks up to 64 KiB. Shift-right-click a device for binding and status; use the standalone Punchcards panel for `.pdeck` import/export.
+
 ## Build and verify
 
 Keep the sibling `../i8086Emulator` checkout beside this project; the build compiles its core and launcher sources directly.

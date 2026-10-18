@@ -25,13 +25,21 @@ public final class PortDialogs {
         OPEN.put(player.getUUID(), new Session(port, nonce));
         var inputs = new ArrayList<ControlPanel.Field>();
         inputs.add(text("mainframe", "Mainframe ID (0 = unbound)", Long.toString(s.mainframe()), 20));
-        inputs.add(text("slot", port.kind() == PortBindings.Kind.KEYBOARD ? "Slot ID (0–7)" : "Slot ID (0–127)", Integer.toString(s.slot()), 3));
+        inputs.add(text("slot", port instanceof dervogel101.de.emulator_i86_crafted.block.PunchcardBlockEntity ? "Slot ID (0–15)" : port.kind() == PortBindings.Kind.KEYBOARD ? "Slot ID (0–7)" : "Slot ID (0–127)", Integer.toString(s.slot()), 3));
         inputs.add(text("name", "Friendly name", s.name(), 128));
         if (port.kind() == PortBindings.Kind.REDSTONE) {
             inputs.add(option("direction", "Direction", s.input() ? "input" : "output", List.of("input", "output")));
             inputs.add(option("irq", "Input interrupt", s.irq().name(), Arrays.stream(RedstoneIrqMode.values()).map(Enum::name).toList()));
         } else if (port.kind() == PortBindings.Kind.SIGN) inputs.add(option("sides", "Sign click interrupts: 0=off, 1=front, 2=back, 3=both", Integer.toString(s.signSides()), List.of("0", "1", "2", "3")));
         StringBuilder info = new StringBuilder(machines.ports.status(port));
+        if (port instanceof dervogel101.de.emulator_i86_crafted.block.PunchcardBlockEntity punchcard) {
+            var deck = punchcard.device.active();
+            info.append("\n").append(deck == null ? "No active deck" : deck.label() + " · " + deck.cards() + " cards · " + deck.cards()*256 + " bytes");
+            if (deck != null && !deck.descriptionText().isEmpty()) info.append("\nDescription: ").append(deck.descriptionText());
+            info.append("\nCard ").append(punchcard.device.read(0x28)).append(", row ").append(punchcard.device.read(0x2a));
+            info.append("\nStatus: ").append(punchcard.device.read(0x21)).append(" · error ").append(punchcard.device.read(0x23));
+            info.append(punchcard.device.output() == null ? "\nOutput empty" : "\nDeck waiting in output");
+        }
         info.append(port.kind() == PortBindings.Kind.KEYBOARD
                 ? "\nAttaching or changing a slot requires power off. Names may be changed while powered. Keyboard input interrupts are automatic."
                 : "\nAttaching or changing a slot/direction requires power off. Names and IRQ settings may be changed while powered.");
@@ -41,9 +49,10 @@ public final class PortDialogs {
         boolean control = s.mainframe() == 0 || machines.leases.canControl(s.mainframe(), player.getUUID());
         if (!control) info.append("\nRead only: another player controls the debugger.");
         var buttons = control ? List.of(button("Apply", nonce, "apply"), button("Unbind", nonce, "unbind")) : List.<ControlPanel.Action>of();
-        String icon = switch (port.kind()) { case SIGN -> "sign_port"; case REDSTONE -> "redstone_port"; case KEYBOARD -> "keyboard"; };
+        if (control && port instanceof dervogel101.de.emulator_i86_crafted.block.PunchcardBlockEntity) buttons = List.of(button("Apply",nonce,"apply"),button("Unbind",nonce,"unbind"),button("Eject",nonce,"eject"));
+        String icon = switch (port.kind()) { case SIGN -> "sign_port"; case REDSTONE -> "redstone_port"; case KEYBOARD -> "keyboard"; case PUNCHCARD_READER -> "punchcard_reader"; case PUNCHCARD_WRITER -> "punchcard_writer"; };
         PanelPackets.open(player, new ControlPanel(ControlPanel.Kind.PORT, nonce, icon,
-                port.kind() == PortBindings.Kind.KEYBOARD ? "Keyboard" : port.kind() == PortBindings.Kind.SIGN ? "Sign Port" : "Redstone Port", info.toString(), inputs, buttons));
+                port instanceof dervogel101.de.emulator_i86_crafted.block.PunchcardBlockEntity ? (icon.equals("punchcard_writer") ? "Punchcard Writer" : "Punchcard Reader") : port.kind() == PortBindings.Kind.KEYBOARD ? "Keyboard" : port.kind() == PortBindings.Kind.SIGN ? "Sign Port" : "Redstone Port", info.toString(), inputs, buttons));
     }
     public static void submit(ServerPlayer player, Tag payload) {
         if (!(payload instanceof CompoundTag tag)) return;
@@ -55,6 +64,12 @@ public final class PortDialogs {
                 || !player.level().hasChunkAt(port.getBlockPos()) || player.level().getBlockEntity(port.getBlockPos()) != port
                 || player.distanceToSqr(Vec3.atCenterOf(port.getBlockPos())) > 64 || !player.level().mayInteract(player, port.getBlockPos())) return;
         try {
+            if (tag.getStringOr("action", "").equals("eject") && port instanceof dervogel101.de.emulator_i86_crafted.block.PunchcardBlockEntity punchcard) {
+                var machines = ServerMachines.get(player.level().getServer());
+                if (port.settings().mainframe() != 0 && !machines.leases.canControl(port.settings().mainframe(),player.getUUID())) throw new IllegalStateException("Read only debugger");
+                punchcard.eject();
+                open(player,port); return;
+            }
             var old = port.settings(); PortBindings.Settings next;
             if (tag.getStringOr("action", "").equals("unbind")) next = new PortBindings.Settings(0, old.slot(), old.name(), old.input(), old.irq(), old.signSides());
             else if (tag.getStringOr("action", "").equals("apply")) {

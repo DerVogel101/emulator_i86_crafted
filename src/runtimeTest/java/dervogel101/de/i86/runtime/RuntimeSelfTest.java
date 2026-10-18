@@ -23,6 +23,7 @@ public final class RuntimeSelfTest {
         dervogel101.de.launcher.DebuggerProtocolSelfTest.run();
         dervogel101.de.launcher.RemoteDebuggerSelfTest.run();
         StorageSelfTest.run();
+        PunchcardSelfTest.run();
         PortSelfTest.run();
         RomUploadSelfTest.run();
         dervogel101.de.emulator_i86_crafted.client.RomChooserSelfTest.run();

@@ -122,6 +122,7 @@ public final class ServerDebugger {
             case SELECT_SIGN -> view.sign = range(a, 127);
             case SELECT_TIMER -> view.timer = range(a, 5);
             case SELECT_KEYBOARD -> view.keyboard = range(a, 7);
+            case SELECT_PUNCHCARD -> view.punchcard = range(a,31);
             default -> { return false; }
         }
         return true;
@@ -154,6 +155,18 @@ public final class ServerDebugger {
                 paused(record); range(a, 0xFFFF); range(b, 255);
                 if (!DebuggerSnapshots.writableIo(a)) throw new IllegalArgumentException("I/O address is read only");
                 loaded(machine).onWorker(cpu -> { cpu.io().write8(a, b); cpu.beforeInstruction(); return null; });
+            }
+            case PUNCHCARD_COMMAND -> {
+                paused(record); range(a,31); range(b,255); range(c,1);
+                if (Integer.bitCount(b) != 1) throw new IllegalArgumentException("One punchcard command required");
+                byte[] bytes = b == 2 || b == 8 ? HexFormat.of().parseHex(request.text().replace(" ","")) : new byte[0];
+                if ((b == 2 || b == 8) && bytes.length != 32) throw new IllegalArgumentException("Exactly 32 bytes required");
+                loaded(machine).onWorker(cpu -> {
+                    int base = 0x8200+a*64;
+                    cpu.io().write8(base+0x2c,c);
+                    for (int i=0;i<bytes.length;i++) cpu.io().write8(base+i,bytes[i]&255);
+                    cpu.io().write8(base+32,b); cpu.beforeInstruction(); return null;
+                });
             }
             case SEND_IRQ -> {
                 paused(record); range(a, 0xFFFF);
@@ -244,7 +257,8 @@ public final class ServerDebugger {
             var snapshot = new Snapshot(limit(name, 512), limit(status, 2048), "", session.rate, count, 0, new byte[256], 0, new byte[256], List.of(),
                     running, record.faulted, DebuggerProtocol.emptyDevices().withKeyboard(session.view.keyboard,
                             machine == null || machine.bridge() == null ? dervogel101.de.i86.runtime.KeyboardDevice.Snapshot.EMPTY
-                                    : machine.bridge().keyboardSnapshot(session.view.keyboard)), limit(log, 16384), images, false, state);
+                                    : machine.bridge().keyboardSnapshot(session.view.keyboard)).withPunchcard(session.view.punchcard,
+                                    machine == null || machine.bridge() == null ? new byte[64] : machine.bridge().punchcardSnapshot(session.view.punchcard), machine == null || machine.bridge() == null ? "" : machine.bridge().punchcardName(session.view.punchcard)), limit(log, 16384), images, false, state);
             boolean detailed = machine != null && machine.bridge() != null && record.powered && record.paused;
             if (detailed) {
                 var header = snapshot;

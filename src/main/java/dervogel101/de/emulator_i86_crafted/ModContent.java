@@ -40,6 +40,9 @@ public final class ModContent {
         registerBlock("sign_port", null);
         registerBlock("keyboard", null);
         registerBlock("rom_burner", null);
+        registerBlock("punchcard_reader", null);
+        registerBlock("punchcard_writer", null);
+        registerItem("punchcard_deck", 4);
         registerItem("rom_chip", 1);
         for (var material : new String[]{"silicon_wafer_material", "pcb_material", "memory_chip_material",
                 "blank_processing_material", "fpu_material", "antenna_array_material"}) registerItem(material, 64);
@@ -64,6 +67,7 @@ public final class ModContent {
                 : path.equals("sign_port") ? new PortBlock(properties, dervogel101.de.emulator_i86_crafted.server.storage.PortBindings.Kind.SIGN)
                 : path.equals("keyboard") ? new PortBlock(properties, dervogel101.de.emulator_i86_crafted.server.storage.PortBindings.Kind.KEYBOARD)
                 : path.equals("rom_burner") ? new RomBurnerBlock(properties)
+                : hardware == null && path.startsWith("punchcard_") ? new PunchcardBlock(properties, path.equals("punchcard_writer"))
                 : new MachineBlock(properties, hardware);
         var block = Registry.register(BuiltInRegistries.BLOCK, key, machine);
         BLOCKS.put(path, block);
@@ -77,7 +81,7 @@ public final class ModContent {
     private static Item registerItem(String path, int stackSize) {
         var key = ResourceKey.create(Registries.ITEM, id(path));
         var properties = new Item.Properties().setId(key).stacksTo(stackSize);
-        var item = Registry.register(BuiltInRegistries.ITEM, key, path.equals("rom_chip") ? new RomChipItem(properties) : new Item(properties));
+        var item = Registry.register(BuiltInRegistries.ITEM, key, path.equals("rom_chip") ? new RomChipItem(properties) : path.equals("punchcard_deck") ? new PunchcardDeckItem(properties) : new Item(properties));
         ITEMS.put(path, item);
         return item;
     }

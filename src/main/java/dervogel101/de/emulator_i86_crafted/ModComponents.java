@@ -14,6 +14,14 @@ import java.nio.ByteBuffer;
 public final class ModComponents {
     public static final DataComponentType<Boolean> CRUDE = Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE,
             ModContent.id("crude"), DataComponentType.<Boolean>builder().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build());
+    public static final DataComponentType<UUID> PUNCHCARD_ID = Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE,
+            ModContent.id("punchcard_id"), DataComponentType.<UUID>builder().persistent(UUIDUtil.CODEC).networkSynchronized(UUIDUtil.STREAM_CODEC).build());
+    public static final DataComponentType<Integer> PUNCHCARD_COUNT = Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE,
+            ModContent.id("punchcard_count"), DataComponentType.<Integer>builder().persistent(Codec.intRange(0,256)).networkSynchronized(ByteBufCodecs.VAR_INT).build());
+    public static final DataComponentType<String> PUNCHCARD_NAME = Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE,
+            ModContent.id("punchcard_name"), DataComponentType.<String>builder().persistent(Codec.STRING).networkSynchronized(ByteBufCodecs.STRING_UTF8).build());
+    public static final DataComponentType<String> PUNCHCARD_DESCRIPTION = Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE,
+            ModContent.id("punchcard_description"), DataComponentType.<String>builder().persistent(Codec.STRING).networkSynchronized(ByteBufCodecs.STRING_UTF8).build());
     public static final Codec<ByteBuffer> DISK_CODEC = Codec.BYTE_BUFFER.validate(bytes -> bytes.remaining() == IoStorageDevice.SIZE
             ? DataResult.success(bytes) : DataResult.error(() -> "Disk must be exactly 128 KiB"));
     public static final DataComponentType<ByteBuffer> DISK_CONTENTS = Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE,

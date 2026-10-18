@@ -34,6 +34,7 @@ do not yet describe those capabilities fully.
 | Atomic Clock | 1 | Yes | Timers and mapped host clock |
 | Interrupt Controller | 1 | Yes | Device IRQ queue and device-management GUI |
 | Keyboard Controller | 1 | Yes | Eight external keyboards, each with an eight-byte input FIFO |
+| Punchcard Controller | 1 | Yes | 16 external readers and 16 writers; 256-byte cards, decks up to 64 KiB |
 | Access Terminal | 1 | Yes | CPU output/log and exceptions |
 | GPU Array | 4 | Yes | 32 sign ports per array |
 | GPIO Controller | 4 | No | 32 redstone ports per controller; minimum one controller |
@@ -348,3 +349,10 @@ do not yet describe those capabilities fully.
 ## Keyboards
 
 See [Keyboard](keyboard.md) for capture, layouts, reserved bytes, FIFO/ACK timing, IRQs and the C library. One optional controller enables eight devices; it uses an existing wall position.
+
+## Punchcards
+
+See [Punchcards](punchcards.md) for deck items, hopper flow, one-row-per-tick I/O,
+IRQ reasons, persistent `.pdeck` files, reactive tray models, standalone tools, and
+the C API. One optional controller uses an existing wall position. Readers and
+writers each have slots 0–15 and four horizontal orientations.

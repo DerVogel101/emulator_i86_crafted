@@ -13,6 +13,7 @@ BLOCKS = (
     "gpu_array", "gpio_controller", "harddisk_array", "ender_tunnel_array",
     "integrated_storage", "power_supply", "reset_port", "nmi_port", "test_port",
     "super_structure", "redstone_port", "sign_port", "rom_burner", "keyboard_controller", "keyboard",
+    "punchcard_controller", "punchcard_reader", "punchcard_writer",
 )
 COLORS = {
     "cyan": (85, 218, 225), "mint": (121, 227, 179), "amber": (244, 181, 86),
@@ -20,7 +21,7 @@ COLORS = {
 }
 ACCENTS = dict(zip(BLOCKS, (
     "cyan", "cyan", "amber", "mint", "blue", "cyan", "amber", "violet",
-    "mint", "amber", "red", "amber", "blue", "cyan", "cyan", "mint", "amber", "mint", "cyan",
+    "mint", "amber", "red", "amber", "blue", "cyan", "cyan", "mint", "amber", "mint", "cyan", "mint", "cyan", "amber",
 )))
 MATERIALS = {
     "body": (31, 38, 47), "frame": (55, 65, 76), "trim": (105, 119, 130),
@@ -331,6 +332,23 @@ def machine(id, input_mode=True, mount="wall"):
             for column in range(3):
                 e += [front(10.9 + column * .78, 6.3 + row * 1.35, .58, 1.0, "trim", .12)]
         e += [front(4.2, 5.1, 5.6, .85, "ceramic", .12), front(11.7, 5.1, 1.5, .85, "trim", .12)]
+    elif id.startswith("punchcard_"):
+        e += [front(2.8, 4.3, 10.4, 8.3, "black", .45)]
+        for y in (5.2, 9.7):
+            e += [front(3.4, y, 9.2, .65, "trim", .23), front(3.8, y+.7, 8.4, .8, "black", .2)]
+        for x in (3.5, 11.7):
+            e += [front(x, 6.3, .7, 2.7, "copper", .17)]
+        if id == "punchcard_controller":
+            for x in range(4):
+                socket(e, 4+x*2, 7, "pcb", width=1.2, height=1.2)
+        else:
+            e += [front(4.5, 7.1, 7, .6, "cyan_dim" if id.endswith("reader") else "amber_dim", .15)]
+            e += [front(5.5, 8, 5, .35, "ceramic", .15)]
+            glyph = ("11110", "10001", "11110", "10100", "10010") if id.endswith("reader") else ("10001", "10001", "10101", "10101", "01010")
+            for y, row in enumerate(glyph):
+                for x, pixel in enumerate(row):
+                    if pixel == "1":
+                        e.append(front(10.7+(4-x)*.22, 8.4-y*.22, .18, .18, "ceramic", .1, .04))
     elif id == "rom_burner":
         socket(e, 3, 6.2, "trim", width=10, height=5.6)
         for x in (4.2, 5.7, 7.2, 8.7, 10.2, 11.7):
@@ -427,6 +445,14 @@ def block_models():
         if id == "redstone_port":
             export_json("models/block", id + "_off", {"parent": NS + "block/redstone_port_input_off"})
         export_json("blockstates", id, {"multipart": parts})
+        if id in ("punchcard_reader", "punchcard_writer"):
+            for suffix, y, condition in (("_loaded", 10.7, "loaded"), ("_output", 6.2, "output")):
+                cards = [front(4, y+i*.22, 8, .18, "ceramic", .1) for i in range(3)]
+                export_json("models/block",id+suffix,model(cards))
+                for facing in facings:
+                    parts.append({"when":{"facing":facing,condition:"true"},"apply":{"model":NS+"block/"+id+suffix,**orientation(facing)}})
+            export_json("models/block",id+"_active",model([front(4,8.7,8,.5,"ceramic",.1)]))
+            export_json("blockstates",id,{"multipart":parts})
         item = {"parent": NS + "block/" + id + "_off"}
         if id == "sign_port":
             item["display"] = {"gui": {"rotation": [30, 45, 0], "scale": [0.625, 0.625, 0.625]}}
@@ -444,6 +470,12 @@ ITEM_DISPLAY = {
 
 
 def item_models():
+    cards = [box((3,4+i*.7,4),(13,4.5+i*.7,12),"ceramic") for i in range(4)]
+    for x in range(5):
+        cards.append(box((4+x*1.7,6.61,5.3),(4.6+x*1.7,6.63,6),"black"))
+    deck = model(cards); deck["display"] = ITEM_DISPLAY
+    export_json("models/item","punchcard_deck",deck)
+    export_json("items","punchcard_deck",{"model":{"type":"minecraft:model","model":NS+"item/punchcard_deck"}})
     for programmed in (False, True):
         e = [box((3, 5, 4), (13, 7, 12), "pcb"), box((4, 7, 5), (12, 9, 11), "black"),
              box((5, 9, 6), (11, 9.25, 10), "cyan_dim" if programmed else "ceramic")]
@@ -533,7 +565,7 @@ def main():
     (ASSETS / "models/block/redstone_port_on.json").unlink(missing_ok=True)
     for name in ("sign_port_on", "sign_port_active"):
         (ASSETS / "models/block" / (name + ".json")).unlink(missing_ok=True)
-    print(f"Exported {len(BLOCKS)} modeled machines, 4 modeled items and 6 flat materials with authored pixel art.")
+    print(f"Exported {len(BLOCKS)} modeled machines, 5 modeled items and 6 flat materials with authored pixel art.")
 
 
 if __name__ == "__main__":

@@ -23,6 +23,7 @@ public final class ServerMachines {
     private static final Map<MinecraftServer, ServerMachines> SERVERS = new IdentityHashMap<>();
     public final WorldRecords records;
     public final RomLibrary roms;
+    public final PunchcardLibrary punchcards;
     public final DebuggerLeases leases = new DebuggerLeases();
     public final ServerPorts ports = new ServerPorts(this);
     public final ServerKeyboards keyboards = new ServerKeyboards();
@@ -71,6 +72,7 @@ public final class ServerMachines {
     private ServerMachines(MinecraftServer server) throws IOException {
         folder = server.getWorldPath(LevelResource.ROOT).resolve("data").resolve(Emulator_i86_crafted.MOD_ID);
         store = new WorldStore(folder); records = store.load(); roms = new RomLibrary(folder.resolve("roms"));
+        punchcards = new PunchcardLibrary(folder.resolve("punchcards"));
         config = MachineConfig.load(FabricLoader.getInstance().getConfigDir().resolve(Emulator_i86_crafted.MOD_ID + ".properties"));
         for (var record : records.mainframes()) {
             for (var location : record.controllers) positions.put(location, record);
@@ -108,6 +110,10 @@ public final class ServerMachines {
             if (machines != null && entity instanceof dervogel101.de.emulator_i86_crafted.block.PortBlockEntity port) machines.ports.unload(port);
         });
         net.fabricmc.fabric.api.event.player.UseBlockCallback.EVENT.register((player, level, hand, hit) -> {
+            if (!player.isSpectator() && player.isShiftKeyDown() && level.hasChunkAt(hit.getBlockPos()) && level.getBlockEntity(hit.getBlockPos()) instanceof dervogel101.de.emulator_i86_crafted.block.PunchcardBlockEntity punchcard) {
+                if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer && player.isWithinBlockInteractionRange(hit.getBlockPos(),0) && level.mayInteract(player,hit.getBlockPos())) PortDialogs.open(serverPlayer,punchcard);
+                return net.minecraft.world.InteractionResult.SUCCESS;
+            }
             if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer && !player.isSpectator()
                     && hand == net.minecraft.world.InteractionHand.MAIN_HAND)
                 get(serverPlayer.level().getServer()).ports.signClick(serverPlayer, hit.getBlockPos());

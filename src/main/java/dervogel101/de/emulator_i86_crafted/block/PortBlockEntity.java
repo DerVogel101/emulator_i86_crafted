@@ -10,7 +10,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.*;
 
-public final class PortBlockEntity extends BlockEntity {
+public class PortBlockEntity extends BlockEntity {
     private PortBindings.Settings settings = PortBindings.Settings.unbound();
     private int signal;
     public String status = "Unbound";
@@ -23,6 +23,7 @@ public final class PortBlockEntity extends BlockEntity {
     public Integer indicatorSignal;
 
     public PortBlockEntity(BlockPos pos, BlockState state) { super(ModBlockEntities.PORT, pos, state); }
+    protected PortBlockEntity(net.minecraft.world.level.block.entity.BlockEntityType<?> type, BlockPos pos, BlockState state) { super(type, pos, state); }
     public PortBindings.Kind kind() { return ((PortBlock) getBlockState().getBlock()).kind(); }
     public PortBindings.Settings settings() { return settings; }
     public void settings(PortBindings.Settings next) {

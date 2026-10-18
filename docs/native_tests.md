@@ -4,6 +4,11 @@ The user accepted Minecraft's EULA for this project's isolated development tests
 
 ## Commands
 
+Punchcards add native server/client checks for hopper backpressure, pickup,
+shift-click, native NBT restore, shared readers, deduplication, and tray/work models.
+The standalone/core suite additionally runs `PunchcardRomTest` when
+`PUNCHCARD_TEST_ROM` points to the IA-16 project's `build/punchcard_test.bin`.
+
 Select JDK 25, then run:
 
 ```powershell

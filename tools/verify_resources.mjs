@@ -61,6 +61,9 @@ for (const [id, model] of models) {
     assert.equal(resolved.textures.light, namespace + ':block/signal_cyan');
     const pin = resolved.elements[0];
     assert.ok(Math.abs(pin.to[0] - pin.from[0] - 0.8) < 0.000001 && Math.abs(pin.to[1] - pin.from[1] - 0.8) < 0.000001, id + ': physical pin LED must match the 0.8-pixel segments');
+  } else if (/punchcard_(reader|writer)_active$/.test(id)) {
+    assert.equal(resolved.elements?.length, 1, id + ': working transport exposes one card');
+    assert.ok(resolved.elements.every(element => !element.light_emission), id + ': the card is not an LED');
   } else if (id.endsWith('_active') || id.endsWith('/super_structure_on'))
     assert.equal(resolved.elements?.length, 0, id + ': LEDs must use client activity rendering');
   else if (!id.endsWith('_on')) assert.ok(resolved.elements?.length, id + ': must use real geometry');
@@ -101,14 +104,15 @@ for (const file of await readdir(resolve(assets, 'blockstates'))) {
   const facings = ['north', 'east', 'south', 'west', ...(['redstone_port', 'sign_port', 'keyboard'].includes(id) ? ['up', 'down'] : [])];
   for (const part of multipart) {
     await localReference(part.apply.model, 'models', '.json');
-    assert.ok(Object.keys(part.when).every(key => ['facing', 'powered', 'active', 'input'].includes(key)));
+    assert.ok(Object.keys(part.when).every(key => ['facing', 'powered', 'active', 'input', 'loaded', 'output'].includes(key)));
     assert.ok(!part.apply.uvlock, id + ': front details rotate with the face');
   }
   for (const facing of facings) for (const powered of [false, true]) for (const active of [false, true]) {
-    for (const input of (id === 'redstone_port' ? [false, true] : [true])) {
-      const state = { facing, powered: String(powered), active: String(active), input: String(input) };
+    const mediaStates = ['punchcard_reader', 'punchcard_writer'].includes(id) ? [false, true] : [false];
+    for (const loaded of mediaStates) for (const output of mediaStates) for (const input of (id === 'redstone_port' ? [false, true] : [true])) {
+      const state = { facing, powered: String(powered), active: String(active), input: String(input), loaded: String(loaded), output: String(output) };
       const selected = multipart.filter(part => Object.entries(part.when).every(([key, value]) => state[key] === value));
-      assert.equal(selected.length, 1 + Number(powered) + Number(active), id + ': incomplete/duplicate state ' + JSON.stringify(state));
+      assert.equal(selected.length, 1 + Number(powered) + Number(active) + Number(loaded) + Number(output), id + ': incomplete/duplicate state ' + JSON.stringify(state));
       if (id !== 'sign_port') assert.ok(inherited(selected[0].apply.model).elements.length >= 16, id + ': missing housing/device geometry');
       const horizontal = ['north', 'east', 'south', 'west'].indexOf(facing) * 90;
       const rotation = id === 'sign_port'
