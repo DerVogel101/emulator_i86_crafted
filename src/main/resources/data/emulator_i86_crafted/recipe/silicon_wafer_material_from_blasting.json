@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:blasting",
+  "experience": 0,
+  "cookingtime": 400,
+  "ingredient": "minecraft:smooth_quartz",
+  "result": {
+    "id": "emulator_i86_crafted:silicon_wafer_material"
+  },
+  "category": "misc"
+}

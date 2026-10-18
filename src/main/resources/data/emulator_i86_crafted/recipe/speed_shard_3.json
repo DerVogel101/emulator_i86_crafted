@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#H#",
+    "oSo",
+    "=N="
+  ],
+  "key": {
+    "#": "minecraft:dragon_breath",
+    "H": "minecraft:heavy_core",
+    "o": "minecraft:echo_shard",
+    "S": "emulator_i86_crafted:speed_shard_2",
+    "=": "minecraft:netherite_ingot",
+    "N": "minecraft:nether_star"
+  },
+  "result": {
+    "id": "emulator_i86_crafted:speed_shard_3"
+  },
+  "category": "misc",
+  "group": "emulator_i86_crafted:speed_shard_3"
+}

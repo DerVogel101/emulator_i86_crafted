@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " RA",
+    "CFC",
+    " S "
+  ],
+  "key": {
+    "R": "minecraft:redstone_block",
+    "C": "minecraft:comparator",
+    "A": "emulator_i86_crafted:antenna_array_material",
+    "F": "emulator_i86_crafted:fpu_material",
+    "S": "emulator_i86_crafted:super_structure"
+  },
+  "result": {
+    "id": "emulator_i86_crafted:redstone_port"
+  }
+}

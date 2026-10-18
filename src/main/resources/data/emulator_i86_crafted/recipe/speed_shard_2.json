@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#o#",
+    "oSo",
+    "#A#"
+  ],
+  "key": {
+    "#": "minecraft:breeze_rod",
+    "o": "minecraft:diamond_block",
+    "S": "emulator_i86_crafted:speed_shard_1",
+    "A": "minecraft:amethyst_block"
+  },
+  "result": {
+    "id": "emulator_i86_crafted:speed_shard_2"
+  },
+  "category": "misc"
+}

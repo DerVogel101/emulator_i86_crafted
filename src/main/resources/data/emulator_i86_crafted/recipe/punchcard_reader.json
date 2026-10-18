@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#OA",
+    "PE ",
+    "#SF"
+  ],
+  "key": {
+    "#": "minecraft:hopper",
+    "O": "minecraft:observer",
+    "A": "emulator_i86_crafted:antenna_array_material",
+    "P": "minecraft:piston",
+    "E": "minecraft:ender_eye",
+    "S": "emulator_i86_crafted:super_structure",
+    "F": "emulator_i86_crafted:fpu_material"
+  },
+  "result": {
+    "id": "emulator_i86_crafted:punchcard_reader"
+  },
+  "category": "misc"
+}

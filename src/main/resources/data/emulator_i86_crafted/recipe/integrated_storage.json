@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " # ",
+    "#F#",
+    " S "
+  ],
+  "key": {
+    "#": "emulator_i86_crafted:memory_chip_material",
+    "F": "emulator_i86_crafted:fpu_material",
+    "S": "emulator_i86_crafted:super_structure"
+  },
+  "result": {
+    "id": "emulator_i86_crafted:integrated_storage"
+  },
+  "category": "misc"
+}

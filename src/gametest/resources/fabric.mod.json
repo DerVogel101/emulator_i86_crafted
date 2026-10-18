@@ -6,6 +6,7 @@
   "environment": "server",
   "entrypoints": {
     "fabric-gametest": [
+      "dervogel101.de.emulator_i86_crafted.RecipeGameTests",
       "dervogel101.de.emulator_i86_crafted.PortGameTests",
       "dervogel101.de.emulator_i86_crafted.BurnerGameTests",
       "dervogel101.de.emulator_i86_crafted.MachineGameTests",

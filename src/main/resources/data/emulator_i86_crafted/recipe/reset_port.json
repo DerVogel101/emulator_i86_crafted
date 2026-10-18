@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " R ",
+    "CFC",
+    " S "
+  ],
+  "key": {
+    "R": "minecraft:stone_button",
+    "C": "minecraft:redstone",
+    "F": "emulator_i86_crafted:fpu_material",
+    "S": "emulator_i86_crafted:super_structure"
+  },
+  "result": {
+    "id": "emulator_i86_crafted:reset_port"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GGG",
+    "MFM",
+    "PSP"
+  ],
+  "key": {
+    "G": "minecraft:tinted_glass",
+    "M": "emulator_i86_crafted:memory_chip_material",
+    "F": "emulator_i86_crafted:fpu_material",
+    "P": "emulator_i86_crafted:pcb_material",
+    "S": "emulator_i86_crafted:super_structure"
+  },
+  "result": {
+    "id": "emulator_i86_crafted:access_terminal"
+  }
+}

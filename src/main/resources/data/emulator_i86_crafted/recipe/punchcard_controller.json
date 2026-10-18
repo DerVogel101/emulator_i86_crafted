@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " OA",
+    "MFM",
+    " S "
+  ],
+  "key": {
+    "O": "minecraft:observer",
+    "A": "emulator_i86_crafted:antenna_array_material",
+    "M": "emulator_i86_crafted:memory_chip_material",
+    "F": "emulator_i86_crafted:fpu_material",
+    "S": "emulator_i86_crafted:super_structure"
+  },
+  "result": {
+    "id": "emulator_i86_crafted:punchcard_controller"
+  }
+}

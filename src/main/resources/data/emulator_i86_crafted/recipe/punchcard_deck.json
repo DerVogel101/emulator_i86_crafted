@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#B ",
+    "#B~",
+    "#B "
+  ],
+  "key": {
+    "#": "minecraft:iron_nugget",
+    "B": "minecraft:book",
+    "~": "minecraft:string"
+  },
+  "result": {
+    "id": "emulator_i86_crafted:punchcard_deck",
+    "count": 4
+  },
+  "category": "misc"
+}

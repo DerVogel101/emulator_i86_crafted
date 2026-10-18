@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "emulator_i86_crafted:item/silicon_wafer_material"
+  }
+}

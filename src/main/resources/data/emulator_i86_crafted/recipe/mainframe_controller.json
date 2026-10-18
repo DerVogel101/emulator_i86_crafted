@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#C#",
+    "#S#",
+    " M "
+  ],
+  "key": {
+    "#": "emulator_i86_crafted:fpu_material",
+    "C": "minecraft:crafter",
+    "S": "emulator_i86_crafted:super_structure",
+    "M": "emulator_i86_crafted:memory_chip_material"
+  },
+  "result": {
+    "id": "emulator_i86_crafted:mainframe_controller"
+  },
+  "category": "misc"
+}

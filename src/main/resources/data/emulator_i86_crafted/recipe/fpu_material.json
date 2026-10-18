@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " . ",
+    "#B#",
+    " P "
+  ],
+  "key": {
+    ".": "minecraft:gold_nugget",
+    "#": "minecraft:copper_chain",
+    "B": "emulator_i86_crafted:blank_processing_material",
+    "P": "emulator_i86_crafted:pcb_material"
+  },
+  "result": {
+    "id": "emulator_i86_crafted:fpu_material"
+  },
+  "category": "misc"
+}

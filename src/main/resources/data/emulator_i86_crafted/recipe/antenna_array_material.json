@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "# I",
+    "#/I",
+    "=P="
+  ],
+  "key": {
+    "#": "minecraft:copper_chain",
+    "I": "minecraft:iron_chain",
+    "/": "minecraft:redstone_torch",
+    "=": "minecraft:iron_ingot",
+    "P": "emulator_i86_crafted:pcb_material"
+  },
+  "result": {
+    "id": "emulator_i86_crafted:antenna_array_material"
+  },
+  "category": "misc"
+}

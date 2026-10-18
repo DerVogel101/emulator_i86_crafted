@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " # ",
+    "HC."
+  ],
+  "key": {
+    "#": "minecraft:green_dye",
+    "H": "minecraft:honeycomb",
+    "C": "minecraft:copper_trapdoor",
+    ".": "minecraft:redstone"
+  },
+  "result": {
+    "id": "emulator_i86_crafted:pcb_material",
+    "count": 2
+  },
+  "category": "misc"
+}

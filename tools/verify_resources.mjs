@@ -31,10 +31,15 @@ function inherited(id, visiting = new Set()) {
 }
 for (const [id, model] of models) {
   if (model.parent) {
-    if (model.parent.startsWith('minecraft:')) assert.equal(model.parent, 'minecraft:block/block');
+    if (model.parent.startsWith('minecraft:')) assert.ok(['minecraft:block/block', 'minecraft:item/generated'].includes(model.parent));
     else await localReference(model.parent, 'models', '.json');
   }
   const resolved = inherited(id);
+  if (model.parent === 'minecraft:item/generated') {
+    assert.ok(id.includes(':item/') && resolved.textures?.layer0, id + ': flat item needs a texture');
+    await localReference(resolved.textures.layer0, 'textures', '.png');
+    continue;
+  }
   const signPort = id.includes(':block/sign_port');
   const elements = (resolved.elements ?? []).map(element => {
     const [a, b] = [element.from, element.to];
@@ -155,7 +160,8 @@ async function itemReference(definition) {
   } else {
     assert.equal(definition.type, 'minecraft:model');
     await localReference(definition.model, 'models', '.json');
-    assert.ok(inherited(definition.model).elements.length, 'Item must be three dimensional');
+    const model = inherited(definition.model);
+    assert.ok(model.elements?.length || model.parent === 'minecraft:item/generated', 'Item needs geometry or a generated sprite');
   }
 }
 for (const file of items) {
@@ -175,5 +181,5 @@ for (const [id, expected] of carried) {
   assert.equal(copy.source, 'block_entity');
   assert.deepEqual(new Set(copy.include), new Set(expected), id + ': portable components');
 }
-console.log('Resource checks passed: ' + blockCount + ' 3D blocks, ' + items.length + ' 3D items, ' + animations
+console.log('Resource checks passed: ' + blockCount + ' 3D blocks, ' + items.length + ' items, ' + animations
   + ' interpolated textures; all states, model references and portable drops');

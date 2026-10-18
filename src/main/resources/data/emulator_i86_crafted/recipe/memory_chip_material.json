@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " # ",
+    "#S#",
+    " # "
+  ],
+  "key": {
+    "#": "minecraft:copper_bulb",
+    "S": "emulator_i86_crafted:silicon_wafer_material"
+  },
+  "result": {
+    "id": "emulator_i86_crafted:memory_chip_material",
+    "count": 2
+  },
+  "category": "misc"
+}

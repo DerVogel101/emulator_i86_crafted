@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " Q ",
+    "CFC",
+    "PSP"
+  ],
+  "key": {
+    "Q": "minecraft:quartz",
+    "C": "minecraft:copper_ingot",
+    "F": "emulator_i86_crafted:fpu_material",
+    "P": "emulator_i86_crafted:pcb_material",
+    "S": "emulator_i86_crafted:super_structure"
+  },
+  "result": {
+    "id": "emulator_i86_crafted:rom_burner"
+  }
+}

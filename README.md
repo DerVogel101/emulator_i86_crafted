@@ -10,7 +10,7 @@ and physical signal states have separate lights; see [artwork](art/README.md).
 
 Use Java 25, Fabric Loader 0.19.5 or newer, and Fabric API for Minecraft 26.3. Install `emulator_i86_crafted-1.0-SNAPSHOT.jar` on both client and server. The emulator, launcher views and named sign font are bundled. Desktop Java with Swing is required on clients opening the debugger or ROM file picker.
 
-Recipes are deferred. Items are available in the creative **i86 Mainframes** tab (ROM chip icon) or through `/give` with the `emulator_i86_crafted:` namespace.
+All items have [survival crafting recipes](docs/crafting.md), including six crafting materials and an alternate crude Speed Shard III. Items are also available in the creative **i86 Mainframes** tab (ROM chip icon) or through `/give` with the `emulator_i86_crafted:` namespace.
 
 1. Build a 7 × 3 × 1 wall inside one chunk. Face every component in the same horizontal direction. Include one Controller, Power Supply, Reset Port, NMI Port, TEST Port and at least one GPIO Controller. Fill unused positions with Super Structure. Optional devices and their maximum counts are in [the behavior specification](docs/mod_behavior.md).
 2. While power is off, right-click the controller to install a burned ROM chip and a speed shard. Use a ROM Burner to upload an exactly 256 KiB image and burn a blank chip. See [ROM burning](docs/rom_burner.md).

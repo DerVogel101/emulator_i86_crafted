@@ -12,6 +12,8 @@ import java.util.UUID;
 import java.nio.ByteBuffer;
 
 public final class ModComponents {
+    public static final DataComponentType<Boolean> CRUDE = Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE,
+            ModContent.id("crude"), DataComponentType.<Boolean>builder().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build());
     public static final Codec<ByteBuffer> DISK_CODEC = Codec.BYTE_BUFFER.validate(bytes -> bytes.remaining() == IoStorageDevice.SIZE
             ? DataResult.success(bytes) : DataResult.error(() -> "Disk must be exactly 128 KiB"));
     public static final DataComponentType<ByteBuffer> DISK_CONTENTS = Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE,

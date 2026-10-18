@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#S#",
+    "#S#",
+    "#.#"
+  ],
+  "key": {
+    "#": "minecraft:gold_ingot",
+    "S": "emulator_i86_crafted:silicon_wafer_material",
+    ".": "minecraft:redstone_block"
+  },
+  "result": {
+    "id": "emulator_i86_crafted:blank_processing_material"
+  },
+  "category": "misc"
+}

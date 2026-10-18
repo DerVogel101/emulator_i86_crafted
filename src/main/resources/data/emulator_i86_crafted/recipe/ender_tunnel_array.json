@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#F#",
+    "EoE",
+    "MSA"
+  ],
+  "key": {
+    "#": "minecraft:echo_shard",
+    "F": "emulator_i86_crafted:fpu_material",
+    "E": "minecraft:end_crystal",
+    "o": "emulator_i86_crafted:speed_shard_1",
+    "M": "emulator_i86_crafted:memory_chip_material",
+    "S": "emulator_i86_crafted:super_structure",
+    "A": "emulator_i86_crafted:antenna_array_material"
+  },
+  "result": {
+    "id": "emulator_i86_crafted:ender_tunnel_array"
+  },
+  "category": "misc"
+}

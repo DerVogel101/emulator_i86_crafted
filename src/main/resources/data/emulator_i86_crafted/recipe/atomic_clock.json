@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " Q ",
+    "CFC",
+    " S "
+  ],
+  "key": {
+    "Q": "minecraft:amethyst_shard",
+    "C": "minecraft:clock",
+    "F": "emulator_i86_crafted:fpu_material",
+    "S": "emulator_i86_crafted:super_structure"
+  },
+  "result": {
+    "id": "emulator_i86_crafted:atomic_clock"
+  }
+}

@@ -471,11 +471,57 @@ def item_models():
         export_json("items", id, {"model": {"type": "minecraft:model", "model": NS + "item/" + id}})
 
 
+def material_items():
+    folder = ASSETS / "textures/item"
+    folder.mkdir(parents=True, exist_ok=True)
+    for id in ("silicon_wafer_material", "pcb_material", "memory_chip_material",
+               "blank_processing_material", "fpu_material", "antenna_array_material"):
+        image = Image.new("RGBA", (16, 16))
+        draw = ImageDraw.Draw(image)
+        if id == "silicon_wafer_material":
+            draw.ellipse((1, 1, 14, 14), fill="#435d87", outline="#a8c3d4")
+            for x in (4, 7, 10):
+                draw.line((x, 3, x, 12), fill="#718eaf")
+                draw.line((3, x, 12, x), fill="#718eaf")
+            draw.rectangle((7, 13, 8, 14), fill=(0, 0, 0, 0))
+        elif id == "pcb_material":
+            draw.rectangle((1, 2, 14, 13), fill="#236b48", outline="#143e31")
+            for y in (4, 8, 11):
+                draw.line((3, y, 12, y), fill="#d3b761")
+            draw.line((4, 4, 4, 11), fill="#d3b761")
+            draw.line((11, 4, 11, 11), fill="#d3b761")
+            draw.rectangle((6, 5, 9, 9), fill="#283240", outline="#71858d")
+        elif id == "antenna_array_material":
+            draw.rectangle((3, 12, 12, 14), fill="#236b48", outline="#d3b761")
+            draw.line((8, 1, 8, 12), fill="#b9c8d0", width=2)
+            for y in (3, 6, 9):
+                draw.line((3, y - 2, 12, y + 2), fill="#cf925c")
+                draw.line((3, y + 2, 12, y - 2), fill="#b9c8d0")
+        else:
+            for n in (4, 7, 10):
+                draw.rectangle((n, 1, n + 1, 14), fill="#cda25d")
+                draw.rectangle((1, n, 14, n + 1), fill="#cda25d")
+            draw.rectangle((3, 3, 12, 12), fill="#283240", outline="#657985")
+            if id == "memory_chip_material":
+                for y in (5, 8):
+                    draw.rectangle((5, y, 10, y + 1), fill="#8099b0")
+            elif id == "blank_processing_material":
+                draw.rectangle((5, 5, 10, 10), fill="#536e95", outline="#dfb85e")
+            else:
+                draw.rectangle((5, 5, 10, 10), fill="#b9c8d0", outline="#dfb85e")
+                draw.line((6, 7, 9, 7), fill="#435d87")
+                draw.line((7, 6, 7, 9), fill="#435d87")
+        image.save(folder / (id + ".png"))
+        export_json("models/item", id, {"parent": "minecraft:item/generated", "textures": {"layer0": NS + "item/" + id}})
+        export_json("items", id, {"model": {"type": "minecraft:model", "model": NS + "item/" + id}})
+
+
 def main():
     (ASSETS / "textures/block").mkdir(parents=True, exist_ok=True)
     pixel_textures()
     block_models()
     item_models()
+    material_items()
     # Delete only the explicitly replaced placeholder resources.
     for id in BLOCKS:
         for suffix in ("_off.png", "_on.png", "_on.png.mcmeta"):
@@ -487,7 +533,7 @@ def main():
     (ASSETS / "models/block/redstone_port_on.json").unlink(missing_ok=True)
     for name in ("sign_port_on", "sign_port_active"):
         (ASSETS / "models/block" / (name + ".json")).unlink(missing_ok=True)
-    print(f"Exported {len(BLOCKS)} modeled machines and 4 modeled items with authored pixel materials.")
+    print(f"Exported {len(BLOCKS)} modeled machines, 4 modeled items and 6 flat materials with authored pixel art.")
 
 
 if __name__ == "__main__":

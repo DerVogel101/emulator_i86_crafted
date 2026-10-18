@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " o ",
+    "#B#",
+    " P "
+  ],
+  "key": {
+    "o": "minecraft:ender_pearl",
+    "#": "minecraft:copper_block",
+    "B": "emulator_i86_crafted:blank_processing_material",
+    "P": "emulator_i86_crafted:pcb_material"
+  },
+  "result": {
+    "id": "emulator_i86_crafted:speed_shard_1"
+  },
+  "category": "misc"
+}

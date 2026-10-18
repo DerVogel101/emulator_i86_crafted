@@ -24,5 +24,11 @@
   "tooltip.emulator_i86_crafted.steps_per_tick": "Steps per tick: %s",
   "tooltip.emulator_i86_crafted.batches_per_tick": "Batches per tick: %s",
   "block.emulator_i86_crafted.keyboard": "Keyboard",
-  "block.emulator_i86_crafted.keyboard_controller": "Keyboard Controller"
+  "block.emulator_i86_crafted.keyboard_controller": "Keyboard Controller",
+  "item.emulator_i86_crafted.silicon_wafer_material": "Silicon Wafer",
+  "item.emulator_i86_crafted.pcb_material": "Printed Circuit Board",
+  "item.emulator_i86_crafted.memory_chip_material": "Memory Chip",
+  "item.emulator_i86_crafted.blank_processing_material": "Blank Processing Material",
+  "item.emulator_i86_crafted.fpu_material": "FPU",
+  "item.emulator_i86_crafted.antenna_array_material": "Antenna Array"
 }

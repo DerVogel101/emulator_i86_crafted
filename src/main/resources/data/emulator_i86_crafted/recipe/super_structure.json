@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#=#",
+    "ICI",
+    "#=#"
+  ],
+  "key": {
+    "#": "minecraft:iron_ingot",
+    "=": "minecraft:copper_ingot",
+    "I": "minecraft:iron_bars",
+    "C": "minecraft:copper_chain"
+  },
+  "result": {
+    "id": "emulator_i86_crafted:super_structure",
+    "count": 2
+  },
+  "category": "misc"
+}

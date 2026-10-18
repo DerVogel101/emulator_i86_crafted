@@ -41,6 +41,8 @@ public final class ModContent {
         registerBlock("keyboard", null);
         registerBlock("rom_burner", null);
         registerItem("rom_chip", 1);
+        for (var material : new String[]{"silicon_wafer_material", "pcb_material", "memory_chip_material",
+                "blank_processing_material", "fpu_material", "antenna_array_material"}) registerItem(material, 64);
         SPEED_SHARDS.put(registerItem("speed_shard_1", 1), ShardSpeed.TIER_1);
         SPEED_SHARDS.put(registerItem("speed_shard_2", 1), ShardSpeed.TIER_2);
         SPEED_SHARDS.put(registerItem("speed_shard_3", 1), ShardSpeed.TIER_3);

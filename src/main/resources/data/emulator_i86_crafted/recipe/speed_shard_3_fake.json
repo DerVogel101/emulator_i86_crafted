@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#C#",
+    "oSo",
+    "NsN"
+  ],
+  "key": {
+    "#": "minecraft:glowstone_dust",
+    "C": "minecraft:crying_obsidian",
+    "o": "minecraft:amethyst_shard",
+    "S": "emulator_i86_crafted:speed_shard_2",
+    "N": "minecraft:netherite_scrap",
+    "s": "minecraft:soul_lantern"
+  },
+  "result": {
+    "id": "emulator_i86_crafted:speed_shard_3",
+    "components": {
+      "emulator_i86_crafted:crude": true
+    }
+  },
+  "category": "misc",
+  "group": "emulator_i86_crafted:speed_shard_3"
+}

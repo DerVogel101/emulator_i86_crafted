@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#M#",
+    " P "
+  ],
+  "key": {
+    "#": "minecraft:copper_nugget",
+    "M": "emulator_i86_crafted:memory_chip_material",
+    "P": "emulator_i86_crafted:pcb_material"
+  },
+  "result": {
+    "id": "emulator_i86_crafted:rom_chip"
+  },
+  "category": "misc"
+}
