@@ -143,7 +143,7 @@ for (const file of await readdir(resolve(assets, 'textures/block'))) {
   assert.equal(bytes.readUInt32BE(20), animation.height * 16);
   assert.equal(animation.interpolate, true, file + ': must interpolate smoothly');
   assert.ok(animation.frametime >= 3, file + ': animation should be restrained');
-  animations++;
+  if (!/_[ns]\.png\.mcmeta$/.test(file)) animations++;
 }
 assert.equal(animations, 10);
 const controller = inherited(namespace + ':block/mainframe_controller_on');

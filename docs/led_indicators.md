@@ -24,6 +24,10 @@ this indicator design. See [the artwork guide](../art/README.md) for the assets.
 
 ## Presentation
 
+Powered decorative screens and strips use their own batched emissive model pass;
+the activity LEDs below keep their existing packet-driven colors and fades. See
+[shader compatibility](shader_compatibility.md) for LabPBR and Integrated PBR+ behavior.
+
 Use one continuous right-aligned strip with four 0.8-model-pixel segments.
 The Sign Port centers this strip below the attachment light bars and has no
 separate display front. The strip follows wall, standing and hanging sign mounts.

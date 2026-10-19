@@ -76,7 +76,7 @@
           ]
         }
       },
-      "light_emission": 15
+      "shade": false
     },
     {
       "from": [
@@ -145,7 +145,7 @@
           ]
         }
       },
-      "light_emission": 15
+      "shade": false
     }
   ]
 }

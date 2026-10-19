@@ -212,6 +212,7 @@
           ]
         }
       },
+      "shade": false,
       "light_emission": 15
     },
     {
@@ -281,7 +282,7 @@
           ]
         }
       },
-      "light_emission": 15,
+      "shade": false,
       "rotation": {
         "origin": [
           8,
@@ -291,7 +292,8 @@
         "axis": "y",
         "angle": 45,
         "rescale": false
-      }
+      },
+      "light_emission": 15
     },
     {
       "from": [
@@ -360,7 +362,7 @@
           ]
         }
       },
-      "light_emission": 15,
+      "shade": false,
       "rotation": {
         "origin": [
           8,
@@ -370,7 +372,8 @@
         "axis": "z",
         "angle": 45,
         "rescale": false
-      }
+      },
+      "light_emission": 15
     },
     {
       "from": [
