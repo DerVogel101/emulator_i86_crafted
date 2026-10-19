@@ -135,6 +135,41 @@ def pixel_textures():
         }, indent=2) + "\n", encoding="utf-8")
 
 
+def pbr_textures():
+    folder = ASSETS / "textures/block"
+    surfaces = {
+        "trim": (144, 230, 0, 0), "screw": (160, 230, 0, 0),
+        "copper": (152, 234, 0, 0), "gold": (168, 231, 0, 0),
+        "ceramic": (112, 10, 0, 0), "pcb": (88, 10, 0, 0),
+        "screen": (144, 10, 0, 0), "black": (32, 10, 0, 0),
+    }
+    names = ["materials", "frame", "casing_side", "casing_back", "led", "signal_cyan"]
+    names += ["light_" + color for color in COLORS]
+    names += ["display_" + style for style in ("terminal", "clock", "tunnel", "controller")]
+    for name in names:
+        with Image.open(folder / (name + ".png")) as albedo:
+            specular = Image.new("RGBA", albedo.size, (72, 10, 0, 0))
+            if name == "materials":
+                draw = ImageDraw.Draw(specular)
+                for i, material in enumerate(MATERIALS):
+                    x, y = i % 4 * 16, i // 4 * 16
+                    draw.rectangle((x, y, x + 15, y + 15), fill=surfaces.get(material, (72, 10, 0, 0)))
+            elif name.startswith("display_"):
+                specular.paste((144, 10, 0, 180), (0, 0, *albedo.size))
+            elif name.startswith("light_") or name in ("led", "signal_cyan"):
+                specular.paste((96, 10, 0, 210), (0, 0, *albedo.size))
+            specular.save(folder / (name + "_s.png"))
+            # Flat DirectX normals, unoccluded material AO, and no invented displacement.
+            Image.new("RGBA", albedo.size, (128, 128, 255, 255)).save(folder / (name + "_n.png"))
+        metadata = folder / (name + ".png.mcmeta")
+        for suffix in ("_s", "_n"):
+            target = folder / (name + suffix + ".png.mcmeta")
+            if metadata.exists():
+                target.write_bytes(metadata.read_bytes())
+            else:
+                target.unlink(missing_ok=True)
+
+
 def box(lo, hi, material="panel", glow=False, rotation=None):
     face = {"texture": "#light" if glow else "#materials", "uv": [0, 0, 16, 16] if glow else UV[material]}
     element = {"from": list(lo), "to": list(hi), "faces": {d: dict(face) for d in ("north", "south", "east", "west", "up", "down")}}
@@ -143,7 +178,7 @@ def box(lo, hi, material="panel", glow=False, rotation=None):
         if (lo if coordinate == 0 else hi)[axis] == coordinate:
             element["faces"][direction]["cullface"] = direction
     if glow:
-        element["light_emission"] = 15
+        element["shade"] = False
     if rotation:
         element["rotation"] = {"origin": rotation[0], "axis": rotation[1], "angle": rotation[2], "rescale": False}
     return element
@@ -496,6 +531,10 @@ def item_models():
              box((7, 11, 7), (9, 13, 9), glow=True, rotation=([8, 12, 8], "z", 45))]
         for i in range(tier):
             e += [box((5 + i * 2, 2.5, 3.65), (6 + i * 2, 3.4, 4), trim)]
+        # Items use a separate lighting pipeline; retain their existing full-bright crystal cores.
+        for element in e:
+            if element.get("shade") is False:
+                element["light_emission"] = 15
         data = model(e, color)
         data["display"] = ITEM_DISPLAY
         id = f"speed_shard_{tier}"
@@ -554,6 +593,7 @@ def main():
     block_models()
     item_models()
     material_items()
+    pbr_textures()
     # Delete only the explicitly replaced placeholder resources.
     for id in BLOCKS:
         for suffix in ("_off.png", "_on.png", "_on.png.mcmeta"):

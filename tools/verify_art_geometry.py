@@ -108,6 +108,8 @@ def check():
             print(issue)
         raise AssertionError(f"{len(issues)} geometry failures")
     for path in sorted((ASSETS / "textures/block").glob("light_*.png")):
+        if path.stem.endswith(("_n", "_s")):
+            continue
         with Image.open(path) as image:
             size = image.width
             frames = image.height // size
@@ -121,5 +123,35 @@ def check():
     print("Light checks passed: visible travelling bands with bounded frame changes and a continuous loop")
 
 
+def check_pbr():
+    folder = ASSETS / "textures/block"
+    albedos = sorted(path for path in folder.glob("*.png") if not path.stem.endswith(("_s", "_n")))
+    for path in albedos:
+        luminous = path.stem.startswith(("light_", "display_")) or path.stem in ("led", "signal_cyan")
+        with Image.open(path) as albedo, Image.open(path.with_stem(path.stem + "_s")) as specular, Image.open(path.with_stem(path.stem + "_n")) as normal:
+            assert specular.mode == normal.mode == "RGBA", f"{path.name}: PBR data must retain alpha"
+            assert albedo.size == specular.size == normal.size, f"{path.name}: PBR dimensions differ"
+            assert normal.getextrema() == ((128, 128), (128, 128), (255, 255), (255, 255)), f"{path.name}: invalid flat normal/AO/height"
+            pixels = {color for count, color in specular.getcolors(specular.width * specular.height)}
+            assert all(0 <= a <= 254 and b == 0 for r, g, b, a in pixels), f"{path.name}: invalid emission/SSS encoding"
+            assert all((a > 0) == luminous for r, g, b, a in pixels), f"{path.name}: emission escaped its intended texture"
+            if path.stem != "materials":
+                assert all(g == 10 for r, g, b, a in pixels), f"{path.name}: painted surfaces must remain dielectric"
+        metadata = Path(str(path) + ".mcmeta")
+        for suffix in ("_s", "_n"):
+            extra_metadata = Path(str(path.with_stem(path.stem + suffix)) + ".mcmeta")
+            assert extra_metadata.exists() == metadata.exists(), f"{path.name}: missing or stale animation metadata"
+            if metadata.exists():
+                assert json.loads(metadata.read_text()) == json.loads(extra_metadata.read_text()), f"{path.name}: animation timing differs"
+    for path in (ASSETS / "models/block").glob("*.json"):
+        for element in json.loads(path.read_text()).get("elements", []):
+            assert not element.get("light_emission"), f"{path.name}: terrain model lighting overrides cause shader tint"
+    for path in (ASSETS / "models/item").glob("speed_shard_*.json"):
+        cores = [element for element in json.loads(path.read_text())["elements"] if element.get("light_emission")]
+        assert len(cores) == 3 and all(element["light_emission"] == 15 for element in cores), f"{path.name}: item cores lost their light"
+    print(f"PBR checks passed: {len(albedos)} materials; aligned animations and isolated emission")
+
+
 if __name__ == "__main__":
     check()
+    check_pbr()

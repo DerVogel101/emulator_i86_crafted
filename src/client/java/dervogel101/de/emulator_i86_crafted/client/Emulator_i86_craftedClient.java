@@ -11,6 +11,7 @@ public class Emulator_i86_craftedClient implements ClientModInitializer {
         ClientRomUpload.initialize();
         ClientDebugger.initialize();
         ClientIndicators.initialize();
+        ClientEmissiveModels.initialize();
         ClientMachineSounds.initialize();
         ClientKeyboard.initialize();
     }

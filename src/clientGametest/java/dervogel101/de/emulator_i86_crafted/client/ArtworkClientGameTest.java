@@ -63,7 +63,7 @@ public final class ArtworkClientGameTest implements FabricClientGameTest {
             connection.waitForClientboundPackets();
             connection.waitForChunksRender();
             context.waitTicks(15);
-            capture(context, "i86-artwork-off");
+            int unpoweredGlow = coolGlowPixels(capture(context, "i86-artwork-off"));
             server.runOnServer(host -> power(host, true));
             connection.waitForClientboundPackets();
             connection.waitForChunksRender();
@@ -73,7 +73,9 @@ public final class ArtworkClientGameTest implements FabricClientGameTest {
                     if (!client.level.getBlockState(position(i)).getValue(MachineBlock.POWERED))
                         throw new AssertionError("Gallery power state was not synchronized: " + IDS.get(i));
             });
-            capture(context, "i86-artwork-on");
+            int poweredGlow = coolGlowPixels(capture(context, "i86-artwork-on"));
+            if (poweredGlow < unpoweredGlow + 500)
+                throw new AssertionError("Newly placed powered machines did not gain visible screen/strip glow: " + poweredGlow);
             context.runOnClient(client -> {
                 try {
                     var field = ClientIndicators.class.getDeclaredField("LAMPS"); field.setAccessible(true);
@@ -102,7 +104,8 @@ public final class ArtworkClientGameTest implements FabricClientGameTest {
             capture(context, "i86-artwork-pulse");
             server.runCommand("time set midnight");
             context.waitTicks(10);
-            capture(context, "i86-artwork-night");
+            if (coolGlowPixels(capture(context, "i86-artwork-night")) < 500)
+                throw new AssertionError("Screen/strip glow became unreadable in darkness");
             server.runCommand("time set noon");
             var portPos = position(IDS.indexOf("redstone_port"));
             server.runCommand("tp @a " + (portPos.getX() - 0.5) + " " + (portPos.getY() - 1) + " -2 -20 2");
@@ -213,6 +216,18 @@ public final class ArtworkClientGameTest implements FabricClientGameTest {
         return new BlockPos(20 + MOUNTS.indexOf(facing) * 4, facing == Direction.DOWN ? 99 : 97, 1);
     }
 
+    private static int coolGlowPixels(java.nio.file.Path screenshot) {
+        try {
+            var image = javax.imageio.ImageIO.read(screenshot.toFile());
+            int count = 0;
+            for (int y = 0; y < image.getHeight(); y++) for (int x = 0; x < image.getWidth(); x++) {
+                int rgb = image.getRGB(x, y), red = rgb >>> 16 & 255, green = rgb >>> 8 & 255, blue = rgb & 255;
+                if (green > 70 && blue > 70 && red * 10 < green * 8) count++;
+            }
+            return count;
+        } catch (java.io.IOException error) { throw new AssertionError("Could not inspect emissive gallery screenshot", error); }
+    }
+
     private static long buildCorrections(MinecraftServer host) {
         var level = host.overworld();
         for (int x = -2; x < 45; x++) for (int z = -3; z < 19; z++)
@@ -264,7 +279,9 @@ public final class ArtworkClientGameTest implements FabricClientGameTest {
                 new dervogel101.de.emulator_i86_crafted.network.IndicatorPackets.Update(level.dimension().identifier().toString(), lamps));
     }
 
-    private static void capture(ClientGameTestContext context, String name) {
-        System.out.println("I86_ARTWORK_SCREEN=" + context.takeScreenshot(TestScreenshotOptions.of(name).withSize(1280, 720)));
+    private static java.nio.file.Path capture(ClientGameTestContext context, String name) {
+        var screenshot = context.takeScreenshot(TestScreenshotOptions.of(name).withSize(1280, 720));
+        System.out.println("I86_ARTWORK_SCREEN=" + screenshot);
+        return screenshot;
     }
 }
