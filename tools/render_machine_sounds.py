@@ -53,16 +53,17 @@ def render(samples, seconds, fan=False, peak_db=-3):
         raise ValueError("Clip is too short")
     samples = samples - np.mean(samples)
     if fan:
-        overlap = min(round(.15 * RATE), count // 8)
+        overlap = min(round(.4 * RATE), count // 4)
         # The loop seam lands inside the unmodified source, away from the splice.
         available = len(samples) - count - overlap
         if available < 0:
-            raise ValueError("Fan source must exceed loop length by 150ms")
+            raise ValueError("Fan source must exceed loop length by the crossfade duration")
         start = min(round(.3 * RATE), available)
         segment = samples[start:start + count + overlap]
-        weight = np.linspace(0, 1, overlap)
+        phase = (.5 - .5 * np.cos(np.linspace(0, np.pi, overlap))) * (np.pi / 2)
+        fade_in, fade_out = np.sin(phase), np.cos(phase)
         samples = np.concatenate((segment[overlap:-overlap],
-                                 segment[-overlap:] * (1 - weight) + segment[:overlap] * weight))
+                                 segment[-overlap:] * fade_out + segment[:overlap] * fade_in))
     else:
         envelope = np.array([np.sqrt(np.mean(samples[i:i + 240] ** 2))
                              for i in range(0, len(samples), 240)])
@@ -74,10 +75,10 @@ def render(samples, seconds, fan=False, peak_db=-3):
         else:
             start = max(0, int(np.argmax(np.abs(samples))) - min(round(.02 * RATE), count // 10))
         samples = np.pad(samples[start:start + count], (0, max(0, start + count - len(samples))))
-        onset = min(round(.0015 * RATE), count // 8)
-        tail = min(round(.025 * RATE), count // 4)
-        samples[:onset] *= np.linspace(0, 1, onset)
-        samples[-tail:] *= np.linspace(1, 0, tail)
+        onset = min(round(.004 * RATE), count // 8)
+        tail = min(round(.035 * RATE), count // 4)
+        samples[:onset] *= .5 - .5 * np.cos(np.linspace(0, np.pi, onset))
+        samples[-tail:] *= .5 + .5 * np.cos(np.linspace(0, np.pi, tail))
         samples[0] = samples[-1] = 0
     samples = normalize(samples, peak_db)
     assert len(samples) == count and np.isfinite(samples).all()
@@ -86,8 +87,8 @@ def render(samples, seconds, fan=False, peak_db=-3):
 
 
 def pitched(samples, pitch):
-    positions = np.arange(0, len(samples) - 1, pitch)
-    return np.interp(positions, np.arange(len(samples)), samples)
+    positions = np.arange(0, len(samples), pitch)
+    return np.interp(positions, np.arange(len(samples) + 1), np.append(samples, samples[0]))
 
 
 def write_wav(path, samples):
@@ -118,6 +119,7 @@ def make_demo(sounds, specs, output):
         name = f"{asset}_{variant:02d}"
         gain, pitch = PLAYBACK[asset]
         audition = normalize(pitched(samples, pitch), -6)
+        write_wav(output / "repeats" / f"{name}.wav", np.tile(audition, 3))
         if asset == "fan":
             audition = np.tile(audition, 2)
         write_wav(output / "clips" / f"{name}.wav", audition)
@@ -128,7 +130,8 @@ def make_demo(sounds, specs, output):
         prompt = html.escape(specs[asset].get("variant_overrides", {}).get(str(variant), {}).get("prompt", specs[asset]["prompt"]))
         cards.append(f'<article><h3>{html.escape(name)}</h3><p>{prompt}</p>'
                      f'<p>Game pitch {pitch:g}; gain {gain:g}. Audition peak −6 dBFS.</p>'
-                     f'<audio controls preload="none" src="clips/{name}.wav"></audio></article>')
+                     f'<audio controls preload="none" src="clips/{name}.wav"></audio>'
+                     f'<p>Three back-to-back repetitions:</p><audio controls preload="none" src="repeats/{name}.wav"></audio></article>')
     write_wav(output / "machine-sounds-demo.wav", np.concatenate(reel))
 
     mix = np.zeros(22 * RATE)
@@ -188,7 +191,7 @@ def make_demo(sounds, specs, output):
 <h1>Generated machine sounds</h1><p>Stable Audio 3 Small SFX • mono 48 kHz Vorbis game assets • fixed seeds, deterministic editing.</p>
 <h2>Every clip</h2><p>All variants at their typical game pitch, raised to the same audition peak. Follow the labels below or the <a href="cue-sheet.csv">cue sheet</a>.</p><audio controls src="machine-sounds-demo.wav"></audio>
 <h2>Busy rack · 22 seconds</h2><p>Startup → disk → keyboard → terminal → reader → writer → card feed → sign → link → clock → burn → fault → shutdown. Original game gains and pitches; one common listening boost of BOOST dB. Spatial attenuation and game master volume are omitted.</p><audio controls src="rack-demo.wav"></audio>
-<h2>Fan seam test</h2><p>Three consecutive loops at game pitch 0.8, raised to −9 dBFS. No silence or fade is inserted between loops.</p><audio controls src="fan-loop-test.wav"></audio>
+<h2>Fan seam test</h2><p>Three consecutive loops at game pitch 0.8, raised to −9 dBFS. The loop contains a smooth equal-power crossfade, with no gap between repetitions.</p><audio controls src="fan-loop-test.wav"></audio>
 <h2>Individual auditions</h2><section id="clips">CARDS</section></html>'''
     page = page.replace("BOOST", f"{20 * math.log10(mix_gain):.1f}").replace("CARDS", "\n".join(cards))
     revision = hashlib.sha256(json.dumps(PLAYBACK, sort_keys=True).encode() + b"".join(samples.tobytes() for samples in sounds.values())).hexdigest()[:12]
