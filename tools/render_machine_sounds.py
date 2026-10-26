@@ -18,7 +18,7 @@ import soundfile as sf
 RATE = 48000
 ROOT = Path(__file__).resolve().parents[1]
 PLAYBACK = {
-    "fan": (.02, .9), "start": (.12, 1.2), "stop": (.10, .7),
+    "fan": (.02, .8), "start": (.12, 1.2), "stop": (.10, .7),
     "fault": (.09, .8), "burn": (.06, 1.2), "relay": (.035, 1.2),
     "disk": (.055, 1.3), "terminal": (.035, 1.4), "sign": (.03, 1.3),
     "key": (.035, 1.5), "card_read": (.055, 1.5), "card_write": (.07, 1.5),
@@ -30,7 +30,7 @@ PLAYBACK = {
 def decode(ffmpeg, path, fan=False):
     raw = subprocess.check_output([
         ffmpeg, "-v", "error", "-i", str(path), "-ac", "1", "-ar", str(RATE),
-        "-af", "highpass=f=250,lowpass=f=2800" if fan else "highpass=f=60,lowpass=f=11000",
+        "-af", "highpass=f=250,lowpass=f=2000" if fan else "highpass=f=60,lowpass=f=11000",
         "-f", "f32le", "pipe:1",
     ])
     samples = np.frombuffer(raw, "<f4").astype(float)
@@ -188,7 +188,7 @@ def make_demo(sounds, specs, output):
 <h1>Generated machine sounds</h1><p>Stable Audio 3 Small SFX • mono 48 kHz Vorbis game assets • fixed seeds, deterministic editing.</p>
 <h2>Every clip</h2><p>All variants at their typical game pitch, raised to the same audition peak. Follow the labels below or the <a href="cue-sheet.csv">cue sheet</a>.</p><audio controls src="machine-sounds-demo.wav"></audio>
 <h2>Busy rack · 22 seconds</h2><p>Startup → disk → keyboard → terminal → reader → writer → card feed → sign → link → clock → burn → fault → shutdown. Original game gains and pitches; one common listening boost of BOOST dB. Spatial attenuation and game master volume are omitted.</p><audio controls src="rack-demo.wav"></audio>
-<h2>Fan seam test</h2><p>Three consecutive loops at game pitch 0.9, raised to −9 dBFS. No silence or fade is inserted between loops.</p><audio controls src="fan-loop-test.wav"></audio>
+<h2>Fan seam test</h2><p>Three consecutive loops at game pitch 0.8, raised to −9 dBFS. No silence or fade is inserted between loops.</p><audio controls src="fan-loop-test.wav"></audio>
 <h2>Individual auditions</h2><section id="clips">CARDS</section></html>'''
     page = page.replace("BOOST", f"{20 * math.log10(mix_gain):.1f}").replace("CARDS", "\n".join(cards))
     revision = hashlib.sha256(json.dumps(PLAYBACK, sort_keys=True).encode() + b"".join(samples.tobytes() for samples in sounds.values())).hexdigest()[:12]
