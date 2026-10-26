@@ -281,7 +281,7 @@ public final class MachineSoundClientGameTest implements FabricClientGameTest {
         if (fans.size() != expected) throw new AssertionError("Expected " + expected + " fans, got " + fans.size());
         for (var value : fans.values()) {
             var fan = (SoundInstance) value;
-            if (fan.getPitch() < .97f || fan.getPitch() > 1.06f) throw new AssertionError("Fan playback must stay near natural pitch");
+            if (fan.getPitch() < .87f || fan.getPitch() > .96f) throw new AssertionError("Fan playback pitch is out of range");
             if (!fan.isLooping() || fan.getSource() != SoundSource.BLOCKS || fan.getVolume() > .025f
                     || !client.getSoundManager().isActive(fan)) throw new AssertionError("Quiet positional fan is not active");
         }

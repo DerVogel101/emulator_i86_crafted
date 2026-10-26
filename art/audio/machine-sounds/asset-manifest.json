@@ -6,10 +6,10 @@
     "duration_seconds": 4.0,
     "sample_rate": 48000,
     "channels": 1,
-    "peak_dbfs": -9.315372474830271,
-    "rms_dbfs": -23.291808867651262,
-    "loop_boundary_step": 0.01415815157815814,
-    "max_sample_step": 0.2016022726893425
+    "peak_dbfs": -9.107708949542552,
+    "rms_dbfs": -23.44480334764143,
+    "loop_boundary_step": 0.01211625779978931,
+    "max_sample_step": 0.16624588519334793
   },
   {
     "file": "src/main/resources/assets/emulator_i86_crafted/sounds/machine/start_01.ogg",

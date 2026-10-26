@@ -180,7 +180,7 @@ public final class ClientMachineSounds {
             x = position.getX() + .5; y = position.getY() + .5; z = position.getZ() + .5;
             looping = true;
             volume = .001f;
-            pitch = .975f + (position.hashCode() & 3) * .025f;
+            pitch = .875f + (position.hashCode() & 3) * .025f;
         }
         @Override public void tick() {
             var state = STATES.get(position);
