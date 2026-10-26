@@ -2,7 +2,7 @@
 
 All 16 machine cues use 27 original clips generated with the local **Stable Audio
 3 Small SFX** app through its Gradio API on 2026-10-26. There are no vanilla sound
-aliases in this set. Playback timing, pitch, gains, subtitles, and the Blocks
+aliases in this set. Playback timing, gains, subtitles, and the Blocks
 volume slider are unchanged.
 Keyboard overflow also reuses the generated fault clip as a UI notification.
 
@@ -23,7 +23,9 @@ game clips' lengths, channels, levels, and fan seam measurements.
 The shipped clips are mono 48 kHz Ogg Vorbis in
 `src/main/resources/assets/emulator_i86_crafted/sounds/machine/`. Short cues have
 quiet edges so activity can repeat at the existing cooldowns. The four-second
-fan uses an overlapping splice rather than a fade to silence at each repeat.
+fan uses an overlapping splice rather than a fade to silence at each repeat. It
+plays near its natural pitch (0.975-1.05), with low rumble filtered out to retain
+the soft airflow texture.
 Frequently repeated cues have two variants; fan, startup, shutdown, fault, and
 ROM completion have one each.
 
@@ -43,7 +45,7 @@ Fixed sources and processing make subsequent renders repeatable. Fresh inference
 with the saved seed also depends on the same model, app, and compute environment;
 the preserved WAVs are the reference for exact sound reproduction.
 
-The renderer creates `build/sound-demo/index.html`, a labeled 31-second reel of
+The renderer creates `build/sound-demo/index.html`, a labeled reel of
 all variants, a 22-second running-rack mix, individual auditions, a three-repeat
 fan test, cue sheets, and validation results. The demo uses decoded game OGGs at
 representative game pitches. Individual auditions are normalized for listening;

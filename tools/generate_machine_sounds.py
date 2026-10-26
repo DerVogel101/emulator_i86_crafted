@@ -40,7 +40,9 @@ def main():
             destination = sources / (name + ".wav")
             metadata = sources / (name + ".json")
             variant_spec = spec.get("variant_overrides", {}).get(str(variant), {})
-            overrides = {"prompt": variant_spec.get("prompt", spec["prompt"]) + common, "negative_prompt": "",
+            context = (" Dry isolated recording of continuous ventilation air at a constant level."
+                       " No music, speech, impacts, or low engine rumble.") if asset == "fan" else common
+            overrides = {"prompt": variant_spec.get("prompt", spec["prompt"]) + context, "negative_prompt": "",
                          "seconds_total": spec["source_seconds"], "seed": variant_spec.get("seed", spec["seed"] + variant),
                          "file_format": "wav", "file_naming": "verbose", "cut_to_seconds_total": True}
             if destination.exists() and metadata.exists():

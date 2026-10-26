@@ -1,7 +1,7 @@
 {
   "fan": {
-    "prompt": "A small brushless computer ventilation fan already running at constant speed. A perfectly steady smooth soft flow of air with a faint continuous electric motor tone. Consistent uninterrupted texture from start to finish, close perspective, acoustically damped enclosure, anechoic recording.",
-    "seed": 861012,
+    "prompt": "A soft continuous shhhhh of ventilation air flowing through a small desktop computer heat sink. Light smooth broadband air noise, like a very quiet desk fan heard close up. The sound is uniform and unchanging, with a gentle high airy texture, an acoustically damped enclosure, and no audible blade rhythm. Already running steadily for the entire recording.",
+    "seed": 861101,
     "source_seconds": 8,
     "durations": [
       4

@@ -2,14 +2,14 @@
   {
     "file": "src/main/resources/assets/emulator_i86_crafted/sounds/machine/fan_01.ogg",
     "source": "sources/fan_01.wav",
-    "seed": 861013,
+    "seed": 861102,
     "duration_seconds": 4.0,
     "sample_rate": 48000,
     "channels": 1,
-    "peak_dbfs": -9.05272325355672,
-    "rms_dbfs": -21.753474920044454,
-    "loop_boundary_step": 0.0020577311515808105,
-    "max_sample_step": 0.028364581521600485
+    "peak_dbfs": -9.171163586463132,
+    "rms_dbfs": -23.055034640597604,
+    "loop_boundary_step": 0.0017540249973535538,
+    "max_sample_step": 0.2604011222720146
   },
   {
     "file": "src/main/resources/assets/emulator_i86_crafted/sounds/machine/start_01.ogg",

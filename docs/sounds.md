@@ -4,8 +4,9 @@ All 16 cues use bundled mono Ogg Vorbis clips generated with Stable Audio 3 Smal
 The mod gives the events machine-specific subtitles and uses the Blocks volume slider.
 Fan, startup, shutdown, fault and ROM completion each have one clip. The other cues
 have two variations selected by Minecraft. The preloaded fan clip loops continuously;
-the remaining clips have short tails for repeated activity. Existing playback gains,
-pitch changes, timing, distance limits and packet handling are preserved.
+the remaining clips have short tails for repeated activity. The fan plays near its
+natural pitch; one-shot pitch changes, playback gains, timing, distance limits and
+packet handling are preserved.
 The keyboard's FIFO overflow notification also uses the generated fault clip.
 See [generation and provenance](../art/audio/machine-sounds/README.md) for the fixed
 prompts, seeds and regeneration steps. The generated [sound demo](../build/sound-demo/index.html)
