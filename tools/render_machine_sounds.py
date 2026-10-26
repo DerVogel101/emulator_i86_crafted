@@ -30,7 +30,7 @@ PLAYBACK = {
 def decode(ffmpeg, path, fan=False):
     raw = subprocess.check_output([
         ffmpeg, "-v", "error", "-i", str(path), "-ac", "1", "-ar", str(RATE),
-        "-af", "highpass=f=250,lowpass=f=6000" if fan else "highpass=f=60,lowpass=f=11000",
+        "-af", "highpass=f=250,lowpass=f=3500" if fan else "highpass=f=60,lowpass=f=11000",
         "-f", "f32le", "pipe:1",
     ])
     samples = np.frombuffer(raw, "<f4").astype(float)
@@ -191,7 +191,7 @@ def make_demo(sounds, specs, output):
 <h2>Fan seam test</h2><p>Three consecutive loops at game pitch 1.0, raised to −9 dBFS. No silence or fade is inserted between loops.</p><audio controls src="fan-loop-test.wav"></audio>
 <h2>Individual auditions</h2><section id="clips">CARDS</section></html>'''
     page = page.replace("BOOST", f"{20 * math.log10(mix_gain):.1f}").replace("CARDS", "\n".join(cards))
-    revision = hashlib.sha256(json.dumps(specs, sort_keys=True).encode()).hexdigest()[:12]
+    revision = hashlib.sha256(b"".join(samples.tobytes() for samples in sounds.values())).hexdigest()[:12]
     page = page.replace('.wav"', f'.wav?v={revision}"')
     (output / "index.html").write_text(page, encoding="utf-8")
     return {"rack_peak_dbfs": 20 * math.log10(float(np.max(np.abs(mix * mix_gain)))),

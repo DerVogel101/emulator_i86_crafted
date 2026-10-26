@@ -24,8 +24,8 @@ The shipped clips are mono 48 kHz Ogg Vorbis in
 `src/main/resources/assets/emulator_i86_crafted/sounds/machine/`. Short cues have
 quiet edges so activity can repeat at the existing cooldowns. The four-second
 fan uses an overlapping splice rather than a fade to silence at each repeat. It
-plays near its natural pitch (0.975-1.05), with low rumble filtered out to retain
-the soft airflow texture.
+plays near its natural pitch (0.975-1.05), with a 250 Hz high-pass and 3.5 kHz
+low-pass filter to soften the airflow texture and remove low rumble.
 Frequently repeated cues have two variants; fan, startup, shutdown, fault, and
 ROM completion have one each.
 
