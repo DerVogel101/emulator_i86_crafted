@@ -1,0 +1,50 @@
+{
+  "asset": "clock",
+  "variant": 2,
+  "target_seconds": 0.07,
+  "model": "Stable Audio 3 Small SFX",
+  "overrides": {
+    "prompt": "One tiny precision clock escapement tick inside an electronic timer, a very soft high mechanical tick, dry and delicate, very quick decay, no ringing. Isolated close-miked studio sound effect for the same compact vintage computer. Quiet background, dry, no room reverb, no music, no speech, no hiss, no exaggerated bass. The action begins immediately.",
+    "negative_prompt": "",
+    "seconds_total": 1,
+    "seed": 862402,
+    "file_format": "wav",
+    "file_naming": "verbose",
+    "cut_to_seconds_total": true
+  },
+  "request": {
+    "data": [
+      "One tiny precision clock escapement tick inside an electronic timer, a very soft high mechanical tick, dry and delicate, very quick decay, no ringing. Isolated close-miked studio sound effect for the same compact vintage computer. Quiet background, dry, no room reverb, no music, no speech, no hiss, no exaggerated bass. The action begins immediately.",
+      "",
+      1,
+      1.0,
+      8,
+      0,
+      862402,
+      "pingpong",
+      1.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      1.0,
+      "wav",
+      "verbose",
+      true,
+      null,
+      0.9,
+      null,
+      null,
+      null,
+      "Init audio",
+      100,
+      0,
+      false,
+      6.0,
+      1,
+      []
+    ]
+  },
+  "event_id": "11604702c9274be59f425e262d0c3be4",
+  "sha256": "9c9197b145070c0652be57fe9339a0b1de8282af3e33322d45bfae1bf2fe4ea2"
+}

@@ -1,0 +1,50 @@
+{
+  "asset": "terminal",
+  "variant": 1,
+  "target_seconds": 0.07,
+  "model": "Stable Audio 3 Small SFX",
+  "overrides": {
+    "prompt": "One tiny teletype print hammer striking, a soft crisp dry tick from a vintage computer terminal, small and delicate, very quick decay. Isolated close-miked studio sound effect for the same compact vintage computer. Quiet background, dry, no room reverb, no music, no speech, no hiss, no exaggerated bass. The action begins immediately.",
+    "negative_prompt": "",
+    "seconds_total": 1,
+    "seed": 861701,
+    "file_format": "wav",
+    "file_naming": "verbose",
+    "cut_to_seconds_total": true
+  },
+  "request": {
+    "data": [
+      "One tiny teletype print hammer striking, a soft crisp dry tick from a vintage computer terminal, small and delicate, very quick decay. Isolated close-miked studio sound effect for the same compact vintage computer. Quiet background, dry, no room reverb, no music, no speech, no hiss, no exaggerated bass. The action begins immediately.",
+      "",
+      1,
+      1.0,
+      8,
+      0,
+      861701,
+      "pingpong",
+      1.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      1.0,
+      "wav",
+      "verbose",
+      true,
+      null,
+      0.9,
+      null,
+      null,
+      null,
+      "Init audio",
+      100,
+      0,
+      false,
+      6.0,
+      1,
+      []
+    ]
+  },
+  "event_id": "2c0265586fda4a7089f3ddc46410c4f8",
+  "sha256": "70c0ce74f8153fcb830e5ba66fb85208bf8b04ab78c9b0200f64292e8584f180"
+}

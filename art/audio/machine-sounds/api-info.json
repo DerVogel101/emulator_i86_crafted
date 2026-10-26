@@ -1,0 +1,4331 @@
+{
+  "named_endpoints": {
+    "/update_dist_shift_state": {
+      "parameters": [
+        {
+          "label": "Sampling schedule shift",
+          "parameter_name": "shift_type",
+          "parameter_has_default": true,
+          "parameter_default": "LogSNR",
+          "type": {
+            "type": "string",
+            "enum": [
+              "LogSNR",
+              "Flux",
+              "Full",
+              "None"
+            ]
+          },
+          "python_type": {
+            "type": "Literal['LogSNR', 'Flux', 'Full', 'None']",
+            "description": ""
+          },
+          "component": "Dropdown",
+          "example_input": "LogSNR"
+        },
+        {
+          "label": "Anchor length",
+          "parameter_name": "param_1",
+          "parameter_has_default": true,
+          "parameter_default": 2000,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 100 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 100
+        },
+        {
+          "label": "Anchor log-SNR",
+          "parameter_name": "param_2",
+          "parameter_has_default": true,
+          "parameter_default": -6.2,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -12.0 and 0.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -12.0
+        },
+        {
+          "label": "Rate",
+          "parameter_name": "param_3",
+          "parameter_has_default": true,
+          "parameter_default": 0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 2.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "log-SNR end",
+          "parameter_name": "param_4",
+          "parameter_has_default": true,
+          "parameter_default": 2.0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 6.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "Min seq len",
+          "parameter_name": "param_5",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max seq len",
+          "parameter_name": "param_6",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Alpha min",
+          "parameter_name": "param_7",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Alpha max",
+          "parameter_name": "param_8",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Base shift",
+          "parameter_name": "param_9",
+          "parameter_has_default": true,
+          "parameter_default": 0.5,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Max shift",
+          "parameter_name": "param_10",
+          "parameter_has_default": true,
+          "parameter_default": 1.15,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Min length",
+          "parameter_name": "param_11",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max length",
+          "parameter_name": "param_12",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        }
+      ],
+      "returns": [],
+      "api_visibility": "public",
+      "description": "Route the 4 relevant params to build_dist_shift based on type."
+    },
+    "/update_dist_shift_state_1": {
+      "parameters": [
+        {
+          "label": "Sampling schedule shift",
+          "parameter_name": "shift_type",
+          "parameter_has_default": true,
+          "parameter_default": "LogSNR",
+          "type": {
+            "type": "string",
+            "enum": [
+              "LogSNR",
+              "Flux",
+              "Full",
+              "None"
+            ]
+          },
+          "python_type": {
+            "type": "Literal['LogSNR', 'Flux', 'Full', 'None']",
+            "description": ""
+          },
+          "component": "Dropdown",
+          "example_input": "LogSNR"
+        },
+        {
+          "label": "Anchor length",
+          "parameter_name": "param_1",
+          "parameter_has_default": true,
+          "parameter_default": 2000,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 100 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 100
+        },
+        {
+          "label": "Anchor log-SNR",
+          "parameter_name": "param_2",
+          "parameter_has_default": true,
+          "parameter_default": -6.2,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -12.0 and 0.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -12.0
+        },
+        {
+          "label": "Rate",
+          "parameter_name": "param_3",
+          "parameter_has_default": true,
+          "parameter_default": 0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 2.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "log-SNR end",
+          "parameter_name": "param_4",
+          "parameter_has_default": true,
+          "parameter_default": 2.0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 6.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "Min seq len",
+          "parameter_name": "param_5",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max seq len",
+          "parameter_name": "param_6",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Alpha min",
+          "parameter_name": "param_7",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Alpha max",
+          "parameter_name": "param_8",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Base shift",
+          "parameter_name": "param_9",
+          "parameter_has_default": true,
+          "parameter_default": 0.5,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Max shift",
+          "parameter_name": "param_10",
+          "parameter_has_default": true,
+          "parameter_default": 1.15,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Min length",
+          "parameter_name": "param_11",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max length",
+          "parameter_name": "param_12",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        }
+      ],
+      "returns": [],
+      "api_visibility": "public",
+      "description": "Route the 4 relevant params to build_dist_shift based on type."
+    },
+    "/update_dist_shift_state_2": {
+      "parameters": [
+        {
+          "label": "Sampling schedule shift",
+          "parameter_name": "shift_type",
+          "parameter_has_default": true,
+          "parameter_default": "LogSNR",
+          "type": {
+            "type": "string",
+            "enum": [
+              "LogSNR",
+              "Flux",
+              "Full",
+              "None"
+            ]
+          },
+          "python_type": {
+            "type": "Literal['LogSNR', 'Flux', 'Full', 'None']",
+            "description": ""
+          },
+          "component": "Dropdown",
+          "example_input": "LogSNR"
+        },
+        {
+          "label": "Anchor length",
+          "parameter_name": "param_1",
+          "parameter_has_default": true,
+          "parameter_default": 2000,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 100 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 100
+        },
+        {
+          "label": "Anchor log-SNR",
+          "parameter_name": "param_2",
+          "parameter_has_default": true,
+          "parameter_default": -6.2,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -12.0 and 0.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -12.0
+        },
+        {
+          "label": "Rate",
+          "parameter_name": "param_3",
+          "parameter_has_default": true,
+          "parameter_default": 0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 2.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "log-SNR end",
+          "parameter_name": "param_4",
+          "parameter_has_default": true,
+          "parameter_default": 2.0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 6.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "Min seq len",
+          "parameter_name": "param_5",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max seq len",
+          "parameter_name": "param_6",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Alpha min",
+          "parameter_name": "param_7",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Alpha max",
+          "parameter_name": "param_8",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Base shift",
+          "parameter_name": "param_9",
+          "parameter_has_default": true,
+          "parameter_default": 0.5,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Max shift",
+          "parameter_name": "param_10",
+          "parameter_has_default": true,
+          "parameter_default": 1.15,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Min length",
+          "parameter_name": "param_11",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max length",
+          "parameter_name": "param_12",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        }
+      ],
+      "returns": [],
+      "api_visibility": "public",
+      "description": "Route the 4 relevant params to build_dist_shift based on type."
+    },
+    "/update_dist_shift_state_3": {
+      "parameters": [
+        {
+          "label": "Sampling schedule shift",
+          "parameter_name": "shift_type",
+          "parameter_has_default": true,
+          "parameter_default": "LogSNR",
+          "type": {
+            "type": "string",
+            "enum": [
+              "LogSNR",
+              "Flux",
+              "Full",
+              "None"
+            ]
+          },
+          "python_type": {
+            "type": "Literal['LogSNR', 'Flux', 'Full', 'None']",
+            "description": ""
+          },
+          "component": "Dropdown",
+          "example_input": "LogSNR"
+        },
+        {
+          "label": "Anchor length",
+          "parameter_name": "param_1",
+          "parameter_has_default": true,
+          "parameter_default": 2000,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 100 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 100
+        },
+        {
+          "label": "Anchor log-SNR",
+          "parameter_name": "param_2",
+          "parameter_has_default": true,
+          "parameter_default": -6.2,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -12.0 and 0.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -12.0
+        },
+        {
+          "label": "Rate",
+          "parameter_name": "param_3",
+          "parameter_has_default": true,
+          "parameter_default": 0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 2.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "log-SNR end",
+          "parameter_name": "param_4",
+          "parameter_has_default": true,
+          "parameter_default": 2.0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 6.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "Min seq len",
+          "parameter_name": "param_5",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max seq len",
+          "parameter_name": "param_6",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Alpha min",
+          "parameter_name": "param_7",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Alpha max",
+          "parameter_name": "param_8",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Base shift",
+          "parameter_name": "param_9",
+          "parameter_has_default": true,
+          "parameter_default": 0.5,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Max shift",
+          "parameter_name": "param_10",
+          "parameter_has_default": true,
+          "parameter_default": 1.15,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Min length",
+          "parameter_name": "param_11",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max length",
+          "parameter_name": "param_12",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        }
+      ],
+      "returns": [],
+      "api_visibility": "public",
+      "description": "Route the 4 relevant params to build_dist_shift based on type."
+    },
+    "/update_dist_shift_state_4": {
+      "parameters": [
+        {
+          "label": "Sampling schedule shift",
+          "parameter_name": "shift_type",
+          "parameter_has_default": true,
+          "parameter_default": "LogSNR",
+          "type": {
+            "type": "string",
+            "enum": [
+              "LogSNR",
+              "Flux",
+              "Full",
+              "None"
+            ]
+          },
+          "python_type": {
+            "type": "Literal['LogSNR', 'Flux', 'Full', 'None']",
+            "description": ""
+          },
+          "component": "Dropdown",
+          "example_input": "LogSNR"
+        },
+        {
+          "label": "Anchor length",
+          "parameter_name": "param_1",
+          "parameter_has_default": true,
+          "parameter_default": 2000,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 100 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 100
+        },
+        {
+          "label": "Anchor log-SNR",
+          "parameter_name": "param_2",
+          "parameter_has_default": true,
+          "parameter_default": -6.2,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -12.0 and 0.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -12.0
+        },
+        {
+          "label": "Rate",
+          "parameter_name": "param_3",
+          "parameter_has_default": true,
+          "parameter_default": 0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 2.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "log-SNR end",
+          "parameter_name": "param_4",
+          "parameter_has_default": true,
+          "parameter_default": 2.0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 6.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "Min seq len",
+          "parameter_name": "param_5",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max seq len",
+          "parameter_name": "param_6",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Alpha min",
+          "parameter_name": "param_7",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Alpha max",
+          "parameter_name": "param_8",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Base shift",
+          "parameter_name": "param_9",
+          "parameter_has_default": true,
+          "parameter_default": 0.5,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Max shift",
+          "parameter_name": "param_10",
+          "parameter_has_default": true,
+          "parameter_default": 1.15,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Min length",
+          "parameter_name": "param_11",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max length",
+          "parameter_name": "param_12",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        }
+      ],
+      "returns": [],
+      "api_visibility": "public",
+      "description": "Route the 4 relevant params to build_dist_shift based on type."
+    },
+    "/update_dist_shift_state_5": {
+      "parameters": [
+        {
+          "label": "Sampling schedule shift",
+          "parameter_name": "shift_type",
+          "parameter_has_default": true,
+          "parameter_default": "LogSNR",
+          "type": {
+            "type": "string",
+            "enum": [
+              "LogSNR",
+              "Flux",
+              "Full",
+              "None"
+            ]
+          },
+          "python_type": {
+            "type": "Literal['LogSNR', 'Flux', 'Full', 'None']",
+            "description": ""
+          },
+          "component": "Dropdown",
+          "example_input": "LogSNR"
+        },
+        {
+          "label": "Anchor length",
+          "parameter_name": "param_1",
+          "parameter_has_default": true,
+          "parameter_default": 2000,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 100 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 100
+        },
+        {
+          "label": "Anchor log-SNR",
+          "parameter_name": "param_2",
+          "parameter_has_default": true,
+          "parameter_default": -6.2,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -12.0 and 0.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -12.0
+        },
+        {
+          "label": "Rate",
+          "parameter_name": "param_3",
+          "parameter_has_default": true,
+          "parameter_default": 0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 2.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "log-SNR end",
+          "parameter_name": "param_4",
+          "parameter_has_default": true,
+          "parameter_default": 2.0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 6.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "Min seq len",
+          "parameter_name": "param_5",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max seq len",
+          "parameter_name": "param_6",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Alpha min",
+          "parameter_name": "param_7",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Alpha max",
+          "parameter_name": "param_8",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Base shift",
+          "parameter_name": "param_9",
+          "parameter_has_default": true,
+          "parameter_default": 0.5,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Max shift",
+          "parameter_name": "param_10",
+          "parameter_has_default": true,
+          "parameter_default": 1.15,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Min length",
+          "parameter_name": "param_11",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max length",
+          "parameter_name": "param_12",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        }
+      ],
+      "returns": [],
+      "api_visibility": "public",
+      "description": "Route the 4 relevant params to build_dist_shift based on type."
+    },
+    "/update_dist_shift_state_6": {
+      "parameters": [
+        {
+          "label": "Sampling schedule shift",
+          "parameter_name": "shift_type",
+          "parameter_has_default": true,
+          "parameter_default": "LogSNR",
+          "type": {
+            "type": "string",
+            "enum": [
+              "LogSNR",
+              "Flux",
+              "Full",
+              "None"
+            ]
+          },
+          "python_type": {
+            "type": "Literal['LogSNR', 'Flux', 'Full', 'None']",
+            "description": ""
+          },
+          "component": "Dropdown",
+          "example_input": "LogSNR"
+        },
+        {
+          "label": "Anchor length",
+          "parameter_name": "param_1",
+          "parameter_has_default": true,
+          "parameter_default": 2000,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 100 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 100
+        },
+        {
+          "label": "Anchor log-SNR",
+          "parameter_name": "param_2",
+          "parameter_has_default": true,
+          "parameter_default": -6.2,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -12.0 and 0.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -12.0
+        },
+        {
+          "label": "Rate",
+          "parameter_name": "param_3",
+          "parameter_has_default": true,
+          "parameter_default": 0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 2.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "log-SNR end",
+          "parameter_name": "param_4",
+          "parameter_has_default": true,
+          "parameter_default": 2.0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 6.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "Min seq len",
+          "parameter_name": "param_5",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max seq len",
+          "parameter_name": "param_6",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Alpha min",
+          "parameter_name": "param_7",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Alpha max",
+          "parameter_name": "param_8",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Base shift",
+          "parameter_name": "param_9",
+          "parameter_has_default": true,
+          "parameter_default": 0.5,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Max shift",
+          "parameter_name": "param_10",
+          "parameter_has_default": true,
+          "parameter_default": 1.15,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Min length",
+          "parameter_name": "param_11",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max length",
+          "parameter_name": "param_12",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        }
+      ],
+      "returns": [],
+      "api_visibility": "public",
+      "description": "Route the 4 relevant params to build_dist_shift based on type."
+    },
+    "/update_dist_shift_state_7": {
+      "parameters": [
+        {
+          "label": "Sampling schedule shift",
+          "parameter_name": "shift_type",
+          "parameter_has_default": true,
+          "parameter_default": "LogSNR",
+          "type": {
+            "type": "string",
+            "enum": [
+              "LogSNR",
+              "Flux",
+              "Full",
+              "None"
+            ]
+          },
+          "python_type": {
+            "type": "Literal['LogSNR', 'Flux', 'Full', 'None']",
+            "description": ""
+          },
+          "component": "Dropdown",
+          "example_input": "LogSNR"
+        },
+        {
+          "label": "Anchor length",
+          "parameter_name": "param_1",
+          "parameter_has_default": true,
+          "parameter_default": 2000,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 100 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 100
+        },
+        {
+          "label": "Anchor log-SNR",
+          "parameter_name": "param_2",
+          "parameter_has_default": true,
+          "parameter_default": -6.2,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -12.0 and 0.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -12.0
+        },
+        {
+          "label": "Rate",
+          "parameter_name": "param_3",
+          "parameter_has_default": true,
+          "parameter_default": 0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 2.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "log-SNR end",
+          "parameter_name": "param_4",
+          "parameter_has_default": true,
+          "parameter_default": 2.0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 6.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "Min seq len",
+          "parameter_name": "param_5",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max seq len",
+          "parameter_name": "param_6",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Alpha min",
+          "parameter_name": "param_7",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Alpha max",
+          "parameter_name": "param_8",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Base shift",
+          "parameter_name": "param_9",
+          "parameter_has_default": true,
+          "parameter_default": 0.5,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Max shift",
+          "parameter_name": "param_10",
+          "parameter_has_default": true,
+          "parameter_default": 1.15,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Min length",
+          "parameter_name": "param_11",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max length",
+          "parameter_name": "param_12",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        }
+      ],
+      "returns": [],
+      "api_visibility": "public",
+      "description": "Route the 4 relevant params to build_dist_shift based on type."
+    },
+    "/update_dist_shift_state_8": {
+      "parameters": [
+        {
+          "label": "Sampling schedule shift",
+          "parameter_name": "shift_type",
+          "parameter_has_default": true,
+          "parameter_default": "LogSNR",
+          "type": {
+            "type": "string",
+            "enum": [
+              "LogSNR",
+              "Flux",
+              "Full",
+              "None"
+            ]
+          },
+          "python_type": {
+            "type": "Literal['LogSNR', 'Flux', 'Full', 'None']",
+            "description": ""
+          },
+          "component": "Dropdown",
+          "example_input": "LogSNR"
+        },
+        {
+          "label": "Anchor length",
+          "parameter_name": "param_1",
+          "parameter_has_default": true,
+          "parameter_default": 2000,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 100 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 100
+        },
+        {
+          "label": "Anchor log-SNR",
+          "parameter_name": "param_2",
+          "parameter_has_default": true,
+          "parameter_default": -6.2,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -12.0 and 0.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -12.0
+        },
+        {
+          "label": "Rate",
+          "parameter_name": "param_3",
+          "parameter_has_default": true,
+          "parameter_default": 0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 2.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "log-SNR end",
+          "parameter_name": "param_4",
+          "parameter_has_default": true,
+          "parameter_default": 2.0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 6.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "Min seq len",
+          "parameter_name": "param_5",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max seq len",
+          "parameter_name": "param_6",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Alpha min",
+          "parameter_name": "param_7",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Alpha max",
+          "parameter_name": "param_8",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Base shift",
+          "parameter_name": "param_9",
+          "parameter_has_default": true,
+          "parameter_default": 0.5,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Max shift",
+          "parameter_name": "param_10",
+          "parameter_has_default": true,
+          "parameter_default": 1.15,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Min length",
+          "parameter_name": "param_11",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max length",
+          "parameter_name": "param_12",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        }
+      ],
+      "returns": [],
+      "api_visibility": "public",
+      "description": "Route the 4 relevant params to build_dist_shift based on type."
+    },
+    "/update_dist_shift_state_9": {
+      "parameters": [
+        {
+          "label": "Sampling schedule shift",
+          "parameter_name": "shift_type",
+          "parameter_has_default": true,
+          "parameter_default": "LogSNR",
+          "type": {
+            "type": "string",
+            "enum": [
+              "LogSNR",
+              "Flux",
+              "Full",
+              "None"
+            ]
+          },
+          "python_type": {
+            "type": "Literal['LogSNR', 'Flux', 'Full', 'None']",
+            "description": ""
+          },
+          "component": "Dropdown",
+          "example_input": "LogSNR"
+        },
+        {
+          "label": "Anchor length",
+          "parameter_name": "param_1",
+          "parameter_has_default": true,
+          "parameter_default": 2000,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 100 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 100
+        },
+        {
+          "label": "Anchor log-SNR",
+          "parameter_name": "param_2",
+          "parameter_has_default": true,
+          "parameter_default": -6.2,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -12.0 and 0.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -12.0
+        },
+        {
+          "label": "Rate",
+          "parameter_name": "param_3",
+          "parameter_has_default": true,
+          "parameter_default": 0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 2.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "log-SNR end",
+          "parameter_name": "param_4",
+          "parameter_has_default": true,
+          "parameter_default": 2.0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 6.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "Min seq len",
+          "parameter_name": "param_5",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max seq len",
+          "parameter_name": "param_6",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Alpha min",
+          "parameter_name": "param_7",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Alpha max",
+          "parameter_name": "param_8",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Base shift",
+          "parameter_name": "param_9",
+          "parameter_has_default": true,
+          "parameter_default": 0.5,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Max shift",
+          "parameter_name": "param_10",
+          "parameter_has_default": true,
+          "parameter_default": 1.15,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Min length",
+          "parameter_name": "param_11",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max length",
+          "parameter_name": "param_12",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        }
+      ],
+      "returns": [],
+      "api_visibility": "public",
+      "description": "Route the 4 relevant params to build_dist_shift based on type."
+    },
+    "/update_dist_shift_state_10": {
+      "parameters": [
+        {
+          "label": "Sampling schedule shift",
+          "parameter_name": "shift_type",
+          "parameter_has_default": true,
+          "parameter_default": "LogSNR",
+          "type": {
+            "type": "string",
+            "enum": [
+              "LogSNR",
+              "Flux",
+              "Full",
+              "None"
+            ]
+          },
+          "python_type": {
+            "type": "Literal['LogSNR', 'Flux', 'Full', 'None']",
+            "description": ""
+          },
+          "component": "Dropdown",
+          "example_input": "LogSNR"
+        },
+        {
+          "label": "Anchor length",
+          "parameter_name": "param_1",
+          "parameter_has_default": true,
+          "parameter_default": 2000,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 100 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 100
+        },
+        {
+          "label": "Anchor log-SNR",
+          "parameter_name": "param_2",
+          "parameter_has_default": true,
+          "parameter_default": -6.2,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -12.0 and 0.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -12.0
+        },
+        {
+          "label": "Rate",
+          "parameter_name": "param_3",
+          "parameter_has_default": true,
+          "parameter_default": 0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 2.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "log-SNR end",
+          "parameter_name": "param_4",
+          "parameter_has_default": true,
+          "parameter_default": 2.0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 6.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "Min seq len",
+          "parameter_name": "param_5",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max seq len",
+          "parameter_name": "param_6",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Alpha min",
+          "parameter_name": "param_7",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Alpha max",
+          "parameter_name": "param_8",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Base shift",
+          "parameter_name": "param_9",
+          "parameter_has_default": true,
+          "parameter_default": 0.5,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Max shift",
+          "parameter_name": "param_10",
+          "parameter_has_default": true,
+          "parameter_default": 1.15,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Min length",
+          "parameter_name": "param_11",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max length",
+          "parameter_name": "param_12",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        }
+      ],
+      "returns": [],
+      "api_visibility": "public",
+      "description": "Route the 4 relevant params to build_dist_shift based on type."
+    },
+    "/update_dist_shift_state_11": {
+      "parameters": [
+        {
+          "label": "Sampling schedule shift",
+          "parameter_name": "shift_type",
+          "parameter_has_default": true,
+          "parameter_default": "LogSNR",
+          "type": {
+            "type": "string",
+            "enum": [
+              "LogSNR",
+              "Flux",
+              "Full",
+              "None"
+            ]
+          },
+          "python_type": {
+            "type": "Literal['LogSNR', 'Flux', 'Full', 'None']",
+            "description": ""
+          },
+          "component": "Dropdown",
+          "example_input": "LogSNR"
+        },
+        {
+          "label": "Anchor length",
+          "parameter_name": "param_1",
+          "parameter_has_default": true,
+          "parameter_default": 2000,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 100 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 100
+        },
+        {
+          "label": "Anchor log-SNR",
+          "parameter_name": "param_2",
+          "parameter_has_default": true,
+          "parameter_default": -6.2,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -12.0 and 0.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -12.0
+        },
+        {
+          "label": "Rate",
+          "parameter_name": "param_3",
+          "parameter_has_default": true,
+          "parameter_default": 0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 2.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "log-SNR end",
+          "parameter_name": "param_4",
+          "parameter_has_default": true,
+          "parameter_default": 2.0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 6.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "Min seq len",
+          "parameter_name": "param_5",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max seq len",
+          "parameter_name": "param_6",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Alpha min",
+          "parameter_name": "param_7",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Alpha max",
+          "parameter_name": "param_8",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Base shift",
+          "parameter_name": "param_9",
+          "parameter_has_default": true,
+          "parameter_default": 0.5,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Max shift",
+          "parameter_name": "param_10",
+          "parameter_has_default": true,
+          "parameter_default": 1.15,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Min length",
+          "parameter_name": "param_11",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max length",
+          "parameter_name": "param_12",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        }
+      ],
+      "returns": [],
+      "api_visibility": "public",
+      "description": "Route the 4 relevant params to build_dist_shift based on type."
+    },
+    "/update_dist_shift_state_12": {
+      "parameters": [
+        {
+          "label": "Sampling schedule shift",
+          "parameter_name": "shift_type",
+          "parameter_has_default": true,
+          "parameter_default": "LogSNR",
+          "type": {
+            "type": "string",
+            "enum": [
+              "LogSNR",
+              "Flux",
+              "Full",
+              "None"
+            ]
+          },
+          "python_type": {
+            "type": "Literal['LogSNR', 'Flux', 'Full', 'None']",
+            "description": ""
+          },
+          "component": "Dropdown",
+          "example_input": "LogSNR"
+        },
+        {
+          "label": "Anchor length",
+          "parameter_name": "param_1",
+          "parameter_has_default": true,
+          "parameter_default": 2000,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 100 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 100
+        },
+        {
+          "label": "Anchor log-SNR",
+          "parameter_name": "param_2",
+          "parameter_has_default": true,
+          "parameter_default": -6.2,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -12.0 and 0.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -12.0
+        },
+        {
+          "label": "Rate",
+          "parameter_name": "param_3",
+          "parameter_has_default": true,
+          "parameter_default": 0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 2.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "log-SNR end",
+          "parameter_name": "param_4",
+          "parameter_has_default": true,
+          "parameter_default": 2.0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between -2.0 and 6.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": -2.0
+        },
+        {
+          "label": "Min seq len",
+          "parameter_name": "param_5",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max seq len",
+          "parameter_name": "param_6",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Alpha min",
+          "parameter_name": "param_7",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Alpha max",
+          "parameter_name": "param_8",
+          "parameter_has_default": true,
+          "parameter_default": 6.93,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.1 and 20.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.1
+        },
+        {
+          "label": "Base shift",
+          "parameter_name": "param_9",
+          "parameter_has_default": true,
+          "parameter_default": 0.5,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Max shift",
+          "parameter_name": "param_10",
+          "parameter_has_default": true,
+          "parameter_default": 1.15,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 5.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Min length",
+          "parameter_name": "param_11",
+          "parameter_has_default": true,
+          "parameter_default": 256,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Max length",
+          "parameter_name": "param_12",
+          "parameter_has_default": true,
+          "parameter_default": 4096,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 10000"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        }
+      ],
+      "returns": [],
+      "api_visibility": "public",
+      "description": "Route the 4 relevant params to build_dist_shift based on type."
+    },
+    "/init_audio_type_switch": {
+      "parameters": [
+        {
+          "label": "Techniques",
+          "parameter_name": "choice",
+          "parameter_has_default": true,
+          "parameter_default": "Init audio",
+          "type": {
+            "enum": [
+              "Init audio"
+            ],
+            "title": "Radio",
+            "type": "string"
+          },
+          "python_type": {
+            "type": "Literal['Init audio']",
+            "description": ""
+          },
+          "component": "Radio",
+          "example_input": "Init audio"
+        }
+      ],
+      "returns": [],
+      "api_visibility": "public",
+      "description": ""
+    },
+    "/lambda": {
+      "parameters": [
+        {
+          "label": "Output audio",
+          "parameter_name": "audio",
+          "parameter_has_default": false,
+          "parameter_default": null,
+          "type": {
+            "$defs": {
+              "FileDataMeta": {
+                "properties": {
+                  "_type": {
+                    "const": "gradio.FileData",
+                    "title": "Type",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "_type"
+                ],
+                "title": "FileDataMeta",
+                "type": "object"
+              }
+            },
+            "properties": {
+              "path": {
+                "title": "Path",
+                "type": "string"
+              },
+              "url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Url"
+              },
+              "size": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Size"
+              },
+              "orig_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Orig Name"
+              },
+              "mime_type": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Mime Type"
+              },
+              "is_stream": {
+                "default": false,
+                "title": "Is Stream",
+                "type": "boolean"
+              },
+              "meta": {
+                "$ref": "#/$defs/FileDataMeta"
+              }
+            },
+            "required": [
+              "path"
+            ],
+            "title": "FileData",
+            "type": "object",
+            "additional_description": "The FileData class is a subclass of the GradioModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.\n\nAttributes:\n    path: The server file path where the file is stored.\n    url: The normalized server URL pointing to the file.\n    size: The size of the file in bytes.\n    orig_name: The original filename before upload.\n    mime_type: The MIME type of the file.\n    is_stream: Indicates whether the file is a stream.\n    meta: Additional metadata used internally (should not be changed)."
+          },
+          "python_type": {
+            "type": "filepath",
+            "description": "The FileData class is a subclass of the GradioModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.\n\nAttributes:\n    path: The server file path where the file is stored.\n    url: The normalized server URL pointing to the file.\n    size: The size of the file in bytes.\n    orig_name: The original filename before upload.\n    mime_type: The MIME type of the file.\n    is_stream: Indicates whether the file is a stream.\n    meta: Additional metadata used internally (should not be changed)."
+          },
+          "component": "Audio",
+          "example_input": {
+            "path": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav",
+            "meta": {
+              "_type": "gradio.FileData"
+            },
+            "orig_name": "audio_sample.wav",
+            "url": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "label": "Init audio",
+          "type": {
+            "$defs": {
+              "FileDataMeta": {
+                "properties": {
+                  "_type": {
+                    "const": "gradio.FileData",
+                    "title": "Type",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "_type"
+                ],
+                "title": "FileDataMeta",
+                "type": "object"
+              }
+            },
+            "properties": {
+              "path": {
+                "title": "Path",
+                "type": "string"
+              },
+              "url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Url"
+              },
+              "size": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Size"
+              },
+              "orig_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Orig Name"
+              },
+              "mime_type": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Mime Type"
+              },
+              "is_stream": {
+                "default": false,
+                "title": "Is Stream",
+                "type": "boolean"
+              },
+              "meta": {
+                "$ref": "#/$defs/FileDataMeta"
+              }
+            },
+            "required": [
+              "path"
+            ],
+            "title": "FileData",
+            "type": "object",
+            "additional_description": "The FileData class is a subclass of the GradioModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.\n\nAttributes:\n    path: The server file path where the file is stored.\n    url: The normalized server URL pointing to the file.\n    size: The size of the file in bytes.\n    orig_name: The original filename before upload.\n    mime_type: The MIME type of the file.\n    is_stream: Indicates whether the file is a stream.\n    meta: Additional metadata used internally (should not be changed)."
+          },
+          "python_type": {
+            "type": "filepath",
+            "description": ""
+          },
+          "component": "Audio"
+        }
+      ],
+      "api_visibility": "public",
+      "description": ""
+    },
+    "/lambda_1": {
+      "parameters": [
+        {
+          "label": "Output audio",
+          "parameter_name": "audio",
+          "parameter_has_default": false,
+          "parameter_default": null,
+          "type": {
+            "$defs": {
+              "FileDataMeta": {
+                "properties": {
+                  "_type": {
+                    "const": "gradio.FileData",
+                    "title": "Type",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "_type"
+                ],
+                "title": "FileDataMeta",
+                "type": "object"
+              }
+            },
+            "properties": {
+              "path": {
+                "title": "Path",
+                "type": "string"
+              },
+              "url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Url"
+              },
+              "size": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Size"
+              },
+              "orig_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Orig Name"
+              },
+              "mime_type": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Mime Type"
+              },
+              "is_stream": {
+                "default": false,
+                "title": "Is Stream",
+                "type": "boolean"
+              },
+              "meta": {
+                "$ref": "#/$defs/FileDataMeta"
+              }
+            },
+            "required": [
+              "path"
+            ],
+            "title": "FileData",
+            "type": "object",
+            "additional_description": "The FileData class is a subclass of the GradioModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.\n\nAttributes:\n    path: The server file path where the file is stored.\n    url: The normalized server URL pointing to the file.\n    size: The size of the file in bytes.\n    orig_name: The original filename before upload.\n    mime_type: The MIME type of the file.\n    is_stream: Indicates whether the file is a stream.\n    meta: Additional metadata used internally (should not be changed)."
+          },
+          "python_type": {
+            "type": "filepath",
+            "description": "The FileData class is a subclass of the GradioModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.\n\nAttributes:\n    path: The server file path where the file is stored.\n    url: The normalized server URL pointing to the file.\n    size: The size of the file in bytes.\n    orig_name: The original filename before upload.\n    mime_type: The MIME type of the file.\n    is_stream: Indicates whether the file is a stream.\n    meta: Additional metadata used internally (should not be changed)."
+          },
+          "component": "Audio",
+          "example_input": {
+            "path": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav",
+            "meta": {
+              "_type": "gradio.FileData"
+            },
+            "orig_name": "audio_sample.wav",
+            "url": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "label": "Inpaint audio",
+          "type": {
+            "$defs": {
+              "FileDataMeta": {
+                "properties": {
+                  "_type": {
+                    "const": "gradio.FileData",
+                    "title": "Type",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "_type"
+                ],
+                "title": "FileDataMeta",
+                "type": "object"
+              }
+            },
+            "properties": {
+              "path": {
+                "title": "Path",
+                "type": "string"
+              },
+              "url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Url"
+              },
+              "size": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Size"
+              },
+              "orig_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Orig Name"
+              },
+              "mime_type": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Mime Type"
+              },
+              "is_stream": {
+                "default": false,
+                "title": "Is Stream",
+                "type": "boolean"
+              },
+              "meta": {
+                "$ref": "#/$defs/FileDataMeta"
+              }
+            },
+            "required": [
+              "path"
+            ],
+            "title": "FileData",
+            "type": "object",
+            "additional_description": "The FileData class is a subclass of the GradioModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.\n\nAttributes:\n    path: The server file path where the file is stored.\n    url: The normalized server URL pointing to the file.\n    size: The size of the file in bytes.\n    orig_name: The original filename before upload.\n    mime_type: The MIME type of the file.\n    is_stream: Indicates whether the file is a stream.\n    meta: Additional metadata used internally (should not be changed)."
+          },
+          "python_type": {
+            "type": "filepath",
+            "description": ""
+          },
+          "component": "Audio"
+        }
+      ],
+      "api_visibility": "public",
+      "description": ""
+    },
+    "/generate": {
+      "parameters": [
+        {
+          "label": "parameter_5",
+          "parameter_name": "prompt",
+          "parameter_has_default": true,
+          "parameter_default": "cinematic whoosh impact",
+          "type": {
+            "type": "string"
+          },
+          "python_type": {
+            "type": "str",
+            "description": ""
+          },
+          "component": "Textbox",
+          "example_input": "Hello!!"
+        },
+        {
+          "label": "parameter_6",
+          "parameter_name": "negative_prompt",
+          "parameter_has_default": true,
+          "parameter_default": null,
+          "type": {
+            "type": "string"
+          },
+          "python_type": {
+            "type": "str",
+            "description": ""
+          },
+          "component": "Textbox",
+          "example_input": "Hello!!"
+        },
+        {
+          "label": "Seconds total",
+          "parameter_name": "seconds_total",
+          "parameter_has_default": true,
+          "parameter_default": 120,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0 and 120"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0
+        },
+        {
+          "label": "CFG scale",
+          "parameter_name": "cfg_scale",
+          "parameter_has_default": true,
+          "parameter_default": 1.0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 25.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Steps",
+          "parameter_name": "steps",
+          "parameter_has_default": true,
+          "parameter_default": 8,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 500"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Spec Preview Every",
+          "parameter_name": "preview_every",
+          "parameter_has_default": true,
+          "parameter_default": 0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0 and 100"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0
+        },
+        {
+          "label": "Seed (set to -1 for random seed)",
+          "parameter_name": "seed",
+          "parameter_has_default": true,
+          "parameter_default": -1,
+          "type": {
+            "type": "integer"
+          },
+          "python_type": {
+            "type": "int",
+            "description": ""
+          },
+          "component": "Number",
+          "example_input": 3
+        },
+        {
+          "label": "Sampler type",
+          "parameter_name": "sampler_type",
+          "parameter_has_default": true,
+          "parameter_default": "pingpong",
+          "type": {
+            "type": "string",
+            "enum": [
+              "pingpong"
+            ]
+          },
+          "python_type": {
+            "type": "Literal['pingpong']",
+            "description": ""
+          },
+          "component": "Dropdown",
+          "example_input": "pingpong"
+        },
+        {
+          "label": "Sigma max",
+          "parameter_name": "sigma_max",
+          "parameter_has_default": true,
+          "parameter_default": 1.0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 1.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "CFG interval min",
+          "parameter_name": "cfg_interval_min",
+          "parameter_has_default": true,
+          "parameter_default": 0.0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 1"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "CFG interval max",
+          "parameter_name": "cfg_interval_max",
+          "parameter_has_default": true,
+          "parameter_default": 1.0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 1"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "CFG rescale amount",
+          "parameter_name": "cfg_rescale",
+          "parameter_has_default": true,
+          "parameter_default": 0.0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 1"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "CFG norm threshold",
+          "parameter_name": "cfg_norm_threshold",
+          "parameter_has_default": true,
+          "parameter_default": 0.0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 100"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "APG scale",
+          "parameter_name": "apg_scale",
+          "parameter_has_default": true,
+          "parameter_default": 1.0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 1.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "File format",
+          "parameter_name": "file_format",
+          "parameter_has_default": true,
+          "parameter_default": "wav",
+          "type": {
+            "type": "string",
+            "enum": [
+              "wav",
+              "flac",
+              "mp3 320k",
+              "mp3 v0",
+              "mp3 128k",
+              "m4a aac_he_v2 64k",
+              "m4a aac_he_v2 32k"
+            ]
+          },
+          "python_type": {
+            "type": "Literal['wav', 'flac', 'mp3 320k', 'mp3 v0', 'mp3 128k', 'm4a aac_he_v2 64k', 'm4a aac_he_v2 32k']",
+            "description": ""
+          },
+          "component": "Dropdown",
+          "example_input": "wav"
+        },
+        {
+          "label": "File naming",
+          "parameter_name": "file_naming",
+          "parameter_has_default": true,
+          "parameter_default": "verbose",
+          "type": {
+            "type": "string",
+            "enum": [
+              "verbose",
+              "prompt",
+              "output.wav"
+            ]
+          },
+          "python_type": {
+            "type": "Literal['verbose', 'prompt', 'output.wav']",
+            "description": ""
+          },
+          "component": "Dropdown",
+          "example_input": "verbose"
+        },
+        {
+          "label": "Cut to seconds total",
+          "parameter_name": "cut_to_seconds_total",
+          "parameter_has_default": true,
+          "parameter_default": true,
+          "type": {
+            "type": "boolean"
+          },
+          "python_type": {
+            "type": "bool",
+            "description": ""
+          },
+          "component": "Checkbox",
+          "example_input": true
+        },
+        {
+          "label": "Init audio",
+          "parameter_name": "init_audio",
+          "parameter_has_default": true,
+          "parameter_default": null,
+          "type": {
+            "$defs": {
+              "FileDataMeta": {
+                "properties": {
+                  "_type": {
+                    "const": "gradio.FileData",
+                    "title": "Type",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "_type"
+                ],
+                "title": "FileDataMeta",
+                "type": "object"
+              }
+            },
+            "properties": {
+              "path": {
+                "title": "Path",
+                "type": "string"
+              },
+              "url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Url"
+              },
+              "size": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Size"
+              },
+              "orig_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Orig Name"
+              },
+              "mime_type": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Mime Type"
+              },
+              "is_stream": {
+                "default": false,
+                "title": "Is Stream",
+                "type": "boolean"
+              },
+              "meta": {
+                "$ref": "#/$defs/FileDataMeta"
+              }
+            },
+            "required": [
+              "path"
+            ],
+            "title": "FileData",
+            "type": "object",
+            "additional_description": "The FileData class is a subclass of the GradioModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.\n\nAttributes:\n    path: The server file path where the file is stored.\n    url: The normalized server URL pointing to the file.\n    size: The size of the file in bytes.\n    orig_name: The original filename before upload.\n    mime_type: The MIME type of the file.\n    is_stream: Indicates whether the file is a stream.\n    meta: Additional metadata used internally (should not be changed)."
+          },
+          "python_type": {
+            "type": "filepath",
+            "description": "The FileData class is a subclass of the GradioModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.\n\nAttributes:\n    path: The server file path where the file is stored.\n    url: The normalized server URL pointing to the file.\n    size: The size of the file in bytes.\n    orig_name: The original filename before upload.\n    mime_type: The MIME type of the file.\n    is_stream: Indicates whether the file is a stream.\n    meta: Additional metadata used internally (should not be changed)."
+          },
+          "component": "Audio",
+          "example_input": {
+            "path": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav",
+            "meta": {
+              "_type": "gradio.FileData"
+            },
+            "orig_name": "audio_sample.wav",
+            "url": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
+          }
+        },
+        {
+          "label": "Init noise level",
+          "parameter_name": "init_noise_level",
+          "parameter_has_default": true,
+          "parameter_default": 0.9,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.01 and 1.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.01
+        },
+        {
+          "label": "Mask starts (sec)",
+          "parameter_name": "mask_maskstart",
+          "parameter_has_default": true,
+          "parameter_default": null,
+          "type": {
+            "type": "string"
+          },
+          "python_type": {
+            "type": "str",
+            "description": ""
+          },
+          "component": "Textbox",
+          "example_input": "Hello!!"
+        },
+        {
+          "label": "Mask ends (sec)",
+          "parameter_name": "mask_maskend",
+          "parameter_has_default": true,
+          "parameter_default": null,
+          "type": {
+            "type": "string"
+          },
+          "python_type": {
+            "type": "str",
+            "description": ""
+          },
+          "component": "Textbox",
+          "example_input": "Hello!!"
+        },
+        {
+          "label": "Inpaint audio",
+          "parameter_name": "inpaint_audio",
+          "parameter_has_default": true,
+          "parameter_default": null,
+          "type": {
+            "$defs": {
+              "FileDataMeta": {
+                "properties": {
+                  "_type": {
+                    "const": "gradio.FileData",
+                    "title": "Type",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "_type"
+                ],
+                "title": "FileDataMeta",
+                "type": "object"
+              }
+            },
+            "properties": {
+              "path": {
+                "title": "Path",
+                "type": "string"
+              },
+              "url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Url"
+              },
+              "size": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Size"
+              },
+              "orig_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Orig Name"
+              },
+              "mime_type": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Mime Type"
+              },
+              "is_stream": {
+                "default": false,
+                "title": "Is Stream",
+                "type": "boolean"
+              },
+              "meta": {
+                "$ref": "#/$defs/FileDataMeta"
+              }
+            },
+            "required": [
+              "path"
+            ],
+            "title": "FileData",
+            "type": "object",
+            "additional_description": "The FileData class is a subclass of the GradioModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.\n\nAttributes:\n    path: The server file path where the file is stored.\n    url: The normalized server URL pointing to the file.\n    size: The size of the file in bytes.\n    orig_name: The original filename before upload.\n    mime_type: The MIME type of the file.\n    is_stream: Indicates whether the file is a stream.\n    meta: Additional metadata used internally (should not be changed)."
+          },
+          "python_type": {
+            "type": "filepath",
+            "description": "The FileData class is a subclass of the GradioModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.\n\nAttributes:\n    path: The server file path where the file is stored.\n    url: The normalized server URL pointing to the file.\n    size: The size of the file in bytes.\n    orig_name: The original filename before upload.\n    mime_type: The MIME type of the file.\n    is_stream: Indicates whether the file is a stream.\n    meta: Additional metadata used internally (should not be changed)."
+          },
+          "component": "Audio",
+          "example_input": {
+            "path": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav",
+            "meta": {
+              "_type": "gradio.FileData"
+            },
+            "orig_name": "audio_sample.wav",
+            "url": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
+          }
+        },
+        {
+          "label": "Techniques",
+          "parameter_name": "init_audio_type",
+          "parameter_has_default": true,
+          "parameter_default": "Init audio",
+          "type": {
+            "enum": [
+              "Init audio"
+            ],
+            "title": "Radio",
+            "type": "string"
+          },
+          "python_type": {
+            "type": "Literal['Init audio']",
+            "description": ""
+          },
+          "component": "Radio",
+          "example_input": "Init audio"
+        },
+        {
+          "label": "Inversion Steps",
+          "parameter_name": "inversion_steps",
+          "parameter_has_default": true,
+          "parameter_default": 100,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 1 and 500"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1
+        },
+        {
+          "label": "Gamma",
+          "parameter_name": "inversion_gamma",
+          "parameter_has_default": true,
+          "parameter_default": 0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0 and 1"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0
+        },
+        {
+          "label": "Unconditional",
+          "parameter_name": "inversion_unconditional",
+          "parameter_has_default": true,
+          "parameter_default": false,
+          "type": {
+            "type": "boolean"
+          },
+          "python_type": {
+            "type": "bool",
+            "description": ""
+          },
+          "component": "Checkbox",
+          "example_input": true
+        },
+        {
+          "label": "Duration padding (sec)",
+          "parameter_name": "duration_padding_sec",
+          "parameter_has_default": true,
+          "parameter_default": 6.0,
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0.0 and 30.0"
+          },
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 0.0
+        },
+        {
+          "label": "Batch size",
+          "parameter_name": "batch_size",
+          "parameter_has_default": true,
+          "parameter_default": 1,
+          "type": {
+            "type": "integer"
+          },
+          "python_type": {
+            "type": "int",
+            "description": ""
+          },
+          "component": "Number",
+          "example_input": 1
+        }
+      ],
+      "returns": [
+        {
+          "label": "Output audio",
+          "type": {
+            "$defs": {
+              "FileDataMeta": {
+                "properties": {
+                  "_type": {
+                    "const": "gradio.FileData",
+                    "title": "Type",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "_type"
+                ],
+                "title": "FileDataMeta",
+                "type": "object"
+              }
+            },
+            "properties": {
+              "path": {
+                "title": "Path",
+                "type": "string"
+              },
+              "url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Url"
+              },
+              "size": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Size"
+              },
+              "orig_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Orig Name"
+              },
+              "mime_type": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Mime Type"
+              },
+              "is_stream": {
+                "default": false,
+                "title": "Is Stream",
+                "type": "boolean"
+              },
+              "meta": {
+                "$ref": "#/$defs/FileDataMeta"
+              }
+            },
+            "required": [
+              "path"
+            ],
+            "title": "FileData",
+            "type": "object",
+            "additional_description": "The FileData class is a subclass of the GradioModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.\n\nAttributes:\n    path: The server file path where the file is stored.\n    url: The normalized server URL pointing to the file.\n    size: The size of the file in bytes.\n    orig_name: The original filename before upload.\n    mime_type: The MIME type of the file.\n    is_stream: Indicates whether the file is a stream.\n    meta: Additional metadata used internally (should not be changed)."
+          },
+          "python_type": {
+            "type": "filepath",
+            "description": ""
+          },
+          "component": "Audio"
+        },
+        {
+          "label": "Output spectrogram",
+          "type": {
+            "$defs": {
+              "FileData": {
+                "description": "The FileData class is a subclass of the GradioModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.\n\nAttributes:\n    path: The server file path where the file is stored.\n    url: The normalized server URL pointing to the file.\n    size: The size of the file in bytes.\n    orig_name: The original filename before upload.\n    mime_type: The MIME type of the file.\n    is_stream: Indicates whether the file is a stream.\n    meta: Additional metadata used internally (should not be changed).",
+                "properties": {
+                  "path": {
+                    "title": "Path",
+                    "type": "string"
+                  },
+                  "url": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Url"
+                  },
+                  "size": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Size"
+                  },
+                  "orig_name": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Orig Name"
+                  },
+                  "mime_type": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Mime Type"
+                  },
+                  "is_stream": {
+                    "default": false,
+                    "title": "Is Stream",
+                    "type": "boolean"
+                  },
+                  "meta": {
+                    "$ref": "#/$defs/FileDataMeta"
+                  }
+                },
+                "required": [
+                  "path"
+                ],
+                "title": "FileData",
+                "type": "object"
+              },
+              "FileDataMeta": {
+                "properties": {
+                  "_type": {
+                    "const": "gradio.FileData",
+                    "title": "Type",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "_type"
+                ],
+                "title": "FileDataMeta",
+                "type": "object"
+              },
+              "GalleryImage": {
+                "properties": {
+                  "image": {
+                    "$ref": "#/$defs/ImageData"
+                  },
+                  "caption": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Caption"
+                  }
+                },
+                "required": [
+                  "image"
+                ],
+                "title": "GalleryImage",
+                "type": "object"
+              },
+              "GalleryVideo": {
+                "properties": {
+                  "video": {
+                    "$ref": "#/$defs/FileData"
+                  },
+                  "caption": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Caption"
+                  }
+                },
+                "required": [
+                  "video"
+                ],
+                "title": "GalleryVideo",
+                "type": "object"
+              },
+              "ImageData": {
+                "description": "For input, either path or url must be provided. For output, path is always provided.",
+                "properties": {
+                  "path": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Path to a local file",
+                    "title": "Path"
+                  },
+                  "url": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Publicly available url or base64 encoded image",
+                    "title": "Url"
+                  },
+                  "size": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Size of image in bytes",
+                    "title": "Size"
+                  },
+                  "orig_name": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Original filename",
+                    "title": "Orig Name"
+                  },
+                  "mime_type": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "mime type of image",
+                    "title": "Mime Type"
+                  },
+                  "is_stream": {
+                    "default": false,
+                    "description": "Can always be set to False",
+                    "title": "Is Stream",
+                    "type": "boolean"
+                  },
+                  "meta": {
+                    "additionalProperties": true,
+                    "default": {
+                      "_type": "gradio.FileData"
+                    },
+                    "title": "Meta",
+                    "type": "object"
+                  }
+                },
+                "title": "ImageData",
+                "type": "object"
+              }
+            },
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/GalleryImage"
+                },
+                {
+                  "$ref": "#/$defs/GalleryVideo"
+                }
+              ]
+            },
+            "title": "GalleryData",
+            "type": "array",
+            "additional_description": null
+          },
+          "python_type": {
+            "type": "list[dict(image: dict(path: str | None (Path to a local file), url: str | None (Publicly available url or base64 encoded image), size: int | None (Size of image in bytes), orig_name: str | None (Original filename), mime_type: str | None (mime type of image), is_stream: bool (Can always be set to False), meta: dict(str, Any)), caption: str | None) | dict(video: filepath, caption: str | None)]",
+            "description": ""
+          },
+          "component": "Gallery"
+        }
+      ],
+      "api_visibility": "public",
+      "description": ""
+    },
+    "/_prompt_assistant_or_download": {
+      "parameters": [
+        {
+          "label": "parameter_5",
+          "parameter_name": "text",
+          "parameter_has_default": true,
+          "parameter_default": "cinematic whoosh impact",
+          "type": {
+            "type": "string"
+          },
+          "python_type": {
+            "type": "str",
+            "description": ""
+          },
+          "component": "Textbox",
+          "example_input": "Hello!!"
+        }
+      ],
+      "returns": [
+        {
+          "label": "value_5",
+          "type": {
+            "type": "string"
+          },
+          "python_type": {
+            "type": "str",
+            "description": ""
+          },
+          "component": "Textbox"
+        },
+        {
+          "label": "Seconds total",
+          "type": {
+            "type": "number",
+            "description": "numeric value between 0 and 120"
+          },
+          "python_type": {
+            "type": "float",
+            "description": "numeric value between 0 and 120"
+          },
+          "component": "Slider"
+        }
+      ],
+      "api_visibility": "public",
+      "description": ""
+    }
+  },
+  "unnamed_endpoints": {}
+}

@@ -186,13 +186,33 @@ for (const [id, expected] of carried) {
   assert.deepEqual(new Set(copy.include), new Set(expected), id + ': portable components');
 }
 const sounds = await readJson(resolve(assets, 'sounds.json'));
+const soundRegistrations = await readFile(resolve(root, 'src/main/java/dervogel101/de/emulator_i86_crafted/ModSounds.java'), 'utf8');
+const soundIds = [...soundRegistrations.matchAll(/register\("([a-z_]+)"\)/g)].map(match => 'machine.' + match[1]);
+assert.deepEqual(new Set(Object.keys(sounds)), new Set(soundIds), 'Machine sound registrations and resources differ');
+const soundDefinitions = await readJson(resolve(root, 'art/audio/machine-sounds/set-definition.json'));
+assert.deepEqual(new Set(Object.keys(soundDefinitions).map(cue => 'machine.' + cue)), new Set(soundIds),
+  'Machine generation definitions and registrations differ');
+const clipFiles = new Set();
 for (const [id, event] of Object.entries(sounds)) {
   assert.ok(names[event.subtitle], 'Missing sound subtitle: ' + id);
-  assert.ok(event.sounds.length > 0, 'Empty sound event: ' + id);
-  for (const sound of event.sounds) {
-    assert.equal(sound.type, 'event', 'Machine sounds must reuse vanilla events');
-    assert.ok(sound.name.startsWith('minecraft:'), 'External sound asset: ' + id);
+  const cue = id.slice('machine.'.length);
+  assert.equal(event.sounds.length, soundDefinitions[cue].durations.length, 'Wrong sound variant count: ' + id);
+  for (const [index, sound] of event.sounds.entries()) {
+    const file = cue + '_' + String(index + 1).padStart(2, '0') + '.ogg';
+    assert.equal(sound.type ?? 'file', 'file', 'Machine sounds must use bundled clips: ' + id);
+    assert.equal(sound.name, namespace + ':machine/' + file.slice(0, -4), 'Unexpected sound asset: ' + id);
+    if (cue === 'fan') assert.equal(sound.preload, true, 'Fan loop must be preloaded');
+    const clip = await readFile(resolve(assets, 'sounds/machine', file));
+    assert.equal(clip.toString('ascii', 0, 4), 'OggS', 'Invalid Ogg stream: ' + file);
+    const packet = 27 + clip[26];
+    assert.ok(clip.length >= packet + 30 && clip[packet] === 1, 'Missing Vorbis identification packet: ' + file);
+    assert.equal(clip.toString('ascii', packet + 1, packet + 7), 'vorbis', 'Clip must use Vorbis: ' + file);
+    assert.equal(clip[packet + 11], 1, 'Positional machine audio must be mono: ' + file);
+    assert.equal(clip.readUInt32LE(packet + 12), 48000, 'Machine audio must use 48 kHz: ' + file);
+    clipFiles.add(file);
   }
 }
+assert.deepEqual(new Set((await readdir(resolve(assets, 'sounds/machine'))).filter(file => file.endsWith('.ogg'))), clipFiles,
+  'Missing or unused machine audio clips');
 console.log('Resource checks passed: ' + blockCount + ' 3D blocks, ' + items.length + ' items, ' + animations
-  + ' interpolated textures; all states, model references, portable drops and ' + Object.keys(sounds).length + ' vanilla sound cues');
+  + ' interpolated textures; all states, model references, portable drops and ' + Object.keys(sounds).length + ' bundled sound cues');

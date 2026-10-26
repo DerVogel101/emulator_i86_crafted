@@ -1,0 +1,50 @@
+{
+  "asset": "sign",
+  "variant": 2,
+  "target_seconds": 0.14,
+  "model": "Stable Audio 3 Small SFX",
+  "overrides": {
+    "prompt": "One small split-flap display segment changes, a delicate plastic flap and tiny metal latch click, soft precise dry mechanical tick, quick decay. Isolated close-miked studio sound effect for the same compact vintage computer. Quiet background, dry, no room reverb, no music, no speech, no hiss, no exaggerated bass. The action begins immediately.",
+    "negative_prompt": "",
+    "seconds_total": 1,
+    "seed": 861802,
+    "file_format": "wav",
+    "file_naming": "verbose",
+    "cut_to_seconds_total": true
+  },
+  "request": {
+    "data": [
+      "One small split-flap display segment changes, a delicate plastic flap and tiny metal latch click, soft precise dry mechanical tick, quick decay. Isolated close-miked studio sound effect for the same compact vintage computer. Quiet background, dry, no room reverb, no music, no speech, no hiss, no exaggerated bass. The action begins immediately.",
+      "",
+      1,
+      1.0,
+      8,
+      0,
+      861802,
+      "pingpong",
+      1.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      1.0,
+      "wav",
+      "verbose",
+      true,
+      null,
+      0.9,
+      null,
+      null,
+      null,
+      "Init audio",
+      100,
+      0,
+      false,
+      6.0,
+      1,
+      []
+    ]
+  },
+  "event_id": "fe1178e47bfe43e0bc6e792b2ee798d1",
+  "sha256": "7641810911bc299d6a09caefd77b03bb7fe286a42ca7bba91a83c085861f5e15"
+}

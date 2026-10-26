@@ -1,0 +1,50 @@
+{
+  "asset": "fault",
+  "variant": 1,
+  "target_seconds": 1.1,
+  "model": "Stable Audio 3 Small SFX",
+  "overrides": {
+    "prompt": "A vintage computer error alert: a short low electronic buzzer with two restrained descending pulses, clean simple oscillator, dry and modest, clearly an error indication, quick decay. Isolated close-miked studio sound effect for the same compact vintage computer. Quiet background, dry, no room reverb, no music, no speech, no hiss, no exaggerated bass. The action begins immediately.",
+    "negative_prompt": "",
+    "seconds_total": 2,
+    "seed": 861301,
+    "file_format": "wav",
+    "file_naming": "verbose",
+    "cut_to_seconds_total": true
+  },
+  "request": {
+    "data": [
+      "A vintage computer error alert: a short low electronic buzzer with two restrained descending pulses, clean simple oscillator, dry and modest, clearly an error indication, quick decay. Isolated close-miked studio sound effect for the same compact vintage computer. Quiet background, dry, no room reverb, no music, no speech, no hiss, no exaggerated bass. The action begins immediately.",
+      "",
+      2,
+      1.0,
+      8,
+      0,
+      861301,
+      "pingpong",
+      1.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      1.0,
+      "wav",
+      "verbose",
+      true,
+      null,
+      0.9,
+      null,
+      null,
+      null,
+      "Init audio",
+      100,
+      0,
+      false,
+      6.0,
+      1,
+      []
+    ]
+  },
+  "event_id": "baa8723f94fa4c9898b4d754839412e7",
+  "sha256": "128a5577251ad9b92d8b95dd6f53f4eb480a22e54515521ddaddb898bbbf04f0"
+}

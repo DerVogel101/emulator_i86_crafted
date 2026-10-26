@@ -55,8 +55,9 @@ public final class MachineSoundClientGameTest implements FabricClientGameTest {
                 for (var id : BuiltInRegistries.SOUND_EVENT.keySet()) if (id.getNamespace().equals("emulator_i86_crafted")) {
                     var event = client.getSoundManager().getSoundEvent(id);
                     if (event == null || event.getWeight() == 0) throw new AssertionError("Empty sound event: " + id);
-                    if (!event.getSound(RandomSource.create(1)).getLocation().getNamespace().equals("minecraft"))
-                        throw new AssertionError("Machine cue does not resolve to vanilla audio: " + id);
+                    var clip = event.getSound(RandomSource.create(1)).getLocation();
+                    if (!clip.getNamespace().equals("emulator_i86_crafted") || !clip.getPath().startsWith("machine/"))
+                        throw new AssertionError("Machine cue does not resolve to bundled audio: " + id);
                     cues++;
                 }
                 if (cues != 16) throw new AssertionError("Missing machine sound registrations: " + cues);
@@ -250,7 +251,7 @@ public final class MachineSoundClientGameTest implements FabricClientGameTest {
         context.runOnClient(client -> {
             if (!map("FANS").isEmpty() || !map("STATES").isEmpty()) throw new AssertionError("Disconnect did not clear machine audio");
         });
-        System.out.println("I86_MACHINE_SOUNDS_OK: vanilla resources, profiles, boot/terminal/sign/disk/shutdown, layered punchcard bursts, layer/fan caps, freeze/mute/reload/removal/power/range/disconnect cleanup");
+        System.out.println("I86_MACHINE_SOUNDS_OK: bundled resources, profiles, boot/terminal/sign/disk/shutdown, layered punchcard bursts, layer/fan caps, freeze/mute/reload/removal/power/range/disconnect cleanup");
     }
 
     private static void send(MinecraftServer server, List<BlockPos> positions, int flags) {

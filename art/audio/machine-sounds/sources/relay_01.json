@@ -1,0 +1,50 @@
+{
+  "asset": "relay",
+  "variant": 1,
+  "target_seconds": 0.1,
+  "model": "Stable Audio 3 Small SFX",
+  "overrides": {
+    "prompt": "One miniature electromechanical relay actuates inside a vintage computer, a single crisp soft metallic tick with a subtle plastic body, very short dry click, quick decay. Isolated close-miked studio sound effect for the same compact vintage computer. Quiet background, dry, no room reverb, no music, no speech, no hiss, no exaggerated bass. The action begins immediately.",
+    "negative_prompt": "",
+    "seconds_total": 1,
+    "seed": 861501,
+    "file_format": "wav",
+    "file_naming": "verbose",
+    "cut_to_seconds_total": true
+  },
+  "request": {
+    "data": [
+      "One miniature electromechanical relay actuates inside a vintage computer, a single crisp soft metallic tick with a subtle plastic body, very short dry click, quick decay. Isolated close-miked studio sound effect for the same compact vintage computer. Quiet background, dry, no room reverb, no music, no speech, no hiss, no exaggerated bass. The action begins immediately.",
+      "",
+      1,
+      1.0,
+      8,
+      0,
+      861501,
+      "pingpong",
+      1.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      1.0,
+      "wav",
+      "verbose",
+      true,
+      null,
+      0.9,
+      null,
+      null,
+      null,
+      "Init audio",
+      100,
+      0,
+      false,
+      6.0,
+      1,
+      []
+    ]
+  },
+  "event_id": "2aca86594a0647f1adc357fce9a31930",
+  "sha256": "4ec777203c69350e8450f47c07888f2b4f6c1e3d5cfca255d63af4940de4abba"
+}

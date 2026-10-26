@@ -1,12 +1,12 @@
 package dervogel101.de.emulator_i86_crafted.client;
 
+import dervogel101.de.emulator_i86_crafted.ModSounds;
 import dervogel101.de.emulator_i86_crafted.client.screen.KeyboardScreen;
 import dervogel101.de.emulator_i86_crafted.network.KeyboardPackets;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import net.minecraft.sounds.SoundEvents;
 import com.mojang.blaze3d.platform.InputConstants;
 
 public final class ClientKeyboard {
@@ -21,7 +21,7 @@ public final class ClientKeyboard {
         });
         ClientPlayNetworking.registerGlobalReceiver(KeyboardPackets.Overflow.TYPE, (packet, context) -> {
             if (context.client().gui.screen() instanceof KeyboardScreen screen && screen.token().equals(packet.token()))
-                context.client().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_BIT, 1F));
+                context.client().getSoundManager().play(SimpleSoundInstance.forUI(ModSounds.FAULT, 1F));
         });
     }
     public static boolean active() { return Minecraft.getInstance().gui.screen() instanceof KeyboardScreen; }

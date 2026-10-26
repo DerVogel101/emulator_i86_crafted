@@ -4,7 +4,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.sounds.SoundEvent;
 
-/** Named/subtitled machine cues, all referencing Minecraft's own sound events. */
+/** Named/subtitled machine cues backed by generated local audio clips. */
 public final class ModSounds {
     public static final SoundEvent FAN = register("fan"), START = register("start"), STOP = register("stop"),
             FAULT = register("fault"), RELAY = register("relay"), DISK = register("disk"),
