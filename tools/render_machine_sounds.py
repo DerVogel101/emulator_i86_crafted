@@ -21,8 +21,8 @@ PLAYBACK = {
     "fan": (.021, .8), "start": (.144, 1.2), "stop": (.12, .7),
     "fault": (.108, .8), "burn": (.072, 1.2), "relay": (.042, 1.2),
     "disk": (.066, 1.3), "terminal": (.042, 1.4), "sign": (.036, 1.3),
-    "key": (.042, 1.5), "card_read": (.066, 1.5), "card_write": (.084, 1.5),
-    "card_feed": (.12, 1.1), "paper": (.096, 1.3), "clock": (.0216, .9),
+    "key": (.042, 1.5), "card_read": (.099, 1.5), "card_write": (.126, 1.5),
+    "card_feed": (.18, 1.1), "paper": (.144, 1.3), "clock": (.0216, .9),
     "link": (.03, 1.6),
 }
 
@@ -163,7 +163,7 @@ def make_demo(sounds, specs, output):
         place("terminal", 5 + i * .3, i % 2 + 1)
         for asset, at in (("card_read", 7.5), ("card_write", 9.5)):
             place(asset, at + i * .2, i % 2 + 1)
-            place("relay", at + i * .2, i % 2 + 1, gain=.03, pitch=1.7)
+            place("relay", at + i * .2, i % 2 + 1, gain=.045, pitch=1.7)
     place("card_feed", 11.2)
     place("paper", 11.2)
     place("card_feed", 12, 2, pitch=.85)

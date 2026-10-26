@@ -4,7 +4,9 @@ All 16 machine cues use 27 original clips generated with the local **Stable Audi
 3 Small SFX** app through its Gradio API on 2026-10-26. There are no vanilla sound
 aliases in this set. Playback timing, subtitles, and the Blocks
 volume slider are unchanged.
-Machine cues use 1.2 times the original playback gain; fans use 1.05 times. The fan
+Machine cues use 1.2 times the original playback gain; fans use 1.05 times.
+Reader/writer layers receive a further 1.5 multiplier (1.8 times the original),
+including scan, punch, feed, paper, relay and fault cues. The fan
 fade envelope is scaled by the same factor. Keyboard overflow also reuses the
 generated fault clip as a UI notification, with 1.2 times its original UI gain.
 

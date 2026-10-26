@@ -165,6 +165,7 @@ public final class ClientMachineSounds {
     private static void play(Voice voice, SoundEvent event, float volume, float pitch) {
         if (remaining == 0) return;
         remaining--;
+        if (voice.kind() == Kind.READER || voice.kind() == Kind.WRITER) volume *= 1.5f;
         Minecraft.getInstance().getSoundManager().play(new SimpleSoundInstance(event, SoundSource.BLOCKS,
                 volume * 1.2f, pitch, RandomSource.create(), voice.position()));
     }
