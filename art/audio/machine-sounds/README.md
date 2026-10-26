@@ -49,8 +49,10 @@ the preserved WAVs are the reference for exact sound reproduction.
 
 The renderer creates `build/sound-demo/index.html`, a labeled reel of
 all variants, a 22-second running-rack mix, individual auditions, a four-repeat
-fan test, per-clip players with three back-to-back repetitions, cue sheets, and
-validation results. The demo uses decoded game OGGs at
+fan test, a continuous buffered fan player, per-clip players with three back-to-back
+repetitions, cue sheets, and validation results. The buffered player uses Web Audio
+looping to avoid native media-element restart gaps. Run its checks with
+`node --test tools/test_sound_demo_player.mjs`. The demo uses decoded game OGGs at
 representative game pitches. Individual auditions are normalized for listening;
 the rack mix preserves the relative playback gains with a labeled common boost.
 Distance attenuation, the game mixer, and the user's volume settings still

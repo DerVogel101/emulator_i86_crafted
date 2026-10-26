@@ -111,6 +111,8 @@ def encode_ogg(ffmpeg, path, samples):
 
 def make_demo(sounds, specs, output):
     output.mkdir(parents=True, exist_ok=True)
+    player_script = Path(__file__).with_name("sound_demo_player.js").read_text(encoding="utf-8")
+    (output / "sound-demo-player.js").write_text(player_script, encoding="utf-8")
     timeline = []
     reel = []
     cards = []
@@ -188,14 +190,17 @@ def make_demo(sounds, specs, output):
     page = '''<!doctype html><html lang="en"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>Machine sound audition</title>
 <style>body{font:16px/1.5 system-ui;max-width:1000px;margin:40px auto;padding:0 20px;background:#151a20;color:#e4edf2}h1,h2,h3{line-height:1.2}audio{width:100%}article{padding:18px;background:#222b35;border-radius:10px}#clips{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}p{color:#bfcbd5}a{color:#8fd1ff}</style>
-<h1>Generated machine sounds</h1><p>Stable Audio 3 Small SFX • mono 48 kHz Vorbis game assets • fixed seeds, deterministic editing.</p>
+<h1>Generated machine sounds</h1><p>Demo revision: <code>REVISION</code></p><p>Stable Audio 3 Small SFX • mono 48 kHz Vorbis game assets • fixed seeds, deterministic editing.</p>
 <h2>Every clip</h2><p>All variants at their typical game pitch, raised to the same audition peak. Follow the labels below or the <a href="cue-sheet.csv">cue sheet</a>.</p><audio controls src="machine-sounds-demo.wav"></audio>
 <h2>Busy rack · 22 seconds</h2><p>Startup → disk → keyboard → terminal → reader → writer → card feed → sign → link → clock → burn → fault → shutdown. Original game gains and pitches; one common listening boost of BOOST dB. Spatial attenuation and game master volume are omitted.</p><audio controls src="rack-demo.wav"></audio>
-<h2>Fan seam test</h2><p>Four consecutive loops at game pitch 0.8, raised to −9 dBFS. The loop uses the steady middle of the source with an equal-power crossfade. This player repeats continuously.</p><audio controls loop src="fan-loop-test.wav"></audio>
-<h2>Individual auditions</h2><section id="clips">CARDS</section></html>'''
+<h2>Continuous fan test</h2><p>Game pitch 0.8, raised to −9 dBFS. One decoded audio buffer loops continuously. Use this player to check the joins without file restart pauses.</p>
+<button id="fan-loop-button" data-src="fan-loop-test.wav" aria-pressed="false">Play fan continuously</button><p id="fan-loop-status" role="status">Ready.</p>
+<p><a href="fan-loop-test.wav">20-second fan recording</a></p>
+<h2>Individual auditions</h2><section id="clips">CARDS</section><script src="sound-demo-player.js"></script></html>'''
     page = page.replace("BOOST", f"{20 * math.log10(mix_gain):.1f}").replace("CARDS", "\n".join(cards))
-    revision = hashlib.sha256(json.dumps(PLAYBACK, sort_keys=True).encode() + b"".join(samples.tobytes() for samples in sounds.values())).hexdigest()[:12]
-    page = page.replace('.wav"', f'.wav?v={revision}"')
+    revision = hashlib.sha256(player_script.encode() + json.dumps(PLAYBACK, sort_keys=True).encode() + b"".join(samples.tobytes() for samples in sounds.values())).hexdigest()[:12]
+    page = page.replace("REVISION", revision).replace('.wav"', f'.wav?v={revision}"')
+    page = page.replace('sound-demo-player.js"', f'sound-demo-player.js?v={revision}"')
     (output / "index.html").write_text(page, encoding="utf-8")
     return {"rack_peak_dbfs": 20 * math.log10(float(np.max(np.abs(mix * mix_gain)))),
             "listening_boost_db": 20 * math.log10(mix_gain), "all_sounds_seconds": position / RATE,
