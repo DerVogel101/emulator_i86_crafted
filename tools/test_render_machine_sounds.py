@@ -34,6 +34,16 @@ class RenderSoundsTest(unittest.TestCase):
         self.assertGreater(levels.min() / reference, 10 ** (-1 / 20))
         self.assertLess(levels.max() / reference, 10 ** (1 / 20))
 
+    def test_fan_crop_excludes_source_startup_and_shutdown_fades(self):
+        t = np.arange(8 * RATE) / RATE
+        envelope = np.minimum(np.minimum(t / 2, 8 - t), 1)
+        source = np.random.default_rng(47).normal(0, .1, len(t)) * envelope
+        loop = render(source, 4, fan=True, peak_db=-9)
+        levels = np.sqrt(np.mean(loop.reshape(-1, RATE // 10) ** 2, axis=1))
+        reference = np.median(levels)
+        self.assertGreater(levels.min() / reference, 10 ** (-1 / 20))
+        self.assertLess(levels.max() / reference, 10 ** (1 / 20))
+
     def test_short_cue_fades_have_gentle_endpoints(self):
         t = np.arange(RATE) / RATE
         clip = render(np.sin(2 * np.pi * 1234 * t + .4), .12)

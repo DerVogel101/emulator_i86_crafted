@@ -23,7 +23,9 @@ game clips' lengths, channels, levels, and fan seam measurements.
 The shipped clips are mono 48 kHz Ogg Vorbis in
 `src/main/resources/assets/emulator_i86_crafted/sounds/machine/`. Short cues use a 4 ms raised-cosine attack and up to 35 ms release, capped for
 short transients, so repeated activity has gentle edges. The four-second fan uses
-a 400 ms equal-power crossfade with smoothly eased gains to avoid a level dip. It
+a centered excerpt to exclude the source startup/shutdown fades and a 400 ms
+equal-power crossfade with smoothly eased gains. Decoded 100 ms RMS windows must
+stay within a 3 dB total range. It
 plays at a lowered pitch (0.775-0.85), with a 250 Hz high-pass and 2 kHz
 low-pass filter to soften the airflow texture and remove low rumble.
 Frequently repeated cues have two variants; fan, startup, shutdown, fault, and
@@ -46,7 +48,7 @@ with the saved seed also depends on the same model, app, and compute environment
 the preserved WAVs are the reference for exact sound reproduction.
 
 The renderer creates `build/sound-demo/index.html`, a labeled reel of
-all variants, a 22-second running-rack mix, individual auditions, a three-repeat
+all variants, a 22-second running-rack mix, individual auditions, a four-repeat
 fan test, per-clip players with three back-to-back repetitions, cue sheets, and
 validation results. The demo uses decoded game OGGs at
 representative game pitches. Individual auditions are normalized for listening;

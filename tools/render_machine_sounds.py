@@ -58,7 +58,7 @@ def render(samples, seconds, fan=False, peak_db=-3):
         available = len(samples) - count - overlap
         if available < 0:
             raise ValueError("Fan source must exceed loop length by the crossfade duration")
-        start = min(round(.3 * RATE), available)
+        start = available // 2
         segment = samples[start:start + count + overlap]
         phase = (.5 - .5 * np.cos(np.linspace(0, np.pi, overlap))) * (np.pi / 2)
         fade_in, fade_out = np.sin(phase), np.cos(phase)
@@ -178,7 +178,7 @@ def make_demo(sounds, specs, output):
     if np.max(np.abs(mix)) * mix_gain > .9:
         mix_gain = .9 / np.max(np.abs(mix))
     write_wav(output / "rack-demo.wav", mix * mix_gain)
-    fan_test = normalize(np.tile(fan, 3), -9)
+    fan_test = normalize(np.tile(fan, 4), -9)
     write_wav(output / "fan-loop-test.wav", fan_test)
     with (output / "cue-sheet.csv").open("w", newline="", encoding="utf-8") as file:
         writer = csv.DictWriter(file, fieldnames=timeline[0].keys())
@@ -191,7 +191,7 @@ def make_demo(sounds, specs, output):
 <h1>Generated machine sounds</h1><p>Stable Audio 3 Small SFX • mono 48 kHz Vorbis game assets • fixed seeds, deterministic editing.</p>
 <h2>Every clip</h2><p>All variants at their typical game pitch, raised to the same audition peak. Follow the labels below or the <a href="cue-sheet.csv">cue sheet</a>.</p><audio controls src="machine-sounds-demo.wav"></audio>
 <h2>Busy rack · 22 seconds</h2><p>Startup → disk → keyboard → terminal → reader → writer → card feed → sign → link → clock → burn → fault → shutdown. Original game gains and pitches; one common listening boost of BOOST dB. Spatial attenuation and game master volume are omitted.</p><audio controls src="rack-demo.wav"></audio>
-<h2>Fan seam test</h2><p>Three consecutive loops at game pitch 0.8, raised to −9 dBFS. The loop contains a smooth equal-power crossfade, with no gap between repetitions.</p><audio controls src="fan-loop-test.wav"></audio>
+<h2>Fan seam test</h2><p>Four consecutive loops at game pitch 0.8, raised to −9 dBFS. The loop uses the steady middle of the source with an equal-power crossfade. This player repeats continuously.</p><audio controls loop src="fan-loop-test.wav"></audio>
 <h2>Individual auditions</h2><section id="clips">CARDS</section></html>'''
     page = page.replace("BOOST", f"{20 * math.log10(mix_gain):.1f}").replace("CARDS", "\n".join(cards))
     revision = hashlib.sha256(json.dumps(PLAYBACK, sort_keys=True).encode() + b"".join(samples.tobytes() for samples in sounds.values())).hexdigest()[:12]
@@ -233,6 +233,11 @@ def main():
                      "peak_dbfs": 20 * math.log10(float(np.max(np.abs(delivered)))),
                      "rms_dbfs": 20 * math.log10(float(np.sqrt(np.mean(delivered ** 2))))}
             if asset == "fan":
+                window = RATE // 10
+                levels = np.array([np.sqrt(np.mean(delivered[i:i + window] ** 2))
+                                   for i in range(0, len(delivered), window)])
+                entry["level_range_db"] = 20 * math.log10(float(levels.max() / levels.min()))
+                assert entry["level_range_db"] <= 3, "Fan loop exceeds 3 dB of level variation"
                 entry["loop_boundary_step"] = abs(float(delivered[0] - delivered[-1]))
                 entry["max_sample_step"] = float(np.max(np.abs(np.diff(delivered))))
                 assert entry["loop_boundary_step"] <= max(.015, entry["max_sample_step"])
