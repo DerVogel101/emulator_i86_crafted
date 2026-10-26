@@ -5,9 +5,11 @@ The mod gives the events machine-specific subtitles and uses the Blocks volume s
 Fan, startup, shutdown, fault and ROM completion each have one clip. The other cues
 have two variations selected by Minecraft. The preloaded fan uses an equal-power
 crossfade, and short cues use curved edge fades for repeated activity. The fan plays
-at a lowered pitch; one-shot pitch changes, playback gains, timing, distance limits and
+at a lowered pitch; one-shot pitch changes, timing, distance limits and
 packet handling are preserved.
-The keyboard's FIFO overflow notification also uses the generated fault clip.
+Machine cue playback is 20% louder and fans are 5% louder than the original
+generated-sound balance. The keyboard's FIFO overflow notification also uses the
+generated fault clip at the 20% higher gain.
 See [generation and provenance](../art/audio/machine-sounds/README.md) for the fixed
 prompts, seeds and regeneration steps. The generated [sound demo](../build/sound-demo/index.html)
 plays every clip and repeated activity for review.

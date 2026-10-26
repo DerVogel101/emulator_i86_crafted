@@ -18,12 +18,12 @@ import soundfile as sf
 RATE = 48000
 ROOT = Path(__file__).resolve().parents[1]
 PLAYBACK = {
-    "fan": (.02, .8), "start": (.12, 1.2), "stop": (.10, .7),
-    "fault": (.09, .8), "burn": (.06, 1.2), "relay": (.035, 1.2),
-    "disk": (.055, 1.3), "terminal": (.035, 1.4), "sign": (.03, 1.3),
-    "key": (.035, 1.5), "card_read": (.055, 1.5), "card_write": (.07, 1.5),
-    "card_feed": (.10, 1.1), "paper": (.08, 1.3), "clock": (.018, .9),
-    "link": (.025, 1.6),
+    "fan": (.021, .8), "start": (.144, 1.2), "stop": (.12, .7),
+    "fault": (.108, .8), "burn": (.072, 1.2), "relay": (.042, 1.2),
+    "disk": (.066, 1.3), "terminal": (.042, 1.4), "sign": (.036, 1.3),
+    "key": (.042, 1.5), "card_read": (.066, 1.5), "card_write": (.084, 1.5),
+    "card_feed": (.12, 1.1), "paper": (.096, 1.3), "clock": (.0216, .9),
+    "link": (.03, 1.6),
 }
 
 
@@ -138,12 +138,12 @@ def make_demo(sounds, specs, output):
 
     mix = np.zeros(22 * RATE)
     fan = pitched(sounds[("fan", 1)], PLAYBACK["fan"][1])
-    loop = np.tile(fan, math.ceil(19 * RATE / len(fan)))[:19 * RATE] * .02
+    loop = np.tile(fan, math.ceil(19 * RATE / len(fan)))[:19 * RATE] * PLAYBACK["fan"][0]
     ramp = round(.25 * RATE)
     loop[:ramp] *= np.linspace(0, 1, ramp)
     loop[-ramp:] *= np.linspace(1, 0, ramp)
     mix[:len(loop)] += loop
-    timeline.append({"demo": "rack", "time_seconds": 0, "label": "fan loop, power on through 19s", "gain": .02, "pitch": PLAYBACK["fan"][1]})
+    timeline.append({"demo": "rack", "time_seconds": 0, "label": "fan loop, power on through 19s", "gain": PLAYBACK["fan"][0], "pitch": PLAYBACK["fan"][1]})
 
     def place(asset, at, variant=1, gain=None, pitch=None):
         default_gain, default_pitch = PLAYBACK[asset]
@@ -155,7 +155,7 @@ def make_demo(sounds, specs, output):
         timeline.append({"demo": "rack", "time_seconds": round(at, 3),
                          "label": f"{asset}_{variant:02d}", "gain": gain, "pitch": pitch})
 
-    place("relay", .4, gain=.12, pitch=.8)
+    place("relay", .4, gain=.144, pitch=.8)
     place("start", .4)
     for i in range(5):
         place("disk", 1.6 + i * .3, i % 2 + 1, pitch=.8 if i % 2 else 1.3)
@@ -163,7 +163,7 @@ def make_demo(sounds, specs, output):
         place("terminal", 5 + i * .3, i % 2 + 1)
         for asset, at in (("card_read", 7.5), ("card_write", 9.5)):
             place(asset, at + i * .2, i % 2 + 1)
-            place("relay", at + i * .2, i % 2 + 1, gain=.025, pitch=1.7)
+            place("relay", at + i * .2, i % 2 + 1, gain=.03, pitch=1.7)
     place("card_feed", 11.2)
     place("paper", 11.2)
     place("card_feed", 12, 2, pitch=.85)

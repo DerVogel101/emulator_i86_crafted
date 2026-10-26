@@ -39,9 +39,11 @@ public final class MachineSoundClientGameTest implements FabricClientGameTest {
         boolean pause = context.computeOnClient(client -> client.options.pauseOnLostFocus);
         var heard = new ArrayList<String>();
         var layers = new HashMap<Long, Integer>();
+        var volumes = new HashMap<String, Float>();
         SoundEventListener listener = (sound, event, range) -> {
             if (sound.getIdentifier().getNamespace().equals("emulator_i86_crafted")) {
                 heard.add(sound.getIdentifier().getPath());
+                volumes.put(sound.getIdentifier().getPath(), sound.getVolume());
                 if (!sound.isLooping()) layers.merge(ticks(), 1, Integer::sum);
             }
         };
@@ -86,6 +88,11 @@ public final class MachineSoundClientGameTest implements FabricClientGameTest {
                 context.waitTicks(30);
                 context.runOnClient(client -> {
                     assertFans(client, 3);
+                    if (Math.abs(volumes.getOrDefault("machine.sign", 0f) - .036f) > .000001f)
+                        throw new AssertionError("GPU transfer sound must be 20% louder");
+                    for (var value : map("FANS").values())
+                        if (Math.abs(((SoundInstance) value).getVolume() - .0126f) > .000001f)
+                            throw new AssertionError("Settled GPU fan must be 5% louder");
                     if (!heard.contains("machine.fan") || Collections.frequency(heard, "machine.sign") <= 6)
                         throw new AssertionError("Steady indicator flags must keep quiet fan/transfer audio alive");
                     if (heard.contains("machine.start")) throw new AssertionError("Non-controller modules must not play boot chimes");
@@ -165,6 +172,8 @@ public final class MachineSoundClientGameTest implements FabricClientGameTest {
                 context.runOnClient(client -> {
                     if (!heard.contains("machine.start") || !heard.contains("machine.relay"))
                         throw new AssertionError("A real mainframe boot must play its relay and startup cue");
+                    if (Math.abs(volumes.getOrDefault("machine.start", 0f) - .144f) > .000001f)
+                        throw new AssertionError("Mainframe startup sound must be 20% louder");
                     heard.clear();
                 });
                 server.runOnServer(host -> {
@@ -282,7 +291,7 @@ public final class MachineSoundClientGameTest implements FabricClientGameTest {
         for (var value : fans.values()) {
             var fan = (SoundInstance) value;
             if (fan.getPitch() < .77f || fan.getPitch() > .86f) throw new AssertionError("Fan playback pitch is out of range");
-            if (!fan.isLooping() || fan.getSource() != SoundSource.BLOCKS || fan.getVolume() > .025f
+            if (!fan.isLooping() || fan.getSource() != SoundSource.BLOCKS || fan.getVolume() > .02625f + .000001f
                     || !client.getSoundManager().isActive(fan)) throw new AssertionError("Quiet positional fan is not active");
         }
     }

@@ -21,7 +21,7 @@ public final class ClientKeyboard {
         });
         ClientPlayNetworking.registerGlobalReceiver(KeyboardPackets.Overflow.TYPE, (packet, context) -> {
             if (context.client().gui.screen() instanceof KeyboardScreen screen && screen.token().equals(packet.token()))
-                context.client().getSoundManager().play(SimpleSoundInstance.forUI(ModSounds.FAULT, 1F));
+                context.client().getSoundManager().play(SimpleSoundInstance.forUI(ModSounds.FAULT, 1F, .30F));
         });
     }
     public static boolean active() { return Minecraft.getInstance().gui.screen() instanceof KeyboardScreen; }

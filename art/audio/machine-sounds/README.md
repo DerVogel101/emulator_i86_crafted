@@ -2,9 +2,11 @@
 
 All 16 machine cues use 27 original clips generated with the local **Stable Audio
 3 Small SFX** app through its Gradio API on 2026-10-26. There are no vanilla sound
-aliases in this set. Playback timing, gains, subtitles, and the Blocks
+aliases in this set. Playback timing, subtitles, and the Blocks
 volume slider are unchanged.
-Keyboard overflow also reuses the generated fault clip as a UI notification.
+Machine cues use 1.2 times the original playback gain; fans use 1.05 times. The fan
+fade envelope is scaled by the same factor. Keyboard overflow also reuses the
+generated fault clip as a UI notification, with 1.2 times its original UI gain.
 
 Model: `cocktailpeanut/stable-audio-3-small-sfx`, cached revision
 `84c4bc8e3281c5bc6d6f09525fec1c5c5fd411ab`. Generation used the app defaults
