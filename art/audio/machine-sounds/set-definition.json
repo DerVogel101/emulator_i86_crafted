@@ -1,7 +1,7 @@
 {
   "fan": {
-    "prompt": "A small vintage computer cooling fan and disk spindle running steadily at medium speed, smooth soft mechanical whirr and airy rotating blades, constant even texture, no changes or clicks. Seamlessly looping machine ambience.",
-    "seed": 861000,
+    "prompt": "A small brushless computer ventilation fan already running at constant speed. A perfectly steady smooth soft flow of air with a faint continuous electric motor tone. Consistent uninterrupted texture from start to finish, close perspective, acoustically damped enclosure, anechoic recording.",
+    "seed": 861012,
     "source_seconds": 8,
     "durations": [
       4
@@ -122,7 +122,13 @@
       0.5,
       0.55
     ],
-    "peak_db": -6
+    "peak_db": -6,
+    "variant_overrides": {
+      "1": {
+        "prompt": "A very short isolated paper card feed mechanism recorded extremely close in an anechoic booth. Small damped rubber rollers briefly pull one stiff card through a plastic guide, a soft friction stroke ending in a muted plastic click. Completely dry direct contact sound, absorbent enclosed mechanism, tiny compact machine.",
+        "seed": 862211
+      }
+    }
   },
   "paper": {
     "prompt": "One stiff paper punch card slides against a small stack of cards, a short delicate dry paper shuffle and edge scrape, close and soft, quick decay.",

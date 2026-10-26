@@ -2,14 +2,14 @@
   {
     "file": "src/main/resources/assets/emulator_i86_crafted/sounds/machine/fan_01.ogg",
     "source": "sources/fan_01.wav",
-    "seed": 861001,
+    "seed": 861013,
     "duration_seconds": 4.0,
     "sample_rate": 48000,
     "channels": 1,
-    "peak_dbfs": -9.124870399129911,
-    "rms_dbfs": -28.758281816079688,
-    "loop_boundary_step": 0.0036546261981129646,
-    "max_sample_step": 0.17698558047413826
+    "peak_dbfs": -9.05272325355672,
+    "rms_dbfs": -21.753474920044454,
+    "loop_boundary_step": 0.0020577311515808105,
+    "max_sample_step": 0.028364581521600485
   },
   {
     "file": "src/main/resources/assets/emulator_i86_crafted/sounds/machine/start_01.ogg",
@@ -194,12 +194,12 @@
   {
     "file": "src/main/resources/assets/emulator_i86_crafted/sounds/machine/card_feed_01.ogg",
     "source": "sources/card_feed_01.wav",
-    "seed": 862201,
+    "seed": 862211,
     "duration_seconds": 0.5,
     "sample_rate": 48000,
     "channels": 1,
-    "peak_dbfs": -6.667031234209535,
-    "rms_dbfs": -37.666805012750224
+    "peak_dbfs": -6.3692673661313295,
+    "rms_dbfs": -35.37737817995213
   },
   {
     "file": "src/main/resources/assets/emulator_i86_crafted/sounds/machine/card_feed_02.ogg",

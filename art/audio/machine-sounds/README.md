@@ -13,8 +13,10 @@ The control workflow came from the Pinokio skill and the app's saved
 `api-stable-audio-3-small` skill; no launcher changes were needed.
 
 `set-definition.json` contains prompts, base seeds, source lengths, final clip
-lengths, and peak targets. Each file in `sources/` has its original 16-bit WAV
-and JSON with the complete resolved API request and WAV SHA-256. `api-info.json`
+lengths, and peak targets. Individual clips can override their prompt and seed in
+`variant_overrides` while the other variants retain their original settings.
+Each file in `sources/` has its original 16-bit WAV and JSON with the complete
+resolved API request and WAV SHA-256. `api-info.json`
 captures the advertised API contract. `asset-manifest.json` records the decoded
 game clips' lengths, channels, levels, and fan seam measurements.
 

@@ -4,6 +4,7 @@ Requires numpy, soundfile and ffmpeg; no model inference runs here.
 """
 import argparse
 import csv
+import hashlib
 import html
 import json
 import math
@@ -124,7 +125,7 @@ def make_demo(sounds, specs, output):
                          "label": name, "gain": gain, "pitch": pitch})
         reel.extend((audition, np.zeros(round(.45 * RATE))))
         position += len(audition) + round(.45 * RATE)
-        prompt = html.escape(specs[asset]["prompt"])
+        prompt = html.escape(specs[asset].get("variant_overrides", {}).get(str(variant), {}).get("prompt", specs[asset]["prompt"]))
         cards.append(f'<article><h3>{html.escape(name)}</h3><p>{prompt}</p>'
                      f'<p>Game pitch {pitch:g}; gain {gain:g}. Audition peak −6 dBFS.</p>'
                      f'<audio controls preload="none" src="clips/{name}.wav"></audio></article>')
@@ -190,6 +191,8 @@ def make_demo(sounds, specs, output):
 <h2>Fan seam test</h2><p>Three consecutive loops at game pitch 0.6, raised to −9 dBFS. No silence or fade is inserted between loops.</p><audio controls src="fan-loop-test.wav"></audio>
 <h2>Individual auditions</h2><section id="clips">CARDS</section></html>'''
     page = page.replace("BOOST", f"{20 * math.log10(mix_gain):.1f}").replace("CARDS", "\n".join(cards))
+    revision = hashlib.sha256(json.dumps(specs, sort_keys=True).encode()).hexdigest()[:12]
+    page = page.replace('.wav"', f'.wav?v={revision}"')
     (output / "index.html").write_text(page, encoding="utf-8")
     return {"rack_peak_dbfs": 20 * math.log10(float(np.max(np.abs(mix * mix_gain)))),
             "listening_boost_db": 20 * math.log10(mix_gain), "all_sounds_seconds": position / RATE,
@@ -222,7 +225,7 @@ def main():
             assert np.max(np.abs(delivered)) < 1
             sounds[(asset, variant)] = delivered
             entry = {"file": str(destination.relative_to(ROOT)).replace("\\", "/"),
-                     "source": f"sources/{source.name}", "seed": spec["seed"] + variant,
+                     "source": f"sources/{source.name}", "seed": spec.get("variant_overrides", {}).get(str(variant), {}).get("seed", spec["seed"] + variant),
                      "duration_seconds": len(delivered) / RATE, "sample_rate": RATE, "channels": 1,
                      "peak_dbfs": 20 * math.log10(float(np.max(np.abs(delivered)))),
                      "rms_dbfs": 20 * math.log10(float(np.sqrt(np.mean(delivered ** 2))))}

@@ -39,8 +39,9 @@ def main():
             name = f"{asset}_{variant:02d}"
             destination = sources / (name + ".wav")
             metadata = sources / (name + ".json")
-            overrides = {"prompt": spec["prompt"] + common, "negative_prompt": "",
-                         "seconds_total": spec["source_seconds"], "seed": spec["seed"] + variant,
+            variant_spec = spec.get("variant_overrides", {}).get(str(variant), {})
+            overrides = {"prompt": variant_spec.get("prompt", spec["prompt"]) + common, "negative_prompt": "",
+                         "seconds_total": spec["source_seconds"], "seed": variant_spec.get("seed", spec["seed"] + variant),
                          "file_format": "wav", "file_naming": "verbose", "cut_to_seconds_total": True}
             if destination.exists() and metadata.exists():
                 saved = json.loads(metadata.read_text(encoding="utf-8"))
