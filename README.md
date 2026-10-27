@@ -35,3 +35,7 @@ $env:JAVA_HOME = "C:\Program Files\Java\jdk-25"
 The installable JAR is `build/libs/emulator_i86_crafted-1.0-SNAPSHOT.jar`; the runtime and sources JARs are development artifacts. See [implementation and acceptance evidence](docs/implementation.md) and [native test commands](docs/native_tests.md).
 
 The yield extension is `0F 00` (batch) / `0F 01` (tick). Coprocessor opcodes remain unsupported. [IA-16 GCC validation](docs/ia16_validation.md) covers representative compiler output and selected helpers; validate each ROM's additional startup/library code.
+
+## Tribute
+- Some sound effects were generated using Stable Audio 3 Small SFX by Stability AI. These assets are distributed as part of this BSD-3-Clause licensed project.
+- The sign Font is a modified version of [Monocraft](https://github.com/IdreesInc/Monocraft)
