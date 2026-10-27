@@ -1,0 +1,163 @@
+{
+  "fan": {
+    "prompt": "A soft continuous shhhhh of ventilation air flowing through a small desktop computer heat sink. Light smooth broadband air noise, like a very quiet desk fan heard close up. The sound is uniform and unchanging, with a gentle high airy texture, an acoustically damped enclosure, and no audible blade rhythm. Already running steadily for the entire recording.",
+    "seed": 861101,
+    "source_seconds": 8,
+    "durations": [
+      4
+    ],
+    "peak_db": -9
+  },
+  "start": {
+    "prompt": "A vintage computer powering on: one small relay engages, followed immediately by a brief clean two-note electronic confirmation chirp, low then higher note, restrained and friendly. One isolated startup cue with a quick decay.",
+    "seed": 861100,
+    "source_seconds": 2,
+    "durations": [
+      0.35
+    ],
+    "peak_db": -6
+  },
+  "stop": {
+    "prompt": "One small vintage computer power relay disengages, a muted mechanical clack with a tiny spring release, short dry power-off switch click, quick decay.",
+    "seed": 861200,
+    "source_seconds": 1,
+    "durations": [
+      0.22
+    ],
+    "peak_db": -6
+  },
+  "fault": {
+    "prompt": "A vintage computer error alert: a short low electronic buzzer with two restrained descending pulses, clean simple oscillator, dry and modest, clearly an error indication, quick decay.",
+    "seed": 861300,
+    "source_seconds": 2,
+    "durations": [
+      1.1
+    ],
+    "peak_db": -7
+  },
+  "burn": {
+    "prompt": "A vintage EPROM programmer finishes writing: one tiny relay click followed by a short clear high electronic success chirp, precise simple oscillator, warm and restrained, quick decay.",
+    "seed": 861400,
+    "source_seconds": 2,
+    "durations": [
+      0.9
+    ],
+    "peak_db": -6
+  },
+  "relay": {
+    "prompt": "One miniature electromechanical relay actuates inside a vintage computer, a single crisp soft metallic tick with a subtle plastic body, very short dry click, quick decay.",
+    "seed": 861500,
+    "source_seconds": 1,
+    "durations": [
+      0.1,
+      0.12
+    ],
+    "peak_db": -6
+  },
+  "disk": {
+    "prompt": "One brief vintage hard disk head seek, a tight cluster of fine mechanical chatter and a muted head-positioning clack, small precise disk mechanism, quick decay, no motor spin-up.",
+    "seed": 861600,
+    "source_seconds": 2,
+    "durations": [
+      0.16,
+      0.2
+    ],
+    "peak_db": -6
+  },
+  "terminal": {
+    "prompt": "One tiny teletype print hammer striking, a soft crisp dry tick from a vintage computer terminal, small and delicate, very quick decay.",
+    "seed": 861700,
+    "source_seconds": 1,
+    "durations": [
+      0.07,
+      0.09
+    ],
+    "peak_db": -6
+  },
+  "sign": {
+    "prompt": "One small split-flap display segment changes, a delicate plastic flap and tiny metal latch click, soft precise dry mechanical tick, quick decay.",
+    "seed": 861800,
+    "source_seconds": 1,
+    "durations": [
+      0.12,
+      0.14
+    ],
+    "peak_db": -6
+  },
+  "key": {
+    "prompt": "One key press and release on a vintage computer keyboard, a light tactile plastic keycap click with a small spring, single quick keystroke, dry and quiet, quick decay.",
+    "seed": 861900,
+    "source_seconds": 1,
+    "durations": [
+      0.075,
+      0.09
+    ],
+    "peak_db": -6
+  },
+  "card_read": {
+    "prompt": "One punched card row advances through an electromechanical card reader: a short precise ratchet tick and delicate brush contact chatter, thin card stock in a small machine, quick decay.",
+    "seed": 862000,
+    "source_seconds": 2,
+    "durations": [
+      0.16,
+      0.18
+    ],
+    "peak_db": -6
+  },
+  "card_write": {
+    "prompt": "One row punched into a paper punch card, a tight cluster of tiny metal punches striking thin stiff card stock, short dry mechanical clack with fine papery grit, quick decay.",
+    "seed": 862100,
+    "source_seconds": 2,
+    "durations": [
+      0.16,
+      0.18
+    ],
+    "peak_db": -6
+  },
+  "card_feed": {
+    "prompt": "A compact punched card machine feeds one card: small rubber rollers engage, a short smooth motor stroke pulls stiff card stock, then a soft mechanical end-stop, one complete short transport movement.",
+    "seed": 862200,
+    "source_seconds": 2,
+    "durations": [
+      0.5,
+      0.55
+    ],
+    "peak_db": -6,
+    "variant_overrides": {
+      "1": {
+        "prompt": "A very short isolated paper card feed mechanism recorded extremely close in an anechoic booth. Small damped rubber rollers briefly pull one stiff card through a plastic guide, a soft friction stroke ending in a muted plastic click. Completely dry direct contact sound, absorbent enclosed mechanism, tiny compact machine.",
+        "seed": 862211
+      }
+    }
+  },
+  "paper": {
+    "prompt": "One stiff paper punch card slides against a small stack of cards, a short delicate dry paper shuffle and edge scrape, close and soft, quick decay.",
+    "seed": 862300,
+    "source_seconds": 2,
+    "durations": [
+      0.22,
+      0.28
+    ],
+    "peak_db": -6
+  },
+  "clock": {
+    "prompt": "One tiny precision clock escapement tick inside an electronic timer, a very soft high mechanical tick, dry and delicate, very quick decay, no ringing.",
+    "seed": 862400,
+    "source_seconds": 1,
+    "durations": [
+      0.055,
+      0.07
+    ],
+    "peak_db": -6
+  },
+  "link": {
+    "prompt": "One short vintage computer data-transfer burst, two tiny dry relay ticks with a faint electrical chirrup, compact electromechanical communications unit, precise and quiet, quick decay.",
+    "seed": 862500,
+    "source_seconds": 2,
+    "durations": [
+      0.12,
+      0.15
+    ],
+    "peak_db": -6
+  }
+}

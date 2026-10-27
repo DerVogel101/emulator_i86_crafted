@@ -1,0 +1,50 @@
+{
+  "asset": "card_write",
+  "variant": 1,
+  "target_seconds": 0.16,
+  "model": "Stable Audio 3 Small SFX",
+  "overrides": {
+    "prompt": "One row punched into a paper punch card, a tight cluster of tiny metal punches striking thin stiff card stock, short dry mechanical clack with fine papery grit, quick decay. Isolated close-miked studio sound effect for the same compact vintage computer. Quiet background, dry, no room reverb, no music, no speech, no hiss, no exaggerated bass. The action begins immediately.",
+    "negative_prompt": "",
+    "seconds_total": 2,
+    "seed": 862101,
+    "file_format": "wav",
+    "file_naming": "verbose",
+    "cut_to_seconds_total": true
+  },
+  "request": {
+    "data": [
+      "One row punched into a paper punch card, a tight cluster of tiny metal punches striking thin stiff card stock, short dry mechanical clack with fine papery grit, quick decay. Isolated close-miked studio sound effect for the same compact vintage computer. Quiet background, dry, no room reverb, no music, no speech, no hiss, no exaggerated bass. The action begins immediately.",
+      "",
+      2,
+      1.0,
+      8,
+      0,
+      862101,
+      "pingpong",
+      1.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      1.0,
+      "wav",
+      "verbose",
+      true,
+      null,
+      0.9,
+      null,
+      null,
+      null,
+      "Init audio",
+      100,
+      0,
+      false,
+      6.0,
+      1,
+      []
+    ]
+  },
+  "event_id": "ff070e9217a646e49e2159ded54a0240",
+  "sha256": "c9b1944cd7cac75868769dabde61d3c6a7a88a1b3d6f3b005875a851c13a10b6"
+}

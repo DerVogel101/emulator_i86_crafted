@@ -39,9 +39,14 @@ public final class MachineSoundClientGameTest implements FabricClientGameTest {
         boolean pause = context.computeOnClient(client -> client.options.pauseOnLostFocus);
         var heard = new ArrayList<String>();
         var layers = new HashMap<Long, Integer>();
+        var volumes = new HashMap<String, Float>();
+        var relayVolumes = new HashMap<BlockPos, Float>();
         SoundEventListener listener = (sound, event, range) -> {
             if (sound.getIdentifier().getNamespace().equals("emulator_i86_crafted")) {
                 heard.add(sound.getIdentifier().getPath());
+                volumes.put(sound.getIdentifier().getPath(), sound.getVolume());
+                if (sound.getIdentifier().getPath().equals("machine.relay"))
+                    relayVolumes.put(BlockPos.containing(sound.getX(), sound.getY(), sound.getZ()), sound.getVolume());
                 if (!sound.isLooping()) layers.merge(ticks(), 1, Integer::sum);
             }
         };
@@ -55,8 +60,9 @@ public final class MachineSoundClientGameTest implements FabricClientGameTest {
                 for (var id : BuiltInRegistries.SOUND_EVENT.keySet()) if (id.getNamespace().equals("emulator_i86_crafted")) {
                     var event = client.getSoundManager().getSoundEvent(id);
                     if (event == null || event.getWeight() == 0) throw new AssertionError("Empty sound event: " + id);
-                    if (!event.getSound(RandomSource.create(1)).getLocation().getNamespace().equals("minecraft"))
-                        throw new AssertionError("Machine cue does not resolve to vanilla audio: " + id);
+                    var clip = event.getSound(RandomSource.create(1)).getLocation();
+                    if (!clip.getNamespace().equals("emulator_i86_crafted") || !clip.getPath().startsWith("machine/"))
+                        throw new AssertionError("Machine cue does not resolve to bundled audio: " + id);
                     cues++;
                 }
                 if (cues != 16) throw new AssertionError("Missing machine sound registrations: " + cues);
@@ -85,6 +91,11 @@ public final class MachineSoundClientGameTest implements FabricClientGameTest {
                 context.waitTicks(30);
                 context.runOnClient(client -> {
                     assertFans(client, 3);
+                    if (Math.abs(volumes.getOrDefault("machine.sign", 0f) - .036f) > .000001f)
+                        throw new AssertionError("GPU transfer sound must be 20% louder");
+                    for (var value : map("FANS").values())
+                        if (Math.abs(((SoundInstance) value).getVolume() - .0126f) > .000001f)
+                            throw new AssertionError("Settled GPU fan must be 5% louder");
                     if (!heard.contains("machine.fan") || Collections.frequency(heard, "machine.sign") <= 6)
                         throw new AssertionError("Steady indicator flags must keep quiet fan/transfer audio alive");
                     if (heard.contains("machine.start")) throw new AssertionError("Non-controller modules must not play boot chimes");
@@ -164,6 +175,10 @@ public final class MachineSoundClientGameTest implements FabricClientGameTest {
                 context.runOnClient(client -> {
                     if (!heard.contains("machine.start") || !heard.contains("machine.relay"))
                         throw new AssertionError("A real mainframe boot must play its relay and startup cue");
+                    if (Math.abs(volumes.getOrDefault("machine.start", 0f) - .144f) > .000001f)
+                        throw new AssertionError("Mainframe startup sound must be 20% louder");
+                    if (Math.abs(relayVolumes.getOrDefault(origin, 0f) - .144f) > .000001f)
+                        throw new AssertionError("Controller relay must retain only the global 20% boost");
                     heard.clear();
                 });
                 server.runOnServer(host -> {
@@ -216,6 +231,12 @@ public final class MachineSoundClientGameTest implements FabricClientGameTest {
                 context.runOnClient(client -> {
                     if (!heard.contains("machine.card_read") || !heard.contains("machine.card_write") || !heard.contains("machine.relay"))
                         throw new AssertionError("Batched punchcard row bursts did not play distinct layered scan/punch cues");
+                    if (Math.abs(volumes.getOrDefault("machine.card_read", 0f) - .099f) > .000001f
+                            || Math.abs(volumes.getOrDefault("machine.card_write", 0f) - .126f) > .000001f)
+                        throw new AssertionError("Reader/writer row sounds must add 50% to the global boost");
+                    for (int i = 0; i < 2; i++)
+                        if (Math.abs(relayVolumes.getOrDefault(new BlockPos(9 + i * 2, 96, 4), 0f) - .045f) > .000001f)
+                            throw new AssertionError("Reader/writer relay layers must receive the device boost");
                     if (Collections.frequency(heard, "machine.card_read") > 2 || Collections.frequency(heard, "machine.card_write") > 2)
                         throw new AssertionError("A punchcard burst replayed its per-event backlog");
                     heard.clear();
@@ -228,6 +249,9 @@ public final class MachineSoundClientGameTest implements FabricClientGameTest {
                 context.runOnClient(client -> {
                     if (!heard.contains("machine.card_feed") || !heard.contains("machine.paper"))
                         throw new AssertionError("Card advance/eject must layer the mechanism and paper sounds");
+                    if (Math.abs(volumes.getOrDefault("machine.card_feed", 0f) - .18f) > .000001f
+                            || Math.abs(volumes.getOrDefault("machine.paper", 0f) - .144f) > .000001f)
+                        throw new AssertionError("Reader/writer feed and paper sounds must receive the device boost");
                     if (layers.values().stream().anyMatch(count -> count > 6)) throw new AssertionError("Layered machine cues exceeded the local sound budget");
                     heard.clear();
                 });
@@ -250,7 +274,7 @@ public final class MachineSoundClientGameTest implements FabricClientGameTest {
         context.runOnClient(client -> {
             if (!map("FANS").isEmpty() || !map("STATES").isEmpty()) throw new AssertionError("Disconnect did not clear machine audio");
         });
-        System.out.println("I86_MACHINE_SOUNDS_OK: vanilla resources, profiles, boot/terminal/sign/disk/shutdown, layered punchcard bursts, layer/fan caps, freeze/mute/reload/removal/power/range/disconnect cleanup");
+        System.out.println("I86_MACHINE_SOUNDS_OK: bundled resources, profiles, boot/terminal/sign/disk/shutdown, layered punchcard bursts, layer/fan caps, freeze/mute/reload/removal/power/range/disconnect cleanup");
     }
 
     private static void send(MinecraftServer server, List<BlockPos> positions, int flags) {
@@ -280,7 +304,8 @@ public final class MachineSoundClientGameTest implements FabricClientGameTest {
         if (fans.size() != expected) throw new AssertionError("Expected " + expected + " fans, got " + fans.size());
         for (var value : fans.values()) {
             var fan = (SoundInstance) value;
-            if (!fan.isLooping() || fan.getSource() != SoundSource.BLOCKS || fan.getVolume() > .025f
+            if (fan.getPitch() < .77f || fan.getPitch() > .86f) throw new AssertionError("Fan playback pitch is out of range");
+            if (!fan.isLooping() || fan.getSource() != SoundSource.BLOCKS || fan.getVolume() > .02625f + .000001f
                     || !client.getSoundManager().isActive(fan)) throw new AssertionError("Quiet positional fan is not active");
         }
     }

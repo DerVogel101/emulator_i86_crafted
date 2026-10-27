@@ -1,7 +1,19 @@
 # Machine sounds
 
-All cues reuse vanilla Minecraft sound events; no external audio is bundled. The
-mod gives the events machine-specific subtitles and uses the Blocks volume slider.
+All 16 cues use bundled mono Ogg Vorbis clips generated with Stable Audio 3 Small SFX.
+The mod gives the events machine-specific subtitles and uses the Blocks volume slider.
+Fan, startup, shutdown, fault and ROM completion each have one clip. The other cues
+have two variations selected by Minecraft. The preloaded fan uses an equal-power
+crossfade, and short cues use curved edge fades for repeated activity. The fan plays
+at a lowered pitch; one-shot pitch changes, timing, distance limits and
+packet handling are preserved.
+Machine cue playback is 20% louder and fans are 5% louder than the original
+generated-sound balance. The keyboard's FIFO overflow notification also uses the
+generated fault clip at the 20% higher gain. Reader/writer scan, punch, feed, paper,
+relay and fault layers receive a further 50% gain increase.
+See [generation and provenance](../art/audio/machine-sounds/README.md) for the fixed
+prompts, seeds and regeneration steps. The generated [sound demo](../build/sound-demo/index.html)
+plays every clip and repeated activity for review.
 
 The client derives playback from the existing batched indicator updates. No sound
 packets are sent. The old punchcard `ServerLevel.playSound` calls are gone. Updates
@@ -43,7 +55,9 @@ Frozen game ticks keep fan ambience but suppress repeated activity cues.
 `SoundActivitySelfTest` checks coalescing, sustained every-tick activity, cooldowns,
 power chatter, short terminal pulses, and silent initial/viewer/deck/fault states.
 Native tests cover the extended batch codec and the sign-write/click distinction.
-`MachineSoundClientGameTest` exercises real packet-driven playback, resolved vanilla
+`tools/verify_resources.mjs` checks that every registered cue resolves to the expected
+bundled variants, with mono Ogg Vorbis headers and no missing or unused clips.
+`MachineSoundClientGameTest` exercises real packet-driven playback, resolved bundled
 audio, all device profiles, real boot/terminal/sign/disk/shutdown events, layered
 punchcard bursts, fan and one-shot limits, and freeze/mute/reload/removal/power/
 range/disconnect cleanup in a running client.

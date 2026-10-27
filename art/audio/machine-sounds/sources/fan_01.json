@@ -1,0 +1,50 @@
+{
+  "asset": "fan",
+  "variant": 1,
+  "target_seconds": 4,
+  "model": "Stable Audio 3 Small SFX",
+  "overrides": {
+    "prompt": "A soft continuous shhhhh of ventilation air flowing through a small desktop computer heat sink. Light smooth broadband air noise, like a very quiet desk fan heard close up. The sound is uniform and unchanging, with a gentle high airy texture, an acoustically damped enclosure, and no audible blade rhythm. Already running steadily for the entire recording. Dry isolated recording of continuous ventilation air at a constant level. No music, speech, impacts, or low engine rumble.",
+    "negative_prompt": "",
+    "seconds_total": 8,
+    "seed": 861102,
+    "file_format": "wav",
+    "file_naming": "verbose",
+    "cut_to_seconds_total": true
+  },
+  "request": {
+    "data": [
+      "A soft continuous shhhhh of ventilation air flowing through a small desktop computer heat sink. Light smooth broadband air noise, like a very quiet desk fan heard close up. The sound is uniform and unchanging, with a gentle high airy texture, an acoustically damped enclosure, and no audible blade rhythm. Already running steadily for the entire recording. Dry isolated recording of continuous ventilation air at a constant level. No music, speech, impacts, or low engine rumble.",
+      "",
+      8,
+      1.0,
+      8,
+      0,
+      861102,
+      "pingpong",
+      1.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      1.0,
+      "wav",
+      "verbose",
+      true,
+      null,
+      0.9,
+      null,
+      null,
+      null,
+      "Init audio",
+      100,
+      0,
+      false,
+      6.0,
+      1,
+      []
+    ]
+  },
+  "event_id": "40209a8b3e574870a85a415912f71aae",
+  "sha256": "4772e978d30ad9ab7cdeae94e6859385b86983234bf7c9a563e7e7c518f269ba"
+}

@@ -165,8 +165,9 @@ public final class ClientMachineSounds {
     private static void play(Voice voice, SoundEvent event, float volume, float pitch) {
         if (remaining == 0) return;
         remaining--;
+        if (voice.kind() == Kind.READER || voice.kind() == Kind.WRITER) volume *= 1.5f;
         Minecraft.getInstance().getSoundManager().play(new SimpleSoundInstance(event, SoundSource.BLOCKS,
-                volume, pitch, RandomSource.create(), voice.position()));
+                volume * 1.2f, pitch, RandomSource.create(), voice.position()));
     }
 
     private static final class Fan extends AbstractTickableSoundInstance {
@@ -176,17 +177,17 @@ public final class ClientMachineSounds {
         private final float target;
         Fan(Voice voice) {
             super(ModSounds.FAN, SoundSource.BLOCKS, RandomSource.create());
-            position = voice.position(); block = voice.block(); target = voice.kind().fan;
+            position = voice.position(); block = voice.block(); target = voice.kind().fan * 1.05f;
             x = position.getX() + .5; y = position.getY() + .5; z = position.getZ() + .5;
             looping = true;
-            volume = .001f;
-            pitch = .55f + (position.hashCode() & 3) * .025f;
+            volume = .001f * 1.05f;
+            pitch = .775f + (position.hashCode() & 3) * .025f;
         }
         @Override public void tick() {
             var state = STATES.get(position);
             if (level != world || state == null || !state.powered() || !world.hasChunkAt(position)
                     || !world.getBlockState(position).is(block)) stop();
-            else volume = Math.min(target, volume + .0015f);
+            else volume = Math.min(target, volume + .0015f * 1.05f);
         }
         void finish() { stop(); }
     }
